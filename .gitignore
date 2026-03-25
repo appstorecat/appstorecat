@@ -1,0 +1,43 @@
+# IDE
+.DS_Store
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+
+# Environment
+.env
+.env.backup
+.env.production
+
+# Backend (Laravel)
+/backend/appgenome
+/backend/.phpunit.cache
+/backend/bootstrap/ssr
+/backend/node_modules
+/backend/public/build
+/backend/public/hot
+/backend/public/storage
+/backend/storage/*.key
+/backend/storage/pail
+/backend/resources/js/actions
+/backend/resources/js/routes
+/backend/resources/js/wayfinder
+/backend/vendor
+/backend/.phpactor.json
+/backend/.phpunit.result.cache
+/backend/auth.json
+
+# Frontend
+/frontend/node_modules
+/frontend/dist
+
+# Google Play Scraper
+/scraper-gplay/__pycache__
+/scraper-gplay/.venv
+/scraper-gplay/*.pyc
+
+# App Store Scraper
+/scraper-appstore/node_modules
+/scraper-appstore/dist

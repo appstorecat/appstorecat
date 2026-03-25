@@ -1,0 +1,3328 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "AppStoreCat API",
+        "description": "Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:7460/api/v1",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register a new user",
+                "operationId": "register",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registration successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginResource"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login a user",
+                "operationId": "login",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout the authenticated user",
+                "operationId": "logout",
+                "responses": {
+                    "204": {
+                        "description": "Logged out successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get authenticated user info",
+                "operationId": "me",
+                "responses": {
+                    "200": {
+                        "description": "User info",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/account/profile": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get authenticated user profile",
+                "operationId": "showProfile",
+                "responses": {
+                    "200": {
+                        "description": "User profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Delete user account",
+                "operationId": "deleteProfile",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProfileDeleteRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Account deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Update user profile",
+                "operationId": "updateProfile",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProfileUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/account/password": {
+            "put": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Update user password",
+                "operationId": "updatePassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResource"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "List tracked apps",
+                "operationId": "listApps",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of tracked apps",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AppResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Register and track an app",
+                "operationId": "storeApp",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreAppRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "App registered",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppDetailResource"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Get app details",
+                "operationId": "showApp",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "App details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppDetailResource"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/listing": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Get store listing for a specific country",
+                "operationId": "appListing",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "tr"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Store listing",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListingResource"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/track": {
+            "post": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Track an app",
+                "operationId": "trackApp",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "App tracked"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Untrack an app",
+                "operationId": "untrackApp",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "App untracked"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/search": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Search apps in stores",
+                "operationId": "searchApps",
+                "parameters": [
+                    {
+                        "name": "term",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AppResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/competitors": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "List competitors for an app",
+                "operationId": "listCompetitors",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of competitors",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CompetitorResource"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Add a competitor to an app",
+                "operationId": "storeCompetitor",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreCompetitorRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Competitor added",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CompetitorResource"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/competitors": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "List all competitor apps across all user apps",
+                "operationId": "listAllCompetitors",
+                "responses": {
+                    "200": {
+                        "description": "List of competitor apps",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AppResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/competitors/{competitor}": {
+            "delete": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Remove a competitor from an app",
+                "operationId": "deleteCompetitor",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "competitor",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Competitor removed"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/keywords": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Get keyword density for an app",
+                "operationId": "appKeywords",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "country_code",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "us"
+                        }
+                    },
+                    {
+                        "name": "ngram",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1,
+                            "enum": [
+                                1,
+                                2,
+                                3,
+                                4
+                            ]
+                        }
+                    },
+                    {
+                        "name": "version_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Keyword density list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/KeywordDensityResource"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/keywords/compare": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Compare keyword density with other apps",
+                "operationId": "compareKeywords",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "app_ids",
+                        "in": "query",
+                        "description": "App IDs to compare (max 5)",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    {
+                        "name": "version_ids",
+                        "in": "query",
+                        "description": "Version ID per app (keyed by app ID)",
+                        "required": false,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    {
+                        "name": "country_code",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ngram",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                1,
+                                2,
+                                3,
+                                4
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Keyword comparison data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/KeywordCompareResource"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/reviews": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "List reviews for an app",
+                "operationId": "appReviews",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "country_code",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "US"
+                        }
+                    },
+                    {
+                        "name": "rating",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                1,
+                                2,
+                                3,
+                                4,
+                                5
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "latest",
+                                "oldest",
+                                "highest",
+                                "lowest"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 25
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated review list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ReviewResource"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/reviews/summary": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Get review summary and rating distribution for an app",
+                "operationId": "appReviewsSummary",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "country_code",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "US"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Review summary with rating distribution",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total_reviews": {
+                                            "type": "integer",
+                                            "example": 150
+                                        },
+                                        "average_rating": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 4.2
+                                        },
+                                        "distribution": {
+                                            "properties": {
+                                                "1": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "2": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "3": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "4": {
+                                                    "type": "integer",
+                                                    "example": 45
+                                                },
+                                                "5": {
+                                                    "type": "integer",
+                                                    "example": 70
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "countries": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "US",
+                                                "TR",
+                                                "DE"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/changes/apps": {
+            "get": {
+                "tags": [
+                    "Change Monitor"
+                ],
+                "summary": "List store listing changes for all tracked apps",
+                "operationId": "appChanges",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 25
+                        }
+                    },
+                    {
+                        "name": "field",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "title",
+                                "subtitle",
+                                "description",
+                                "whats_new",
+                                "screenshots",
+                                "locale_removed"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "App changes list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ChangeResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/changes/competitors": {
+            "get": {
+                "tags": [
+                    "Change Monitor"
+                ],
+                "summary": "List store listing changes for all competitor apps",
+                "operationId": "competitorChanges",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 25
+                        }
+                    },
+                    {
+                        "name": "field",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "title",
+                                "subtitle",
+                                "description",
+                                "whats_new",
+                                "screenshots",
+                                "locale_removed"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Competitor changes list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ChangeResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/charts": {
+            "get": {
+                "tags": [
+                    "Charts"
+                ],
+                "summary": "Get chart rankings",
+                "operationId": "getCharts",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "collection",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "top_free",
+                                "top_paid",
+                                "top_grossing"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "us"
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Chart data"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/countries": {
+            "get": {
+                "tags": [
+                    "Countries"
+                ],
+                "summary": "List active countries",
+                "operationId": "listCountries",
+                "responses": {
+                    "200": {
+                        "description": "List of active countries",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Country"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/dashboard": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get dashboard summary for current user",
+                "operationId": "dashboard",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard summary",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total_apps": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "total_reviews": {
+                                            "type": "integer",
+                                            "example": 143
+                                        },
+                                        "total_versions": {
+                                            "type": "integer",
+                                            "example": 12
+                                        },
+                                        "total_changes": {
+                                            "type": "integer",
+                                            "example": 8
+                                        },
+                                        "recent_reviews": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "app_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "author": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "rating": {
+                                                        "type": "integer"
+                                                    },
+                                                    "review_date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "recent_changes": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "app_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "field_changed": {
+                                                        "type": "string"
+                                                    },
+                                                    "country_code": {
+                                                        "type": "string"
+                                                    },
+                                                    "detected_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/explorer/screenshots": {
+            "get": {
+                "tags": [
+                    "Explorer"
+                ],
+                "summary": "Browse screenshots across all apps",
+                "operationId": "exploreScreenshots",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 12
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated app screenshot listings"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/explorer/icons": {
+            "get": {
+                "tags": [
+                    "Explorer"
+                ],
+                "summary": "Browse app icons across all apps",
+                "operationId": "exploreIcons",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 48
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated app icons"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/publishers/search": {
+            "get": {
+                "tags": [
+                    "Publishers"
+                ],
+                "summary": "Search publishers across stores",
+                "operationId": "searchPublishers",
+                "parameters": [
+                    {
+                        "name": "term",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Publisher search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PublisherSearchResultResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/publishers": {
+            "get": {
+                "tags": [
+                    "Publishers"
+                ],
+                "summary": "List publishers from user apps",
+                "operationId": "listPublishers",
+                "responses": {
+                    "200": {
+                        "description": "Publisher list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PublisherResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/publishers/{platform}/{externalId}": {
+            "get": {
+                "tags": [
+                    "Publishers"
+                ],
+                "summary": "Get publisher details with tracked apps",
+                "operationId": "showPublisher",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Publisher details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PublisherDetailResource"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/publishers/{platform}/{externalId}/store-apps": {
+            "get": {
+                "tags": [
+                    "Publishers"
+                ],
+                "summary": "Fetch all apps by publisher from store",
+                "operationId": "publisherStoreApps",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Apps from store",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "apps": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/StoreAppResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/publishers/{platform}/{externalId}/import": {
+            "post": {
+                "tags": [
+                    "Publishers"
+                ],
+                "summary": "Import and track apps from publisher",
+                "operationId": "importPublisherApps",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "external_ids"
+                                ],
+                                "properties": {
+                                    "external_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Apps imported"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/store-categories": {
+            "get": {
+                "tags": [
+                    "Store Categories"
+                ],
+                "summary": "List store categories",
+                "operationId": "listStoreCategories",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "app",
+                                "game",
+                                "magazine"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of categories",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StoreCategory"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CompetitorRelationship": {
+                "type": "string",
+                "example": "direct",
+                "enum": [
+                    "direct",
+                    "indirect",
+                    "aspiration"
+                ]
+            },
+            "Platform": {
+                "type": "string",
+                "example": "ios",
+                "enum": [
+                    "ios",
+                    "android"
+                ]
+            },
+            "LoginRequest": {
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "PasswordUpdateRequest": {
+                "required": [
+                    "current_password",
+                    "password",
+                    "password_confirmation"
+                ],
+                "properties": {
+                    "current_password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "ProfileDeleteRequest": {
+                "required": [
+                    "password"
+                ],
+                "properties": {
+                    "password": {
+                        "type": "string",
+                        "format": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "ProfileUpdateRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    }
+                },
+                "type": "object"
+            },
+            "RegisterRequest": {
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "password_confirmation"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "AppSearchRequest": {
+                "required": [
+                    "term",
+                    "platform"
+                ],
+                "properties": {
+                    "term": {
+                        "type": "string",
+                        "example": "instagram",
+                        "maxLength": 100,
+                        "minLength": 2
+                    },
+                    "platform": {
+                        "type": "string",
+                        "example": "ios",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "KeywordCompareRequest": {
+                "required": [
+                    "app_ids"
+                ],
+                "properties": {
+                    "app_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "example": [
+                            2,
+                            3
+                        ]
+                    },
+                    "version_ids": {
+                        "type": "object",
+                        "example": {
+                            "2": 5,
+                            "3": 8
+                        },
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "ngram": {
+                        "type": "integer",
+                        "example": 1,
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "KeywordIndexRequest": {
+                "properties": {
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "ngram": {
+                        "type": "integer",
+                        "example": 1,
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4
+                        ]
+                    },
+                    "version_id": {
+                        "type": "integer",
+                        "example": 1
+                    }
+                },
+                "type": "object"
+            },
+            "ReviewIndexRequest": {
+                "properties": {
+                    "country_code": {
+                        "type": "string",
+                        "example": "US"
+                    },
+                    "rating": {
+                        "type": "integer",
+                        "example": 5,
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ]
+                    },
+                    "sort": {
+                        "type": "string",
+                        "example": "latest",
+                        "enum": [
+                            "latest",
+                            "oldest",
+                            "highest",
+                            "lowest"
+                        ]
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 25
+                    }
+                },
+                "type": "object"
+            },
+            "StoreAppRequest": {
+                "required": [
+                    "external_id",
+                    "platform"
+                ],
+                "properties": {
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801252"
+                    },
+                    "platform": {
+                        "type": "string",
+                        "example": "ios",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "StoreCompetitorRequest": {
+                "required": [
+                    "competitor_app_id"
+                ],
+                "properties": {
+                    "competitor_app_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "relationship": {
+                        "type": "string",
+                        "example": "direct",
+                        "enum": [
+                            "direct",
+                            "indirect",
+                            "aspiration"
+                        ]
+                    },
+                    "notes": {
+                        "type": "string",
+                        "example": "Main competitor in the same category",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PublisherImportRequest": {
+                "required": [
+                    "external_ids"
+                ],
+                "properties": {
+                    "external_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "PublisherSearchRequest": {
+                "required": [
+                    "term",
+                    "platform"
+                ],
+                "properties": {
+                    "term": {
+                        "type": "string",
+                        "example": "Instagram",
+                        "maxLength": 100,
+                        "minLength": 2
+                    },
+                    "platform": {
+                        "type": "string",
+                        "example": "ios",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "LoginResource": {
+                "properties": {
+                    "user": {
+                        "$ref": "#/components/schemas/UserResource"
+                    },
+                    "token": {
+                        "type": "string",
+                        "example": "1|abc123..."
+                    }
+                },
+                "type": "object"
+            },
+            "UserResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "email_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "AppDetailResource": {
+                "required": [
+                    "id",
+                    "name",
+                    "platform",
+                    "external_id",
+                    "created_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Instagram"
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801252"
+                    },
+                    "publisher": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Publisher"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "category": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/StoreCategory"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "supported_locales": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "EN",
+                            "DE",
+                            "FR"
+                        ],
+                        "nullable": true
+                    },
+                    "original_release_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2010-10-06",
+                        "nullable": true
+                    },
+                    "is_free": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 4.68,
+                        "nullable": true
+                    },
+                    "rating_count": {
+                        "type": "integer",
+                        "example": 31,
+                        "nullable": true
+                    },
+                    "version": {
+                        "type": "string",
+                        "example": "1.2.4",
+                        "nullable": true
+                    },
+                    "file_size_bytes": {
+                        "type": "integer",
+                        "example": 73822208,
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "listings": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ListingResource"
+                        }
+                    },
+                    "versions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VersionResource"
+                        }
+                    },
+                    "changes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StoreListingChange"
+                        }
+                    },
+                    "competitors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CompetitorResource"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "AppResource": {
+                "required": [
+                    "id",
+                    "name",
+                    "platform",
+                    "external_id",
+                    "created_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Instagram"
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801252"
+                    },
+                    "publisher": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Publisher"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "category": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/StoreCategory"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 4.68,
+                        "nullable": true
+                    },
+                    "rating_count": {
+                        "type": "integer",
+                        "example": 31,
+                        "nullable": true
+                    },
+                    "version": {
+                        "type": "string",
+                        "example": "1.2.4",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CompetitorResource": {
+                "required": [
+                    "id",
+                    "relationship",
+                    "app"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "relationship": {
+                        "$ref": "#/components/schemas/CompetitorRelationship"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "app": {
+                        "$ref": "#/components/schemas/AppResource"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "KeywordCompareResource": {
+                "required": [
+                    "apps",
+                    "keywords"
+                ],
+                "properties": {
+                    "apps": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "icon_url": {
+                                    "type": "string",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "keywords": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "KeywordDensityResource": {
+                "required": [
+                    "id",
+                    "keyword",
+                    "count",
+                    "density"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "ngram_size": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "example": "photo editor"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "density": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 2.35
+                    }
+                },
+                "type": "object"
+            },
+            "ListingResource": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/StoreListing"
+                    }
+                ]
+            },
+            "ReviewResource": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Review"
+                    }
+                ]
+            },
+            "ReviewSummaryResource": {
+                "properties": {
+                    "total_reviews": {
+                        "type": "integer",
+                        "example": 150
+                    },
+                    "average_rating": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 4.2
+                    },
+                    "distribution": {
+                        "type": "object"
+                    },
+                    "countries": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "VersionResource": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/AppVersion"
+                    }
+                ]
+            },
+            "ChangeResource": {
+                "required": [
+                    "id",
+                    "field_changed",
+                    "detected_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "app": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "platform": {
+                                "type": "string"
+                            },
+                            "external_id": {
+                                "type": "string"
+                            },
+                            "icon_url": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "version_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "field_changed": {
+                        "type": "string",
+                        "example": "description"
+                    },
+                    "old_value": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "new_value": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "detected_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "DashboardResource": {
+                "properties": {
+                    "total_apps": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "total_reviews": {
+                        "type": "integer",
+                        "example": 143
+                    },
+                    "total_versions": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "total_changes": {
+                        "type": "integer",
+                        "example": 8
+                    },
+                    "recent_reviews": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "recent_changes": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "MessageResource": {
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully"
+                    }
+                },
+                "type": "object"
+            },
+            "PublisherDetailResource": {
+                "properties": {
+                    "publisher": {
+                        "$ref": "#/components/schemas/PublisherResource"
+                    },
+                    "apps": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AppResource"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "PublisherResource": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Publisher"
+                    },
+                    {
+                        "properties": {
+                            "apps_count": {
+                                "type": "integer",
+                                "example": 5,
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "PublisherSearchResultResource": {
+                "required": [
+                    "external_id",
+                    "name",
+                    "platform"
+                ],
+                "properties": {
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801255"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Meta Platforms, Inc."
+                    },
+                    "url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "platform": {
+                        "type": "string",
+                        "example": "ios"
+                    },
+                    "app_count": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "sample_apps": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "icon_url": {
+                                    "type": "string",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "StoreAppResource": {
+                "required": [
+                    "external_id",
+                    "name"
+                ],
+                "properties": {
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801252"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Instagram"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "rating_count": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "is_free": {
+                        "type": "boolean"
+                    },
+                    "category": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "is_tracked": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "App": {
+                "required": [
+                    "id",
+                    "platform",
+                    "external_id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801252"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Instagram"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "supported_locales": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "nullable": true
+                    },
+                    "original_release_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "is_free": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "publisher": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Publisher"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "category": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/StoreCategory"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "AppCompetitor": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "app_id": {
+                        "type": "integer"
+                    },
+                    "competitor_app_id": {
+                        "type": "integer"
+                    },
+                    "relationship": {
+                        "$ref": "#/components/schemas/CompetitorRelationship"
+                    }
+                },
+                "type": "object"
+            },
+            "AppKeywordDensity": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "ngram_size": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "example": "photo editor"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "density": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 2.35
+                    }
+                },
+                "type": "object"
+            },
+            "AppMetric": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-04-07"
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 4.68
+                    },
+                    "rating_count": {
+                        "type": "integer",
+                        "example": 31
+                    },
+                    "rating_breakdown": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "rating_delta": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "installs_range": {
+                        "type": "string",
+                        "example": "1,000,000+",
+                        "nullable": true
+                    },
+                    "file_size_bytes": {
+                        "type": "integer",
+                        "example": 73822208,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AppVersion": {
+                "required": [
+                    "id",
+                    "version"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "version": {
+                        "type": "string",
+                        "example": "1.2.4"
+                    },
+                    "release_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-01-15",
+                        "nullable": true
+                    },
+                    "whats_new": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "file_size_bytes": {
+                        "type": "integer",
+                        "example": 73822208,
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Country": {
+                "required": [
+                    "code",
+                    "name",
+                    "emoji"
+                ],
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "United States"
+                    },
+                    "emoji": {
+                        "type": "string",
+                        "example": "🇺🇸"
+                    }
+                },
+                "type": "object"
+            },
+            "Publisher": {
+                "required": [
+                    "id",
+                    "name",
+                    "platform"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Instagram, Inc."
+                    },
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801255",
+                        "nullable": true
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "url": {
+                        "type": "string",
+                        "example": "https://apps.apple.com/us/developer/instagram-inc/id389801255",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Review": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "version_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "example": "US"
+                    },
+                    "external_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "author": {
+                        "type": "string",
+                        "example": "John",
+                        "nullable": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Great app",
+                        "nullable": true
+                    },
+                    "body": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "rating": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "review_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "app_version": {
+                        "type": "string",
+                        "example": "1.2.4",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "StoreCategory": {
+                "required": [
+                    "id",
+                    "name",
+                    "slug",
+                    "platform"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Photo & Video"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "photo-video"
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    }
+                },
+                "type": "object"
+            },
+            "StoreListing": {
+                "required": [
+                    "id",
+                    "country_code"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "version_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Instagram"
+                    },
+                    "subtitle": {
+                        "type": "string",
+                        "example": "Photos & Videos",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "whats_new": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "screenshots": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "nullable": true
+                    },
+                    "video_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "fetched_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "StoreListingChange": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "version_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
+                    "field_changed": {
+                        "type": "string",
+                        "example": "description"
+                    },
+                    "old_value": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "new_value": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "detected_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "required": [
+                    "id",
+                    "name",
+                    "email"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "email_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Authentication using Bearer token. Example: Bearer {your-token}",
+                "bearerFormat": "Sanctum",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Authentication endpoints"
+        },
+        {
+            "name": "Account",
+            "description": "Account and profile management"
+        },
+        {
+            "name": "Apps",
+            "description": "App registration and management"
+        },
+        {
+            "name": "Change Monitor",
+            "description": "Change Monitor"
+        },
+        {
+            "name": "Charts",
+            "description": "Charts"
+        },
+        {
+            "name": "Countries",
+            "description": "Countries"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard"
+        },
+        {
+            "name": "Explorer",
+            "description": "Explorer"
+        },
+        {
+            "name": "Publishers",
+            "description": "Publishers"
+        },
+        {
+            "name": "Store Categories",
+            "description": "Store Categories"
+        }
+    ]
+}
