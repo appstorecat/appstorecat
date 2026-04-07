@@ -1,0 +1,173 @@
+import { useState } from 'react'
+import { useDebounce } from '@/hooks/use-debounce'
+import { Link } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from '@/lib/axios'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import PlatformSwitcher from '@/components/PlatformSwitcher'
+import CountrySelect from '@/components/CountrySelect'
+import { Search, Smartphone, BookmarkPlus, BookmarkMinus, Loader2, Star } from 'lucide-react'
+
+interface SearchApp {
+  id: number
+  name: string
+  platform: string
+  external_id: string
+  publisher: { id: number; name: string } | null
+  category: { id: number; name: string } | null
+  icon_url: string | null
+  rating: number | null
+  rating_count: number | null
+  version: string | null
+  is_available: boolean
+  is_tracked: boolean
+}
+
+export default function DiscoveryApps() {
+  const queryClient = useQueryClient()
+  const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearch = useDebounce(searchTerm)
+  const [platform, setPlatform] = useState<string>('ios')
+  const [country, setCountry] = useState<string>('us')
+  const [tracking, setTracking] = useState<Set<string>>(new Set())
+
+  const { data: searchResults, isFetching: searching } = useQuery<SearchApp[]>({
+    queryKey: ['app-search', debouncedSearch, platform, country],
+    queryFn: () =>
+      axios.get('/apps/search', { params: { term: debouncedSearch, platform, country } }).then((r) => r.data),
+    enabled: debouncedSearch.length >= 2,
+  })
+
+  const toggleTrack = async (app: SearchApp) => {
+    setTracking((prev) => new Set(prev).add(app.external_id))
+    try {
+      if (app.is_tracked) {
+        await axios.delete(`/apps/${platform}/${app.external_id}/track`)
+      } else {
+        await axios.post(`/apps/${platform}/${app.external_id}/track`)
+      }
+      queryClient.invalidateQueries({ queryKey: ['app-search'] })
+      queryClient.invalidateQueries({ queryKey: ['apps'] })
+    } finally {
+      setTracking((prev) => {
+        const next = new Set(prev)
+        next.delete(app.external_id)
+        return next
+      })
+    }
+  }
+
+  return (
+    <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Discover Apps</h1>
+        <p className="text-sm text-muted-foreground">Search app stores and start tracking</p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search apps in stores..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <PlatformSwitcher value={platform} onChange={setPlatform} />
+        <CountrySelect value={country} onChange={setCountry} className="w-[180px]" />
+      </div>
+
+      {searchTerm.length < 2 && (
+        <div className="rounded-lg border border-dashed p-12 text-center">
+          <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            Search for apps by name to discover and track them
+          </p>
+        </div>
+      )}
+
+      {searchTerm.length >= 2 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            {searching ? 'Searching...' : 'Store Results'}
+          </h2>
+          {searchResults && searchResults.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {searchResults.map((app) => (
+                <Link
+                  key={app.external_id}
+                  to={`/apps/${platform}/${app.external_id}`}
+                  className="flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm"
+                >
+                  {app.icon_url ? (
+                    <img src={app.icon_url} alt={app.name} className="h-14 w-14 shrink-0 rounded-xl" />
+                  ) : (
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+                      <Smartphone className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-semibold">{app.name}</p>
+                      <div className="ml-auto shrink-0">
+                        <Button
+                          variant={app.is_tracked ? 'outline' : 'default'}
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={(e: React.MouseEvent) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            toggleTrack(app)
+                          }}
+                          disabled={tracking.has(app.external_id)}
+                        >
+                          {tracking.has(app.external_id) ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : app.is_tracked ? (
+                            <>
+                              <BookmarkMinus className="mr-1 h-3 w-3" /> Untrack
+                            </>
+                          ) : (
+                            <>
+                              <BookmarkPlus className="mr-1 h-3 w-3" /> Track
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {app.publisher?.name || '—'}
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      {app.category && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          {app.category.name}
+                        </Badge>
+                      )}
+                      {app.rating && (
+                        <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                          <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                          {app.rating.toFixed(1)}
+                        </span>
+                      )}
+                      {app.version && (
+                        <span className="text-[10px] text-muted-foreground/60">
+                          v{app.version}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            !searching && <p className="text-sm text-muted-foreground">No apps found.</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

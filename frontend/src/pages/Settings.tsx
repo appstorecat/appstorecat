@@ -1,0 +1,185 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/stores/auth'
+import axios from '@/lib/axios'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+
+function ProfileSection() {
+  const { user, fetchUser } = useAuthStore()
+  const [name, setName] = useState(user?.name ?? '')
+  const [email, setEmail] = useState(user?.email ?? '')
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    setSuccess('')
+    try {
+      await axios.patch('/account/profile', { name, email })
+      await fetchUser()
+      setSuccess('Profile updated.')
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setError(msg || 'Failed to update profile.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile</CardTitle>
+        <CardDescription>Update your name and email address.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+          {success && <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400">{success}</div>}
+          <div className="grid gap-2">
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+function PasswordSection() {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [password, setPassword] = useState('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    setSuccess('')
+    try {
+      await axios.put('/account/password', {
+        current_password: currentPassword,
+        password,
+        password_confirmation: passwordConfirmation,
+      })
+      setCurrentPassword('')
+      setPassword('')
+      setPasswordConfirmation('')
+      setSuccess('Password updated.')
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setError(msg || 'Failed to update password.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Password</CardTitle>
+        <CardDescription>Change your password.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+          {success && <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400">{success}</div>}
+          <div className="grid gap-2">
+            <Label htmlFor="current_password">Current Password</Label>
+            <Input id="current_password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="new_password">New Password</Label>
+            <Input id="new_password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password_confirmation">Confirm New Password</Label>
+            <Input id="password_confirmation" type="password" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} required />
+          </div>
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Updating...' : 'Update Password'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+function DeleteAccountSection() {
+  const navigate = useNavigate()
+  const { reset } = useAuthStore()
+  const [password, setPassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return
+    setDeleting(true)
+    setError('')
+    try {
+      await axios.delete('/account/profile', { data: { password } })
+      reset()
+      navigate('/login')
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setError(msg || 'Failed to delete account.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Card className="border-destructive/30">
+      <CardHeader>
+        <CardTitle className="text-destructive">Delete Account</CardTitle>
+        <CardDescription>
+          Permanently delete your account and all associated data. This action cannot be undone.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleDelete} className="space-y-4">
+          {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+          <div className="grid gap-2">
+            <Label htmlFor="delete_password">Confirm Password</Label>
+            <Input id="delete_password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          </div>
+          <Button type="submit" variant="destructive" disabled={deleting}>
+            {deleting ? 'Deleting...' : 'Delete Account'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default function Settings() {
+  return (
+    <div className="flex h-full flex-1 flex-col gap-6 p-4">
+      <h1 className="text-2xl font-bold">Settings</h1>
+      <div className="mx-auto w-full max-w-2xl space-y-6">
+        <ProfileSection />
+        <PasswordSection />
+        <Separator />
+        <DeleteAccountSection />
+      </div>
+    </div>
+  )
+}
