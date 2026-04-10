@@ -1,0 +1,20 @@
+# App Store Scraper: Fastify + TypeScript
+services:
+    scraper-appstore:
+        build:
+            context: .
+            dockerfile: .docker/Dockerfile
+        ports:
+            - '${APPSTORE_API_PORT}:${APPSTORE_API_PORT}'
+        volumes:
+            - '.:/app'
+            - '/app/node_modules'
+        environment:
+            - NODE_ENV=development
+            - PORT=${APPSTORE_API_PORT}
+        networks:
+            - appstorecat
+
+networks:
+    appstorecat:
+        driver: bridge

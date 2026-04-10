@@ -1,0 +1,98 @@
+# AppStoreCat — Production Compose (Dokploy)
+# Deploy via Dokploy: paste this as Docker Compose (Raw)
+# Then add domains via Dokploy UI -> Domains tab for each service
+
+services:
+    appstorecat-backend:
+        image: ismailcaakir/appstorecat-backend:${APP_VERSION}
+        restart: unless-stopped
+        expose:
+            - '${BACKEND_PORT}'
+        environment:
+            APP_ENV: production
+            APP_DEBUG: 'false'
+            APP_URL: '${BACKEND_URL}'
+            BACKEND_PORT: '${BACKEND_PORT}'
+            FRONTEND_URL: '${FRONTEND_URL}'
+            DB_CONNECTION: mysql
+            DB_HOST: appstorecat-mysql
+            DB_PORT: 3306
+            DB_DATABASE: '${DB_DATABASE}'
+            DB_USERNAME: '${DB_USERNAME}'
+            DB_PASSWORD: '${DB_PASSWORD}'
+            APPSTORE_API_URL: 'http://appstorecat-scraper-appstore:${APPSTORE_API_PORT}'
+            GPLAY_API_URL: 'http://appstorecat-scraper-gplay:${GPLAY_API_PORT}'
+            QUEUE_CONNECTION: database
+            LOG_CHANNEL: stderr
+        networks:
+            - dokploy-network
+            - appstorecat
+        depends_on:
+            appstorecat-mysql:
+                condition: service_healthy
+
+    appstorecat-frontend:
+        image: ismailcaakir/appstorecat-frontend:${APP_VERSION}
+        restart: unless-stopped
+        expose:
+            - '${FRONTEND_PORT}'
+        environment:
+            BACKEND_API_URL: '${BACKEND_API_URL}'
+            FRONTEND_PORT: '${FRONTEND_PORT}'
+        networks:
+            - dokploy-network
+            - appstorecat
+        depends_on:
+            - appstorecat-backend
+
+    appstorecat-scraper-appstore:
+        image: ismailcaakir/appstorecat-scraper-appstore:${APP_VERSION}
+        restart: unless-stopped
+        expose:
+            - '${APPSTORE_API_PORT}'
+        environment:
+            NODE_ENV: production
+            PORT: '${APPSTORE_API_PORT}'
+        networks:
+            - dokploy-network
+            - appstorecat
+
+    appstorecat-scraper-gplay:
+        image: ismailcaakir/appstorecat-scraper-gplay:${APP_VERSION}
+        restart: unless-stopped
+        expose:
+            - '${GPLAY_API_PORT}'
+        environment:
+            PYTHONDONTWRITEBYTECODE: 1
+            PYTHONUNBUFFERED: 1
+            PORT: '${GPLAY_API_PORT}'
+        networks:
+            - dokploy-network
+            - appstorecat
+
+    appstorecat-mysql:
+        image: 'mysql:8.4'
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+        volumes:
+            - 'appstorecat-mysql:/var/lib/mysql'
+        networks:
+            - appstorecat
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            retries: 3
+            timeout: 5s
+
+networks:
+    dokploy-network:
+        external: true
+    appstorecat:
+        driver: bridge
+
+volumes:
+    appstorecat-mysql:
+        driver: local

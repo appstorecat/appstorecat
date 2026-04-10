@@ -1,0 +1,20 @@
+# Google Play Scraper: FastAPI + Python
+services:
+    scraper-gplay:
+        build:
+            context: .
+            dockerfile: .docker/Dockerfile
+        ports:
+            - '${GPLAY_API_PORT}:${GPLAY_API_PORT}'
+        volumes:
+            - '.:/app'
+        environment:
+            - PYTHONDONTWRITEBYTECODE=1
+            - PYTHONUNBUFFERED=1
+            - PORT=${GPLAY_API_PORT}
+        networks:
+            - appstorecat
+
+networks:
+    appstorecat:
+        driver: bridge

@@ -1,0 +1,67 @@
+# AppStoreCat Backend — Production Image
+# Multi-stage build: composer install -> optimized Laravel app
+
+FROM php:8.4-fpm-alpine AS base
+
+# Runtime packages (separate layer — cached independently)
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
+    gettext \
+    libpng \
+    libzip \
+    icu-libs \
+    oniguruma
+
+# Build deps -> compile extensions -> remove build deps
+RUN apk add --no-cache --virtual .build-deps \
+    $PHPIZE_DEPS \
+    libpng-dev \
+    libzip-dev \
+    icu-dev \
+    oniguruma-dev \
+    && docker-php-ext-install \
+    pdo_mysql \
+    mbstring \
+    zip \
+    bcmath \
+    intl \
+    gd \
+    pcntl \
+    && apk del .build-deps \
+    && rm -rf /var/cache/apk/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# --- Composer dependencies ---
+FROM base AS vendor
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# --- Final image ---
+FROM base
+
+COPY . /var/www/html
+COPY --from=vendor /var/www/html/vendor /var/www/html/vendor
+
+RUN composer dump-autoload --optimize --no-dev \
+    && php artisan config:clear \
+    && php artisan route:clear \
+    && php artisan view:clear
+
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Nginx + supervisor + entrypoint
+RUN mkdir -p /run/nginx
+COPY .docker/conf/nginx/default.conf /etc/nginx/http.d/default.conf.template
+COPY .docker/conf/supervisord/supervisord.prod.conf /etc/supervisor/conf.d/supervisord.conf
+COPY .docker/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+EXPOSE ${BACKEND_PORT:-0}
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

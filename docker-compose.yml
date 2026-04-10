@@ -1,0 +1,128 @@
+# AppStoreCat — Root Orchestrator
+# Usage: copy .env.development.example to .env, fill values, then docker compose up -d
+
+services:
+    # Laravel API (Gateway)
+    appstorecat-backend:
+        build:
+            context: ./backend
+            dockerfile: .docker/Dockerfile
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '${BACKEND_PORT}:80'
+        environment:
+            XDEBUG_MODE: '${XDEBUG_MODE:-off}'
+            APP_URL: '${BACKEND_URL}'
+            FRONTEND_URL: '${FRONTEND_URL}'
+            APPSTORE_API_URL: 'http://host.docker.internal:${APPSTORE_API_PORT}'
+            GPLAY_API_URL: 'http://host.docker.internal:${GPLAY_API_PORT}'
+            DB_DATABASE: '${DB_DATABASE}'
+            DB_USERNAME: '${DB_USERNAME}'
+            DB_PASSWORD: '${DB_PASSWORD}'
+        volumes:
+            - './backend:/var/www/html'
+        networks:
+            - appstorecat
+        depends_on:
+            appstorecat-mysql:
+                condition: service_healthy
+            appstorecat-redis:
+                condition: service_healthy
+
+    # React Frontend
+    appstorecat-frontend:
+        build:
+            context: ./frontend
+            dockerfile: .docker/Dockerfile
+        ports:
+            - '${FRONTEND_PORT}:${FRONTEND_PORT}'
+        volumes:
+            - './frontend:/app'
+            - '/app/node_modules'
+        environment:
+            - NODE_ENV=development
+            - PORT=${FRONTEND_PORT}
+            - BACKEND_URL=http://appstorecat-backend:80
+        networks:
+            - appstorecat
+        depends_on:
+            - appstorecat-backend
+
+    # App Store Scraper API
+    appstorecat-scraper-appstore:
+        build:
+            context: ./scraper-appstore
+            dockerfile: .docker/Dockerfile
+        ports:
+            - '${APPSTORE_API_PORT}:${APPSTORE_API_PORT}'
+        volumes:
+            - './scraper-appstore:/app'
+            - '/app/node_modules'
+        environment:
+            - NODE_ENV=development
+            - PORT=${APPSTORE_API_PORT}
+        networks:
+            - appstorecat
+
+    # Google Play Scraper API
+    appstorecat-scraper-gplay:
+        build:
+            context: ./scraper-gplay
+            dockerfile: .docker/Dockerfile
+        ports:
+            - '${GPLAY_API_PORT}:${GPLAY_API_PORT}'
+        volumes:
+            - './scraper-gplay:/app'
+        environment:
+            - PYTHONDONTWRITEBYTECODE=1
+            - PYTHONUNBUFFERED=1
+            - PORT=${GPLAY_API_PORT}
+        networks:
+            - appstorecat
+
+    # Redis (cache, queue, throttle)
+    appstorecat-redis:
+        image: 'redis:7-alpine'
+        ports:
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
+        volumes:
+            - 'appstorecat-redis:/data'
+        networks:
+            - appstorecat
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            retries: 3
+            timeout: 5s
+
+    # MySQL Database (only used by backend)
+    appstorecat-mysql:
+        image: 'mysql:8.4'
+        ports:
+            - '${FORWARD_DB_PORT}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - 'appstorecat-mysql:/var/lib/mysql'
+            - './backend/.docker/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+        networks:
+            - appstorecat
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+            retries: 3
+            timeout: 5s
+
+networks:
+    appstorecat:
+        driver: bridge
+
+volumes:
+    appstorecat-mysql:
+        driver: local
+    appstorecat-redis:
+        driver: local
