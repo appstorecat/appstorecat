@@ -6,6 +6,10 @@
 /.vscode
 /.zed
 
+# AI local config
+.mcp.json
+/backend/.ai/
+
 # Environment
 .env
 .env.backup

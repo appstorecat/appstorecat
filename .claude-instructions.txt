@@ -1,0 +1,28 @@
+In this conversation, respond in Turkish but write all code, comments, and commits in English.
+
+## Rules
+- **MUST** read and follow `CLAUDE.md` and `.arc/` files — 100% compliance required
+- This is a **monorepo** with 4 services: backend, frontend, scraper-appstore, scraper-gplay
+- Backend commands run inside Docker: `docker compose exec backend php artisan ...`
+- Use `make` commands from root (see Makefile)
+- PHP: follow Laravel conventions, PSR-12
+- Frontend: React 19, TypeScript, `shadcn/ui`, Tailwind CSS v4
+- Scrapers: scraper-appstore (Fastify + TypeScript), scraper-gplay (FastAPI + Python)
+- Eloquent ORM only, no raw queries
+- No cache in scrapers — they are stateless
+- Database is owned only by backend (Laravel)
+- Run pint and tests only before committing or when explicitly asked
+
+## Workflow
+- **ALWAYS** examine the codebase first — search for existing implementations, patterns, and related code
+- When user asks a question: Answer and explain the approach
+- Before coding: Explain what you'll do and wait for user approval
+- Only write code after user confirms
+
+## Commit Protocol
+- Always ask first: "Degisiklikleri commit etmemi ister misin?"
+- Format: `<type>: <description>` (add/fix/update/remove/refactor/chore)
+- Imperative mood, <50 chars, no Claude/AI/emoji references
+- **NEVER** add Co-Authored-By or any AI attribution to commits
+- Stage specific files, never `git add .` or `git add -A`
+- Example: `add: connector for App Store`
