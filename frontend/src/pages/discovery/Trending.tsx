@@ -25,16 +25,7 @@ function timeAgo(dateStr: string): string {
   return `${days} days ago`
 }
 
-function nextUpdate(dateStr: string): string {
-  const updated = new Date(dateStr).getTime()
-  const nextAt = updated + 6 * 3600000
-  const diff = nextAt - Date.now()
-  if (diff <= 0) return 'soon'
-  const hours = Math.floor(diff / 3600000)
-  const mins = Math.floor((diff % 3600000) / 60000)
-  if (hours > 0) return `in ${hours}h ${mins}m`
-  return `in ${mins}m`
-}
+
 
 interface ChartEntry {
   rank: number
@@ -88,7 +79,8 @@ export default function Trending() {
     }, { replace: true })
   }, [setSearchParams])
 
-  const setPlatform = (v: string) => {
+  const setPlatform = (v: string | null) => {
+    if (!v) return
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
       next.set('platform', v)
@@ -96,8 +88,8 @@ export default function Trending() {
       return next
     }, { replace: true })
   }
-  const setCollection = (v: string) => setParam('collection', v)
-  const setCategoryId = (v: string) => setParam('category_id', v)
+  const setCollection = (v: string | null) => v && setParam('collection', v)
+  const setCategoryId = (v: string | null) => v && setParam('category_id', v)
 
   const { data: categories } = useQuery<StoreCategory[]>({
     queryKey: ['store-categories', platform],
@@ -126,11 +118,13 @@ export default function Trending() {
         <p className="text-sm text-muted-foreground">
           Top charts from App Store and Google Play
         </p>
-        {chart?.updated_at && (
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {(chart as any)?.updated_at && (
           <div className="flex items-center gap-3 text-xs text-muted-foreground/60">
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              Updated {timeAgo(chart.updated_at)}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              Updated {timeAgo((chart as any).updated_at)}
             </span>
           </div>
         )}

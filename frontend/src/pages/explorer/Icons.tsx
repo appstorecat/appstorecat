@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
@@ -57,7 +57,8 @@ export default function Icons() {
     }, { replace: true })
   }
 
-  const setPlatform = (v: string) => {
+  const setPlatform = (v: string | null) => {
+    if (!v) return
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
       next.set('platform', v)
@@ -136,7 +137,7 @@ export default function Icons() {
         </div>
         <PlatformSwitcher value={platform} onChange={setPlatform} />
 
-        <Select value={categoryId} onValueChange={(v: string) => setParam('category_id', v)}>
+        <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue>
               {categoryId ? categories?.find((c) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}

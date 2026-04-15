@@ -64,7 +64,8 @@ export default function Screenshots() {
     }, { replace: true })
   }
 
-  const setPlatform = (v: string) => {
+  const setPlatform = (v: string | null) => {
+    if (!v) return
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
       next.set('platform', v)
@@ -145,7 +146,7 @@ export default function Screenshots() {
         </div>
         <PlatformSwitcher value={platform} onChange={setPlatform} />
 
-        <Select value={categoryId} onValueChange={(v: string) => setParam('category_id', v)}>
+        <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue>
               {categoryId ? categories?.find((c) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}

@@ -227,7 +227,7 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{result.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {(result.publisher?.name || '—').slice(0, 30)}
+                      {((result as Record<string, any>).publisher?.name || '—').slice(0, 30)}
                     </p>
                   </div>
                 </button>

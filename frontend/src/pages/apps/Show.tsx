@@ -94,7 +94,8 @@ export default function AppsShow() {
   }
 
   const selectedVersion = searchParams.get('version') || 'latest'
-  const setSelectedVersion = (v: string) => {
+  const setSelectedVersion = (v: string | null) => {
+    if (!v) return
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
       if (v === 'latest') next.delete('version')
