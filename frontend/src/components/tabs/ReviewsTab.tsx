@@ -80,7 +80,7 @@ function RatingBar({ star, count, max }: { star: number; count: number; max: num
 
 
 export default function ReviewsTab({ platform, externalId, currentRating, currentRatingCount, selectedCountry }: ReviewsTabProps) {
-  const countryCode = selectedCountry
+  const countryCode = platform === 'android' ? undefined : selectedCountry
   const [rating, setRating] = useState<string>('all')
   const [sort, setSort] = useState<string>('latest')
   const [page, setPage] = useState(1)
