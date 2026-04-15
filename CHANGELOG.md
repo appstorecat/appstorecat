@@ -81,6 +81,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/ismailcaakir/appstorecat/compare/v0.0.3...HEAD
-[0.0.3]: https://github.com/ismailcaakir/appstorecat/compare/v0.0.2...v0.0.3
-[0.0.2]: https://github.com/ismailcaakir/appstorecat/releases/tag/v0.0.2
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/appstorecat/appstorecat/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/appstorecat/appstorecat/releases/tag/v0.0.2

@@ -38,7 +38,7 @@ def index():
 <html><head><meta charset="utf-8"><title>AppStoreCat Scraper - Google Play</title>
 <style>body{margin:0;background:#000;display:flex;justify-content:center;align-items:center;height:100vh;font-family:system-ui,sans-serif}
 a{color:#fff;font-size:1.25rem;text-decoration:none;opacity:.6;transition:opacity .2s}a:hover{opacity:1}</style></head>
-<body><a href="https://github.com/ismailcaakir/appstorecat" target="_blank">github.com/ismailcaakir/appstorecat</a></body></html>"""
+<body><a href="https://github.com/appstorecat/appstorecat" target="_blank">github.com/appstorecat/appstorecat</a></body></html>"""
     from fastapi.responses import HTMLResponse
     return HTMLResponse(content=html)
 

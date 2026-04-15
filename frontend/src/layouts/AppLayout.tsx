@@ -242,7 +242,7 @@ export default function AppLayout() {
           <NavUser />
           <div className="flex items-center justify-center gap-2 px-3 pb-2 group-data-[collapsible=icon]:hidden">
             <a
-              href="https://github.com/ismailcaakir/appstorecat"
+              href="https://github.com/appstorecat/appstorecat"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground/40 transition-colors hover:text-muted-foreground"

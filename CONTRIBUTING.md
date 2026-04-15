@@ -83,8 +83,8 @@ config: enable trending discovery by default
 
 ## Reporting Issues
 
-- **Bugs:** Use the [bug report template](https://github.com/ismailcaakir/appstorecat/issues/new?template=bug_report.yml)
-- **Features:** Use the [feature request template](https://github.com/ismailcaakir/appstorecat/issues/new?template=feature_request.yml)
+- **Bugs:** Use the [bug report template](https://github.com/appstorecat/appstorecat/issues/new?template=bug_report.yml)
+- **Features:** Use the [feature request template](https://github.com/appstorecat/appstorecat/issues/new?template=feature_request.yml)
 - **Security:** See [SECURITY.md](SECURITY.md) for responsible disclosure
 
 ## Architecture Decisions

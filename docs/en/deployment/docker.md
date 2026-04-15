@@ -41,7 +41,7 @@ The production stack (`docker-compose.production.yml`) uses pre-built images fro
 
 | Aspect | Development | Production |
 |--------|-------------|------------|
-| Images | Built locally | Pre-built from Docker Hub (`ismailcaakir/appstorecat-*`) |
+| Images | Built locally | Pre-built from Docker Hub (`appstorecat/appstorecat-*`) |
 | Redis | Yes (queue, cache, throttle) | No (database queue, file cache) |
 | Ports | Published (`ports`) | Internal only (`expose`) |
 | Network | Local bridge | External `dokploy-network` + internal bridge |

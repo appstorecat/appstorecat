@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import AppLayout from '@/layouts/AppLayout'
+import Landing from '@/pages/Landing'
 import Login from '@/pages/auth/Login'
 import Register from '@/pages/auth/Register'
 import AppsIndex from '@/pages/apps/Index'
@@ -52,6 +53,7 @@ export default function Router() {
     <BrowserRouter>
       <Routes>
         <Route element={<GuestGuard />}>
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
@@ -83,7 +85,7 @@ export default function Router() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/discovery/trending" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

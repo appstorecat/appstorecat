@@ -9,7 +9,7 @@
 ## Clone the Repository
 
 ```bash
-git clone https://github.com/ismailcaakir/appstorecat.git
+git clone https://github.com/appstorecat/appstorecat.git
 cd appstorecat
 ```
 

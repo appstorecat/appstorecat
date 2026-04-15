@@ -41,7 +41,7 @@ Production ortamı (`docker-compose.production.yml`) Docker Hub'dan önceden olu
 
 | Özellik | Geliştirme | Production |
 |---------|------------|------------|
-| Image'lar | Yerel olarak oluşturulur | Docker Hub'dan önceden oluşturulmuş (`ismailcaakir/appstorecat-*`) |
+| Image'lar | Yerel olarak oluşturulur | Docker Hub'dan önceden oluşturulmuş (`appstorecat/appstorecat-*`) |
 | Redis | Evet (kuyruk, önbellek, hız sınırlama) | Hayır (veritabanı kuyruğu, dosya önbelleği) |
 | Portlar | Yayınlanmış (`ports`) | Yalnızca dahili (`expose`) |
 | Ağ | Yerel bridge | Harici `dokploy-network` + dahili bridge |

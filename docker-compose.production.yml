@@ -4,7 +4,7 @@
 
 services:
     appstorecat-backend:
-        image: ismailcaakir/appstorecat-backend:${APP_VERSION}
+        image: ghcr.io/appstorecat/backend:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${BACKEND_PORT}'
@@ -32,7 +32,7 @@ services:
                 condition: service_healthy
 
     appstorecat-frontend:
-        image: ismailcaakir/appstorecat-frontend:${APP_VERSION}
+        image: ghcr.io/appstorecat/frontend:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${FRONTEND_PORT}'
@@ -46,7 +46,7 @@ services:
             - appstorecat-backend
 
     appstorecat-scraper-appstore:
-        image: ismailcaakir/appstorecat-scraper-appstore:${APP_VERSION}
+        image: ghcr.io/appstorecat/scraper-appstore:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${APPSTORE_API_PORT}'
@@ -58,7 +58,7 @@ services:
             - appstorecat
 
     appstorecat-scraper-gplay:
-        image: ismailcaakir/appstorecat-scraper-gplay:${APP_VERSION}
+        image: ghcr.io/appstorecat/scraper-gplay:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${GPLAY_API_PORT}'

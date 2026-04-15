@@ -1,5 +1,5 @@
 VERSION := $(shell cat VERSION)
-REGISTRY := ismailcaakir
+REGISTRY := ghcr.io/appstorecat
 SERVICES := backend frontend scraper-appstore scraper-gplay
 BACKEND := docker compose exec appstorecat-backend
 FRONTEND := docker compose exec appstorecat-frontend
@@ -221,8 +221,8 @@ build-prod:
 	@echo "Building + pushing v$(VERSION) ($(PLATFORMS))..."
 	@for svc in $(SERVICES); do \
 		docker buildx build --platform $(PLATFORMS) \
-			-t $(REGISTRY)/appstorecat-$$svc:$(VERSION) \
-			-t $(REGISTRY)/appstorecat-$$svc:latest \
+			-t $(REGISTRY)/$$svc:$(VERSION) \
+			-t $(REGISTRY)/$$svc:latest \
 			-f $$svc/.docker/Dockerfile.prod $$svc --push; \
 	done
 	@echo "Done."
@@ -236,8 +236,8 @@ endif
 	@echo "Releasing v$(v)..."
 	@for svc in $(SERVICES); do \
 		docker buildx build --platform $(PLATFORMS) \
-			-t $(REGISTRY)/appstorecat-$$svc:$(v) \
-			-t $(REGISTRY)/appstorecat-$$svc:latest \
+			-t $(REGISTRY)/$$svc:$(v) \
+			-t $(REGISTRY)/$$svc:latest \
 			-f $$svc/.docker/Dockerfile.prod $$svc --push; \
 	done
 	@git add VERSION

@@ -50,4 +50,4 @@ AppStoreCat development roadmap. Items are grouped by priority and may change ba
 
 ## Contributing
 
-Have a feature idea? [Open a feature request](https://github.com/ismailcaakir/appstorecat/issues/new?template=feature_request.yml) and let's discuss it.
+Have a feature idea? [Open a feature request](https://github.com/appstorecat/appstorecat/issues/new?template=feature_request.yml) and let's discuss it.

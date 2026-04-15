@@ -67,7 +67,7 @@ Frontend :7461 --> Backend API :7460 --> scraper-appstore :7462
 ## Hızlı Başlangıç
 
 ```bash
-git clone https://github.com/ismailcaakir/appstorecat.git
+git clone https://github.com/appstorecat/appstorecat.git
 cd appstorecat
 make setup
 make dev
