@@ -22,13 +22,19 @@ services:
             DB_PASSWORD: '${DB_PASSWORD}'
             APPSTORE_API_URL: 'http://appstorecat-scraper-appstore:${APPSTORE_API_PORT}'
             GPLAY_API_URL: 'http://appstorecat-scraper-gplay:${GPLAY_API_PORT}'
-            QUEUE_CONNECTION: database
+            QUEUE_CONNECTION: redis
+            CACHE_STORE: redis
+            REDIS_CLIENT: phpredis
+            REDIS_HOST: appstorecat-redis
+            REDIS_PORT: 6379
             LOG_CHANNEL: stderr
         networks:
             - dokploy-network
             - appstorecat
         depends_on:
             appstorecat-mysql:
+                condition: service_healthy
+            appstorecat-redis:
                 condition: service_healthy
 
     appstorecat-frontend:
@@ -70,6 +76,18 @@ services:
             - dokploy-network
             - appstorecat
 
+    appstorecat-redis:
+        image: 'redis:7-alpine'
+        restart: unless-stopped
+        volumes:
+            - 'appstorecat-redis:/data'
+        networks:
+            - appstorecat
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            retries: 3
+            timeout: 5s
+
     appstorecat-mysql:
         image: 'mysql:8.4'
         restart: unless-stopped
@@ -95,4 +113,6 @@ networks:
 
 volumes:
     appstorecat-mysql:
+        driver: local
+    appstorecat-redis:
         driver: local

@@ -28,6 +28,8 @@ RUN apk add --no-cache --virtual .build-deps \
     intl \
     gd \
     pcntl \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/*
 
