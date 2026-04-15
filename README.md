@@ -1,5 +1,7 @@
 # AppStoreCat
 
+> **Documentation:** [English](docs/en/) | [Türkçe](README-tr.md)
+
 Open-source app intelligence toolkit for iOS and Android. Track store listings, monitor changes, analyze keywords, and discover trending apps.
 
 ![AppStoreCat Dashboard](screenshots/hero-dashboard.jpeg)
@@ -73,54 +75,54 @@ make dev
 
 Open http://localhost:7461 and create an account.
 
-See the [Installation Guide](docs/getting-started/installation.md) for detailed setup instructions.
+See the [Installation Guide](docs/en/getting-started/installation.md) for detailed setup instructions.
 
 ## Documentation
 
 ### Getting Started
-- [Installation](docs/getting-started/installation.md)
-- [Configuration](docs/getting-started/configuration.md)
-- [Quick Start](docs/getting-started/quick-start.md)
+- [Installation](docs/en/getting-started/installation.md)
+- [Configuration](docs/en/getting-started/configuration.md)
+- [Quick Start](docs/en/getting-started/quick-start.md)
 
 ### Architecture
-- [Overview](docs/architecture/overview.md)
-- [Data Model](docs/architecture/data-model.md)
-- [Data Collection](docs/architecture/data-collection.md)
-- [Queue System](docs/architecture/queue-system.md)
-- [Connectors](docs/architecture/connectors.md)
-- [Sync Pipeline](docs/architecture/sync-pipeline.md)
+- [Overview](docs/en/architecture/overview.md)
+- [Data Model](docs/en/architecture/data-model.md)
+- [Data Collection](docs/en/architecture/data-collection.md)
+- [Queue System](docs/en/architecture/queue-system.md)
+- [Connectors](docs/en/architecture/connectors.md)
+- [Sync Pipeline](docs/en/architecture/sync-pipeline.md)
 
 ### Features
-- [Trending Charts](docs/features/trending-charts.md)
-- [App Discovery](docs/features/app-discovery.md)
-- [Store Listings](docs/features/store-listings.md)
-- [Ratings & Reviews](docs/features/ratings-reviews.md)
-- [Keyword Density](docs/features/keyword-density.md)
-- [Competitor Tracking](docs/features/competitor-tracking.md)
-- [Change Detection](docs/features/change-detection.md)
-- [Publisher Discovery](docs/features/publisher-discovery.md)
-- [Media & Explorer](docs/features/media-proxy.md)
+- [Trending Charts](docs/en/features/trending-charts.md)
+- [App Discovery](docs/en/features/app-discovery.md)
+- [Store Listings](docs/en/features/store-listings.md)
+- [Ratings & Reviews](docs/en/features/ratings-reviews.md)
+- [Keyword Density](docs/en/features/keyword-density.md)
+- [Competitor Tracking](docs/en/features/competitor-tracking.md)
+- [Change Detection](docs/en/features/change-detection.md)
+- [Publisher Discovery](docs/en/features/publisher-discovery.md)
+- [Media & Explorer](docs/en/features/media-proxy.md)
 
 ### Services
-- [Backend](docs/services/backend.md)
-- [Frontend](docs/services/frontend.md)
-- [App Store Scraper](docs/services/scraper-appstore.md)
-- [Google Play Scraper](docs/services/scraper-gplay.md)
+- [Backend](docs/en/services/backend.md)
+- [Frontend](docs/en/services/frontend.md)
+- [App Store Scraper](docs/en/services/scraper-appstore.md)
+- [Google Play Scraper](docs/en/services/scraper-gplay.md)
 
 ### API
-- [Endpoints](docs/api/endpoints.md)
-- [Authentication](docs/api/authentication.md)
-- [Scraper APIs](docs/api/scraper-apis.md)
+- [Endpoints](docs/en/api/endpoints.md)
+- [Authentication](docs/en/api/authentication.md)
+- [Scraper APIs](docs/en/api/scraper-apis.md)
 
 ### Deployment
-- [Docker](docs/deployment/docker.md)
-- [Production](docs/deployment/production.md)
-- [Troubleshooting](docs/deployment/troubleshooting.md)
+- [Docker](docs/en/deployment/docker.md)
+- [Production](docs/en/deployment/production.md)
+- [Troubleshooting](docs/en/deployment/troubleshooting.md)
 
 ### Reference
-- [Environment Variables](docs/reference/environment-variables.md)
-- [Makefile Commands](docs/reference/makefile-commands.md)
-- [App Store Countries](docs/reference/app-store-countries.md)
+- [Environment Variables](docs/en/reference/environment-variables.md)
+- [Makefile Commands](docs/en/reference/makefile-commands.md)
+- [App Store Countries](docs/en/reference/app-store-countries.md)
 
 ## Contributing
 

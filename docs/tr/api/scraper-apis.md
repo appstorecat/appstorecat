@@ -1,0 +1,89 @@
+# Scraper API'leri
+
+Iki scraper mikroservisi, backend'in connector'lar araciligiyla tuketigi REST API'leri sunar. Bu API'ler dogrudan dis kullanim icin tasarlanmamistir — backend API'si herkese acik arayuzdur.
+
+## App Store Scraper (scraper-appstore)
+
+**Base URL:** `http://localhost:7462`
+**Framework:** Fastify 5 (Node.js/TypeScript)
+**Dokumantasyon:** http://localhost:7462/docs
+
+### Endpoint'ler
+
+| Endpoint | Parametreler | Aciklama |
+|----------|--------------|----------|
+| `GET /health` | — | `{status: "ok"}` dondurur |
+| `GET /charts` | `collection` (zorunlu), `category`, `country`, `num` | Siralama listeleri (maks 200) |
+| `GET /apps/search` | `term` (zorunlu), `limit`, `country` | Uygulama ara |
+| `GET /apps/:appId/identity` | `country`, `lang` | Uygulama meta verileri |
+| `GET /apps/:appId/listings` | `country`, `lang` | Magaza listesi |
+| `GET /apps/:appId/listings/locales` | `countries` (virgul ile ayrilmis) | Coklu ulke listeleri |
+| `GET /apps/:appId/metrics` | `country`, `lang` | Puan, dosya boyutu |
+| `GET /apps/:appId/reviews` | `country`, `page` | Kullanici yorumlari |
+| `GET /developers/:developerId/apps` | — | Gelistiricinin uygulamalari |
+| `GET /developers/search` | `term`, `limit`, `country` | Gelistirici ara |
+
+### Siralama Koleksiyonlari
+
+- `top_free` — En Iyi Ucretsiz Uygulamalar
+- `top_paid` — En Iyi Ucretli Uygulamalar
+- `top_grossing` — En Cok Hasılat Yapan Uygulamalar
+
+---
+
+## Google Play Scraper (scraper-gplay)
+
+**Base URL:** `http://localhost:7463`
+**Framework:** FastAPI (Python)
+**Dokumantasyon:** http://localhost:7463/docs
+
+### Endpoint'ler
+
+| Endpoint | Parametreler | Aciklama |
+|----------|--------------|----------|
+| `GET /health` | — | `{status: "ok"}` dondurur |
+| `GET /charts` | `collection`, `category`, `country`, `count` | Siralama listeleri (maks 200) |
+| `GET /apps/search` | `term` (zorunlu), `limit`, `country` | Uygulama ara |
+| `GET /apps/{app_id}/identity` | `country` | Uygulama meta verileri |
+| `GET /apps/{app_id}/listings` | `locale`, `country` | Magaza listesi |
+| `GET /apps/{app_id}/listings/locales` | `locales` (virgul ile ayrilmis) | Coklu yerel ayar listeleri |
+| `GET /apps/{app_id}/metrics` | `country` | Puan, yukleme sayisi |
+| `GET /apps/{app_id}/reviews` | `country`, `limit` | Kullanici yorumlari (maks 500) |
+| `GET /developers/{developer_id}/apps` | — | Gelistiricinin uygulamalari |
+| `GET /developers/search` | `term`, `limit`, `country` | Gelistirici ara |
+
+### Siralama Varsayilanlari
+
+- Varsayilan koleksiyon: `top_free`
+- Varsayilan kategori: `APPLICATION`
+- Maksimum sayi: 200 (ancak genellikle 100'e kadar dondurur)
+
+---
+
+## Platform Farkliliklari
+
+| Ozellik | App Store Scraper | Google Play Scraper |
+|---------|-------------------|---------------------|
+| Dil parametresi | `lang` | `locale` |
+| Coklu yerel ayar parametresi | `countries` | `locales` |
+| Siralama maks sonuc | 200 | ~100 |
+| Yorum sayfalama | `page` parametresi | `limit` parametresi (maks 500) |
+| Altyazi destegi | Evet | Hayir |
+| Yukleme sayisi | Hayir | Evet (aralik dizesi) |
+| Metriklerde dosya boyutu | Evet | Hayir |
+| Yorum ulke kapsamı | Ulke bazinda | Global |
+
+## Hata Formati
+
+Her iki scraper da hatalari su sekilde dondurur:
+
+```json
+{
+  "error": "Error message",
+  "statusCode": 404
+}
+```
+
+Yaygin hatalar:
+- `404` — Uygulama bulunamadi / magazadan kaldirildi
+- `500` — Upstream scraper kutuphane hatasi
