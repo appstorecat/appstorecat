@@ -216,6 +216,10 @@ version:
 
 PLATFORMS := linux/amd64,linux/arm64
 
+## Login to GitHub Container Registry
+docker-login:
+	@echo $(GHCR_TOKEN) | docker login ghcr.io -u $(GHCR_USER) --password-stdin
+
 ## Build and push all production images (multi-platform)
 build-prod:
 	@echo "Building + pushing v$(VERSION) ($(PLATFORMS))..."
@@ -227,10 +231,10 @@ build-prod:
 	done
 	@echo "Done."
 
-## Release: bump version, build, push — usage: make release v=0.0.2
+## Release: bump version, build, push — usage: make release v=1.0.0
 release:
 ifndef v
-	$(error Usage: make release v=0.0.2)
+	$(error Usage: make release v=1.0.0)
 endif
 	@echo "$(v)" > VERSION
 	@echo "Releasing v$(v)..."
@@ -243,4 +247,5 @@ endif
 	@git add VERSION
 	@git commit -m "release: v$(v)"
 	@git tag v$(v)
+	@git push origin master --tags
 	@echo "Released v$(v)"
