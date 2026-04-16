@@ -1,8 +1,26 @@
-# AppStoreCat
+<p align="center">
+  <img src="frontend/public/appstorecat-icon.svg" width="80" height="80" alt="AppStoreCat" />
+</p>
 
-> **Documentation:** [English](docs/en/) | [Türkçe](README-tr.md)
+<h1 align="center">AppStoreCat</h1>
 
-Open-source app intelligence toolkit for iOS and Android. Track store listings, monitor changes, analyze keywords, and discover trending apps.
+<p align="center">
+  Open-source app intelligence toolkit for iOS and Android.
+</p>
+
+<p align="center">
+  <a href="https://github.com/appstorecat/appstorecat/releases"><img src="https://img.shields.io/github/v/release/appstorecat/appstorecat?style=flat-square&color=10b981" alt="Release" /></a>
+  <a href="https://github.com/appstorecat/appstorecat/blob/master/LICENSE"><img src="https://img.shields.io/github/license/appstorecat/appstorecat?style=flat-square&color=10b981" alt="License" /></a>
+  <a href="https://github.com/appstorecat/appstorecat/stargazers"><img src="https://img.shields.io/github/stars/appstorecat/appstorecat?style=flat-square&color=10b981" alt="Stars" /></a>
+  <a href="https://github.com/appstorecat/appstorecat/issues"><img src="https://img.shields.io/github/issues/appstorecat/appstorecat?style=flat-square" alt="Issues" /></a>
+  <a href="https://ghcr.io/appstorecat/backend"><img src="https://img.shields.io/badge/docker-ghcr.io-blue?style=flat-square&logo=docker" alt="Docker" /></a>
+</p>
+
+<p align="center">
+  <a href="docs/en/">English Docs</a> · <a href="README-tr.md">Türkçe</a> · <a href="https://appstore.cat">Live Demo</a>
+</p>
+
+Track store listings, monitor changes, analyze keywords, and discover trending apps.
 
 ![AppStoreCat Dashboard](screenshots/hero-dashboard.jpeg)
 
