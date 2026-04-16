@@ -89,7 +89,7 @@ export default function Trending() {
     }, { replace: true })
   }
   const setCollection = (v: string | null) => v && setParam('collection', v)
-  const setCategoryId = (v: string | null) => v && setParam('category_id', v)
+  const setCategoryId = (v: string | null) => setParam('category_id', v === 'all' ? '' : (v || ''))
 
   const { data: categories } = useQuery<StoreCategory[]>({
     queryKey: ['store-categories', platform],
@@ -157,14 +157,14 @@ export default function Trending() {
           ))}
         </div>
 
-        <Select value={categoryId} onValueChange={setCategoryId}>
+        <Select value={categoryId || 'all'} onValueChange={setCategoryId}>
           <SelectTrigger className="w-[180px]">
             <SelectValue>
               {categoryId ? categories?.find((c) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             {categories?.map((cat) => (
               <SelectItem key={cat.id} value={String(cat.id)}>
                 {cat.name}
