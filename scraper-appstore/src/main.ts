@@ -24,7 +24,7 @@ if (!process.env.PORT) {
 }
 const PORT = Number(process.env.PORT);
 
-const app = Fastify({ logger: true });
+const app = Fastify({ logger: { level: "info" } });
 
 await app.register(fastifySwagger, {
   openapi: {

@@ -78,6 +78,7 @@ services:
 
     appstorecat-redis:
         image: 'redis:7-alpine'
+        command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
         restart: unless-stopped
         volumes:
             - 'appstorecat-redis:/data'

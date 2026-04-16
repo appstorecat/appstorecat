@@ -84,6 +84,7 @@ services:
     # Redis (cache, queue, throttle)
     appstorecat-redis:
         image: 'redis:7-alpine'
+        command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
