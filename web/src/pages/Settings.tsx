@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import axios from '@/lib/axios'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { KeyRound, Webhook } from 'lucide-react'
 
 function ProfileSection() {
   const { user, fetchUser } = useAuthStore()
@@ -177,6 +178,35 @@ export default function Settings() {
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <ProfileSection />
         <PasswordSection />
+        <Separator />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link to="/settings/api-tokens">
+            <Card className="h-full transition-colors hover:border-primary/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <KeyRound className="h-4 w-4" />
+                  API Tokens
+                </CardTitle>
+                <CardDescription>
+                  Create and manage API tokens for MCP and external integrations.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link to="/settings/mcp">
+            <Card className="h-full transition-colors hover:border-primary/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Webhook className="h-4 w-4" />
+                  MCP Setup
+                </CardTitle>
+                <CardDescription>
+                  Connect Claude Code to your AppStoreCat data via MCP.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
         <Separator />
         <DeleteAccountSection />
       </div>

@@ -7,7 +7,8 @@ export function registerChangeTools(server: McpServer) {
     description:
       'Get recent store listing changes for tracked apps. Shows what changed (description, screenshots, version, etc.) and when.',
     inputSchema: {
-      field: z.string().optional().describe('Filter by changed field (e.g. description, screenshots, whats_new)'),
+      field: z.enum(['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_removed']).optional().describe('Filter by changed field'),
+      per_page: z.number().optional().describe('Results per page (default 25)'),
     },
     annotations: { readOnlyHint: true },
   }, async (args) => {
@@ -19,7 +20,8 @@ export function registerChangeTools(server: McpServer) {
     description:
       'Get recent store listing changes for competitor apps. Same as app changes but for competitors.',
     inputSchema: {
-      field: z.string().optional().describe('Filter by changed field (e.g. description, screenshots, whats_new)'),
+      field: z.enum(['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_removed']).optional().describe('Filter by changed field'),
+      per_page: z.number().optional().describe('Results per page (default 25)'),
     },
     annotations: { readOnlyHint: true },
   }, async (args) => {

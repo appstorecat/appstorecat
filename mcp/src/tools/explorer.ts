@@ -8,6 +8,10 @@ export function registerExplorerTools(server: McpServer) {
       'Browse app screenshots from tracked apps. Returns screenshot URLs grouped by app.',
     inputSchema: {
       platform: z.enum(['ios', 'android']).optional().describe('Platform filter: ios or android'),
+      category_id: z.number().optional().describe('Filter by store category ID'),
+      search: z.string().optional().describe('Search by app name'),
+      per_page: z.number().optional().describe('Results per page (default 12)'),
+      page: z.number().optional().describe('Page number for pagination'),
     },
     annotations: { readOnlyHint: true },
   }, async (args) => {
@@ -20,6 +24,10 @@ export function registerExplorerTools(server: McpServer) {
       'Browse app icons from tracked apps. Returns icon URLs grouped by app.',
     inputSchema: {
       platform: z.enum(['ios', 'android']).optional().describe('Platform filter: ios or android'),
+      category_id: z.number().optional().describe('Filter by store category ID'),
+      search: z.string().optional().describe('Search by app name'),
+      per_page: z.number().optional().describe('Results per page (default 48)'),
+      page: z.number().optional().describe('Page number for pagination'),
     },
     annotations: { readOnlyHint: true },
   }, async (args) => {

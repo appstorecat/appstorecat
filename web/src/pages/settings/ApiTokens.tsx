@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Copy, Trash2, Plus, Key } from 'lucide-react'
 
 interface ApiToken {
@@ -34,6 +35,8 @@ export default function ApiTokens() {
   const [error, setError] = useState('')
   const [newToken, setNewToken] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [revokeError, setRevokeError] = useState('')
+  const [tokenToRevoke, setTokenToRevoke] = useState<ApiToken | null>(null)
 
   const fetchTokens = async () => {
     try {
@@ -65,13 +68,17 @@ export default function ApiTokens() {
     }
   }
 
-  const handleRevoke = async (id: number) => {
-    if (!confirm('Are you sure you want to revoke this token?')) return
+  const handleRevoke = async () => {
+    if (!tokenToRevoke) return
+    setRevokeError('')
     try {
-      await axios.delete(`/account/api-tokens/${id}`)
-      setTokens((prev) => prev.filter((t) => t.id !== id))
-    } catch {
-      // silently fail
+      await axios.delete(`/account/api-tokens/${tokenToRevoke.id}`)
+      setTokens((prev) => prev.filter((t) => t.id !== tokenToRevoke.id))
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setRevokeError(msg || 'Failed to revoke token.')
+    } finally {
+      setTokenToRevoke(null)
     }
   }
 
@@ -123,6 +130,7 @@ export default function ApiTokens() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {revokeError && <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">{revokeError}</div>}
             {loading ? (
               <div className="flex justify-center py-8">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -148,7 +156,7 @@ export default function ApiTokens() {
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive"
-                      onClick={() => handleRevoke(token.id)}
+                      onClick={() => setTokenToRevoke(token)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -180,6 +188,23 @@ export default function ApiTokens() {
             )}
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={!!tokenToRevoke} onOpenChange={(open) => !open && setTokenToRevoke(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Revoke token?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently revoke <strong>{tokenToRevoke?.name}</strong>. Any integrations using this token will stop working.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRevoke} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Revoke
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )

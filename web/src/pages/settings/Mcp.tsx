@@ -1,33 +1,27 @@
-import { useState, useEffect } from 'react'
-import axios from '@/lib/axios'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Copy, Check, Terminal } from 'lucide-react'
 
-interface ApiToken {
-  id: number
-  name: string
-}
-
 export default function Mcp() {
-  const [tokens, setTokens] = useState<ApiToken[]>([])
-  const [selectedToken, setSelectedToken] = useState('')
+  const [apiUrl, setApiUrl] = useState(() => {
+    const origin = window.location.origin
+    return window.location.hostname === 'localhost'
+      ? origin.replace(/:\d+$/, ':7460') + '/api/v1'
+      : 'https://server.appstore.cat/api/v1'
+  })
+  const [apiToken, setApiToken] = useState('')
   const [copiedCli, setCopiedCli] = useState(false)
   const [copiedJson, setCopiedJson] = useState(false)
 
-  useEffect(() => {
-    axios.get('/account/api-tokens').then(({ data }) => {
-      setTokens(data)
-    })
-  }, [])
-
-  const apiUrl = window.location.origin.replace(/:\d+$/, ':7460') + '/api/v1'
-  const prodUrl = 'https://server.appstore.cat/api/v1'
-  const baseUrl = window.location.hostname === 'localhost' ? apiUrl : prodUrl
+  const displayUrl = apiUrl || '<your-api-url>'
+  const displayToken = apiToken || '<your-token>'
 
   const cliCommand = `claude mcp add appstorecat \\
-  -e APPSTORECAT_API_URL=${baseUrl} \\
-  -e APPSTORECAT_API_TOKEN=${selectedToken || '<your-token>'} \\
+  -e APPSTORECAT_API_URL="${displayUrl}" \\
+  -e APPSTORECAT_API_TOKEN="${displayToken}" \\
   -- npx -y @appstorecat/mcp`
 
   const jsonConfig = JSON.stringify(
@@ -37,8 +31,8 @@ export default function Mcp() {
           command: 'npx',
           args: ['-y', '@appstorecat/mcp'],
           env: {
-            APPSTORECAT_API_URL: baseUrl,
-            APPSTORECAT_API_TOKEN: selectedToken || '<your-token>',
+            APPSTORECAT_API_URL: displayUrl,
+            APPSTORECAT_API_TOKEN: displayToken,
           },
         },
       },
@@ -69,32 +63,33 @@ export default function Mcp() {
 
         <Card>
           <CardHeader>
-            <CardTitle>1. Select Your API Token</CardTitle>
+            <CardTitle>1. Generate Your MCP Config</CardTitle>
             <CardDescription>
-              {tokens.length === 0
-                ? 'You need to create an API token first. Go to API Keys to create one.'
-                : 'Choose which token to use for MCP authentication.'}
+              Enter your API URL and token to generate ready-to-use configuration.
+              Create a token in{' '}
+              <a href="/settings/api-tokens" className="underline">API Keys</a> if you don't have one.
             </CardDescription>
           </CardHeader>
-          {tokens.length > 0 && (
-            <CardContent>
-              <select
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                value={selectedToken}
-                onChange={(e) => setSelectedToken(e.target.value)}
-              >
-                <option value="">Select a token...</option>
-                {tokens.map((t) => (
-                  <option key={t.id} value={`<paste-${t.name}-token>`}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Note: For security, we can't show your token value here. Paste the token you copied when you created it.
-              </p>
-            </CardContent>
-          )}
+          <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="api_url">API URL</Label>
+              <Input
+                id="api_url"
+                placeholder="https://server.appstore.cat/api/v1"
+                value={apiUrl}
+                onChange={(e) => setApiUrl(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="api_token">API Token</Label>
+              <Input
+                id="api_token"
+                placeholder="Paste your token (e.g. 1|abc123...)"
+                value={apiToken}
+                onChange={(e) => setApiToken(e.target.value)}
+              />
+            </div>
+          </CardContent>
         </Card>
 
         <Card>
@@ -118,6 +113,12 @@ export default function Mcp() {
                 {copiedCli ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Already configured? Remove first, then re-add:
+            </p>
+            <pre className="rounded-md bg-muted p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap text-muted-foreground">
+              {`claude mcp remove appstorecat`}
+            </pre>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Terminal className="h-3 w-3" />
               <span>Requires Node.js 18+ and Claude Code CLI</span>
