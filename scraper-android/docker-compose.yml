@@ -1,17 +1,17 @@
-# App Store Scraper: Fastify + TypeScript
+# Google Play Scraper: FastAPI + Python
 services:
-    scraper-appstore:
+    scraper-android:
         build:
             context: .
             dockerfile: .docker/Dockerfile
         ports:
-            - '${APPSTORE_API_PORT}:${APPSTORE_API_PORT}'
+            - '${GPLAY_API_PORT}:${GPLAY_API_PORT}'
         volumes:
             - '.:/app'
-            - '/app/node_modules'
         environment:
-            - NODE_ENV=development
-            - PORT=${APPSTORE_API_PORT}
+            - PYTHONDONTWRITEBYTECODE=1
+            - PYTHONUNBUFFERED=1
+            - PORT=${GPLAY_API_PORT}
         networks:
             - appstorecat
 

@@ -8,10 +8,10 @@ The development stack (`docker-compose.yml`) runs 6 containers:
 
 | Container | Image | Port |
 |-----------|-------|------|
-| `appstorecat-backend` | Built from `backend/.docker/Dockerfile` | 7460 |
-| `appstorecat-frontend` | Built from `frontend/.docker/Dockerfile` | 7461 |
-| `appstorecat-scraper-appstore` | Built from `scraper-appstore/.docker/Dockerfile` | 7462 |
-| `appstorecat-scraper-gplay` | Built from `scraper-gplay/.docker/Dockerfile` | 7463 |
+| `appstorecat-server` | Built from `server/.docker/Dockerfile` | 7460 |
+| `appstorecat-web` | Built from `web/.docker/Dockerfile` | 7461 |
+| `appstorecat-scraper-ios` | Built from `scraper-ios/.docker/Dockerfile` | 7462 |
+| `appstorecat-scraper-android` | Built from `scraper-android/.docker/Dockerfile` | 7463 |
 | `appstorecat-mysql` | `mysql:8.4` | 7464 |
 | `appstorecat-redis` | `redis:7-alpine` | 6379 |
 
@@ -24,14 +24,14 @@ make dev     # Start all services
 
 ### Volumes
 
-- `./backend` is mounted into the backend container for live reload
-- `./frontend` is mounted into the frontend container (with `/app/node_modules` excluded)
-- `./scraper-appstore` and `./scraper-gplay` are mounted for live reload
+- `./server` is mounted into the server container for live reload
+- `./web` is mounted into the web container (with `/app/node_modules` excluded)
+- `./scraper-ios` and `./scraper-android` are mounted for live reload
 - MySQL and Redis data persist in named Docker volumes
 
 ### Health Checks
 
-MySQL and Redis have health checks configured. The backend container waits for both to be healthy before starting (`depends_on` with `service_healthy`).
+MySQL and Redis have health checks configured. The server container waits for both to be healthy before starting (`depends_on` with `service_healthy`).
 
 ## Production Stack
 
@@ -84,7 +84,7 @@ Production uses two networks:
 ```bash
 make ps          # Show service status
 make logs        # Follow all logs
-make logs-backend   # Follow backend logs only
+make logs-server   # Follow server logs only
 make restart     # Restart all services
 make clean       # Stop + remove volumes
 make nuke        # Full cleanup including images

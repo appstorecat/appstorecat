@@ -63,7 +63,7 @@ it('returns app details via API', function () {
 ```
 
 ## Frontend Tests
-Not yet set up. Vitest is planned for the React frontend.
+Not yet set up. Vitest is planned for the React web app.
 
 ## Rules
 - `RefreshDatabase` trait for tests that touch the database

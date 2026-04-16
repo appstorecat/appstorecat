@@ -51,18 +51,18 @@ Yayıncıları arayın, uygulama kataloglarını görüntüleyin ve tüm uygulam
 ## Mimari
 
 ```
-Frontend :7461 --> Backend API :7460 --> scraper-appstore :7462
-                        |           --> scraper-gplay :7463
-                        v
-                    MySQL :7464
+Web :7461 --> Server API :7460 --> scraper-ios :7462
+                    |          --> scraper-android :7463
+                    v
+                MySQL :7464
 ```
 
 | Servis | Teknoloji | Açıklama |
 |--------|-----------|----------|
-| **backend** | Laravel 13, PHP 8.4 | API gateway, iş mantığı, veritabanı |
-| **frontend** | React 19, Vite, TypeScript | Kullanıcı arayüzü |
-| **scraper-appstore** | Fastify 5, Node.js | App Store verisi |
-| **scraper-gplay** | FastAPI, Python | Google Play verisi |
+| **server** | Laravel 13, PHP 8.4 | API gateway, iş mantığı, veritabanı |
+| **web** | React 19, Vite, TypeScript | Kullanıcı arayüzü |
+| **scraper-ios** | Fastify 5, Node.js | App Store verisi |
+| **scraper-android** | FastAPI, Python | Google Play verisi |
 
 ## Hızlı Başlangıç
 
@@ -104,10 +104,10 @@ Detaylı kurulum talimatları için [Kurulum Kılavuzu](docs/tr/getting-started/
 - [Medya ve Gezgin](docs/tr/features/media-proxy.md)
 
 ### Servisler
-- [Backend](docs/tr/services/backend.md)
-- [Frontend](docs/tr/services/frontend.md)
-- [App Store Scraper](docs/tr/services/scraper-appstore.md)
-- [Google Play Scraper](docs/tr/services/scraper-gplay.md)
+- [Server](docs/tr/services/server.md)
+- [Web](docs/tr/services/web.md)
+- [App Store Scraper](docs/tr/services/scraper-ios.md)
+- [Google Play Scraper](docs/tr/services/scraper-android.md)
 
 ### API
 - [Endpoint'ler](docs/tr/api/endpoints.md)

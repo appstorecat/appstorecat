@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/appstorecat-icon.svg" width="80" height="80" alt="AppStoreCat" />
+  <img src="web/public/appstorecat-icon.svg" width="80" height="80" alt="AppStoreCat" />
 </p>
 
 <h1 align="center">AppStoreCat</h1>
@@ -13,7 +13,7 @@
   <a href="https://github.com/appstorecat/appstorecat/blob/master/LICENSE"><img src="https://img.shields.io/github/license/appstorecat/appstorecat?style=flat-square&color=10b981" alt="License" /></a>
   <a href="https://github.com/appstorecat/appstorecat/stargazers"><img src="https://img.shields.io/github/stars/appstorecat/appstorecat?style=flat-square&color=10b981" alt="Stars" /></a>
   <a href="https://github.com/appstorecat/appstorecat/issues"><img src="https://img.shields.io/github/issues/appstorecat/appstorecat?style=flat-square" alt="Issues" /></a>
-  <a href="https://ghcr.io/appstorecat/backend"><img src="https://img.shields.io/badge/docker-ghcr.io-blue?style=flat-square&logo=docker" alt="Docker" /></a>
+  <a href="https://ghcr.io/appstorecat/server"><img src="https://img.shields.io/badge/docker-ghcr.io-blue?style=flat-square&logo=docker" alt="Docker" /></a>
 </p>
 
 <p align="center">
@@ -69,18 +69,18 @@ Search publishers, view their app catalogs, and bulk import all their apps.
 ## Architecture
 
 ```
-Frontend :7461 --> Backend API :7460 --> scraper-appstore :7462
-                        |           --> scraper-gplay :7463
-                        v
-                    MySQL :7464
+Web :7461 --> Server API :7460 --> scraper-ios :7462
+                    |          --> scraper-android :7463
+                    v
+                MySQL :7464
 ```
 
 | Service | Tech | Description |
 |---------|------|-------------|
-| **backend** | Laravel 13, PHP 8.4 | API gateway, business logic, database |
-| **frontend** | React 19, Vite, TypeScript | User interface |
-| **scraper-appstore** | Fastify 5, Node.js | App Store data |
-| **scraper-gplay** | FastAPI, Python | Google Play data |
+| **server** | Laravel 13, PHP 8.4 | API gateway, business logic, database |
+| **web** | React 19, Vite, TypeScript | User interface |
+| **scraper-ios** | Fastify 5, Node.js | App Store data |
+| **scraper-android** | FastAPI, Python | Google Play data |
 
 ## Quick Start
 
@@ -122,10 +122,10 @@ See the [Installation Guide](docs/en/getting-started/installation.md) for detail
 - [Media & Explorer](docs/en/features/media-proxy.md)
 
 ### Services
-- [Backend](docs/en/services/backend.md)
-- [Frontend](docs/en/services/frontend.md)
-- [App Store Scraper](docs/en/services/scraper-appstore.md)
-- [Google Play Scraper](docs/en/services/scraper-gplay.md)
+- [Server](docs/en/services/server.md)
+- [Web](docs/en/services/web.md)
+- [App Store Scraper](docs/en/services/scraper-ios.md)
+- [Google Play Scraper](docs/en/services/scraper-android.md)
 
 ### API
 - [Endpoints](docs/en/api/endpoints.md)

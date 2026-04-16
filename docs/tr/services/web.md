@@ -16,7 +16,7 @@ React tek sayfa uygulamasi, AppStoreCat icin kullanici arayuzunu saglar.
 ## Dizin Yapisi
 
 ```
-frontend/
+web/
 ├── src/
 │   ├── pages/
 │   │   ├── auth/            # Giris, Kayit
@@ -67,8 +67,8 @@ Uygulama detay sayfasinda birden fazla sekme bulunur:
 ## Calistirma
 
 ```bash
-make dev-frontend    # Frontend'i baslat
-make logs-frontend   # Frontend loglarini goruntule
+make dev-web    # Frontend'i baslat
+make logs-web   # Frontend loglarini goruntule
 ```
 
-Frontend http://localhost:7461 adresinde kullanilabilir ve API isteklerini backend'e yonlendirir.
+Frontend http://localhost:7461 adresinde kullanilabilir ve API isteklerini server'a yonlendirir.

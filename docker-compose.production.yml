@@ -3,8 +3,8 @@
 # Then add domains via Dokploy UI -> Domains tab for each service
 
 services:
-    appstorecat-backend:
-        image: ghcr.io/appstorecat/backend:${APP_VERSION}
+    appstorecat-server:
+        image: ghcr.io/appstorecat/server:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${BACKEND_PORT}'
@@ -20,8 +20,8 @@ services:
             DB_DATABASE: '${DB_DATABASE}'
             DB_USERNAME: '${DB_USERNAME}'
             DB_PASSWORD: '${DB_PASSWORD}'
-            APPSTORE_API_URL: 'http://appstorecat-scraper-appstore:${APPSTORE_API_PORT}'
-            GPLAY_API_URL: 'http://appstorecat-scraper-gplay:${GPLAY_API_PORT}'
+            APPSTORE_API_URL: 'http://appstorecat-scraper-ios:${APPSTORE_API_PORT}'
+            GPLAY_API_URL: 'http://appstorecat-scraper-android:${GPLAY_API_PORT}'
             QUEUE_CONNECTION: redis
             CACHE_STORE: redis
             REDIS_CLIENT: phpredis
@@ -37,8 +37,8 @@ services:
             appstorecat-redis:
                 condition: service_healthy
 
-    appstorecat-frontend:
-        image: ghcr.io/appstorecat/frontend:${APP_VERSION}
+    appstorecat-web:
+        image: ghcr.io/appstorecat/web:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${FRONTEND_PORT}'
@@ -49,10 +49,10 @@ services:
             - dokploy-network
             - appstorecat
         depends_on:
-            - appstorecat-backend
+            - appstorecat-server
 
-    appstorecat-scraper-appstore:
-        image: ghcr.io/appstorecat/scraper-appstore:${APP_VERSION}
+    appstorecat-scraper-ios:
+        image: ghcr.io/appstorecat/scraper-ios:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${APPSTORE_API_PORT}'
@@ -63,8 +63,8 @@ services:
             - dokploy-network
             - appstorecat
 
-    appstorecat-scraper-gplay:
-        image: ghcr.io/appstorecat/scraper-gplay:${APP_VERSION}
+    appstorecat-scraper-android:
+        image: ghcr.io/appstorecat/scraper-android:${APP_VERSION}
         restart: unless-stopped
         expose:
             - '${GPLAY_API_PORT}'

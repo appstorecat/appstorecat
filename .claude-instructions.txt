@@ -2,15 +2,15 @@ In this conversation, respond in Turkish but write all code, comments, and commi
 
 ## Rules
 - **MUST** read and follow `CLAUDE.md` and `.arc/` files — 100% compliance required
-- This is a **monorepo** with 4 services: backend, frontend, scraper-appstore, scraper-gplay
-- Backend commands run inside Docker: `docker compose exec backend php artisan ...`
+- This is a **monorepo** with 4 services: server, web, scraper-ios, scraper-android
+- Server commands run inside Docker: `docker compose exec appstorecat-server php artisan ...`
 - Use `make` commands from root (see Makefile)
 - PHP: follow Laravel conventions, PSR-12
-- Frontend: React 19, TypeScript, `shadcn/ui`, Tailwind CSS v4
-- Scrapers: scraper-appstore (Fastify + TypeScript), scraper-gplay (FastAPI + Python)
+- Web: React 19, TypeScript, `shadcn/ui`, Tailwind CSS v4
+- Scrapers: scraper-ios (Fastify + TypeScript), scraper-android (FastAPI + Python)
 - Eloquent ORM only, no raw queries
 - No cache in scrapers — they are stateless
-- Database is owned only by backend (Laravel)
+- Database is owned only by server (Laravel)
 - Run pint and tests only before committing or when explicitly asked
 
 ## Workflow

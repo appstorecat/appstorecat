@@ -16,7 +16,7 @@ The React single-page application provides the user interface for AppStoreCat.
 ## Directory Structure
 
 ```
-frontend/
+web/
 ├── src/
 │   ├── pages/
 │   │   ├── auth/            # Login, Register
@@ -67,8 +67,8 @@ The app detail page has multiple tabs:
 ## Running
 
 ```bash
-make dev-frontend    # Start frontend
-make logs-frontend   # View frontend logs
+make dev-web    # Start web
+make logs-web   # View web logs
 ```
 
-The frontend is available at http://localhost:7461 and proxies API requests to the backend.
+The web app is available at http://localhost:7461 and proxies API requests to the server.

@@ -30,19 +30,19 @@ jobs:
 
       - name: Install PHP Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-        working-directory: backend
+        working-directory: server
 
       - name: Install Node Dependencies
         run: npm install
-        working-directory: frontend
+        working-directory: web
 
       - name: Run Pint
         run: composer lint
-        working-directory: backend
+        working-directory: server
 
-      - name: Lint Frontend
+      - name: Lint Web
         run: npm run lint
-        working-directory: frontend
+        working-directory: web
 
       # - name: Commit Changes
       #   uses: stefanzweifel/git-auto-commit-action@v7

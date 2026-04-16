@@ -1,6 +1,6 @@
 # Backend Servisi
 
-Laravel API backend, AppStoreCat'in merkezi servisidir. API gecidi olarak gorev yapar, veritabanina sahiptir, arka plan gorevlerini yonetir ve scraper mikroservisleriyle tum iletisimi orkestra eder.
+Laravel API server, AppStoreCat'in merkezi servisidir. API gecidi olarak gorev yapar, veritabanina sahiptir, arka plan gorevlerini yonetir ve scraper mikroservisleriyle tum iletisimi orkestra eder.
 
 ## Teknoloji Yigini
 
@@ -18,7 +18,7 @@ Laravel API backend, AppStoreCat'in merkezi servisidir. API gecidi olarak gorev 
 ## Dizin Yapisi
 
 ```
-backend/
+server/
 ├── app/
 │   ├── Connectors/          # Magaza API entegrasyonlari
 │   │   ├── ConnectorInterface.php
@@ -52,7 +52,7 @@ backend/
 ## Temel Sorumluluklar
 
 ### API Gecidi
-Tum frontend istekleri backend uzerinden gecer. Backend, kullanicilari dogrular (Sanctum), istekleri dogrular (Form Request'ler) ve formatlanmis yanitlar dondurur (API Resource'lari).
+Tum web istekleri server uzerinden gecer. Backend, kullanicilari dogrular (Sanctum), istekleri dogrular (Form Request'ler) ve formatlanmis yanitlar dondurur (API Resource'lari).
 
 ### Veritabani Sahibi
 Backend, MySQL veritabaninin tek sahibidir. Baska hicbir servis veritabanina dogrudan erismez.
@@ -66,10 +66,10 @@ Connector'lar, scraper mikroservisleriyle HTTP iletisimini soyutlar ve platforml
 ## Calistirma
 
 ```bash
-make dev-backend    # Backend + MySQL + Redis'i baslat
-make logs-backend   # Backend loglarini goruntule
+make dev-server    # Backend + MySQL + Redis'i baslat
+make logs-server   # Backend loglarini goruntule
 make pint           # Kod stili duzelticiyi calistir
-make test-backend   # PHPUnit testlerini calistir
+make test-server   # PHPUnit testlerini calistir
 ```
 
 ## API Dokumantasyonu

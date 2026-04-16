@@ -58,9 +58,9 @@ Tum endpoint'ler JSON dondurur. Hata yanitlari su formati kullanir:
 ## Calistirma
 
 ```bash
-make dev-appstore      # Servisi baslat
-make logs-appstore     # Loglari goruntule
-make test-appstore     # vitest calistir
+make dev-ios      # Servisi baslat
+make logs-ios     # Loglari goruntule
+make test-ios     # vitest calistir
 ```
 
 ## API Dokumantasyonu

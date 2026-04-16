@@ -39,7 +39,7 @@ Islemler icin varsayilan ulke `config/appstorecat.php` dosyasinda ayarlanir:
 
 ### Senkronizasyon Islemlerinde
 
-Bir uygulamayi senkronize ederken backend:
+Bir uygulamayi senkronize ederken server:
 
 1. Once `us` yerel ayarini dener
 2. ABD yerel ayari basarisiz olursa uygulamanin `origin_country` degerine geri doner

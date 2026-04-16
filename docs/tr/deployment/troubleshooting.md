@@ -49,7 +49,7 @@ Backend scraper'lara ulaşamıyorsa:
 1. Scraper'ların çalıştığını kontrol edin: `make ps`
 2. `.env` dosyasındaki URL'leri doğrulayın:
    - Geliştirme: `APPSTORE_API_URL=http://host.docker.internal:7462`
-   - Production: `APPSTORE_API_URL=http://appstorecat-scraper-appstore:7462`
+   - Production: `APPSTORE_API_URL=http://appstorecat-scraper-ios:7462`
 3. Scraper sağlığını test edin: `curl http://localhost:7462/health`
 
 ### Kuyruk işleri işlenmiyor
@@ -57,13 +57,13 @@ Backend scraper'lara ulaşamıyorsa:
 İşçilerin çalışıp çalışmadığını kontrol edin:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:work --once
+docker compose exec appstorecat-server php artisan queue:work --once
 ```
 
 İşçileri yeniden başlatın:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:restart
+docker compose exec appstorecat-server php artisan queue:restart
 ```
 
 ### İşler failed_jobs tablosuna düşüyor
@@ -71,7 +71,7 @@ docker compose exec appstorecat-backend php artisan queue:restart
 Başarısız işleri listeleyin:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:failed
+docker compose exec appstorecat-server php artisan queue:failed
 ```
 
 Yaygın nedenler:
@@ -82,7 +82,7 @@ Yaygın nedenler:
 Tüm başarısız işleri yeniden deneyin:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:retry all
+docker compose exec appstorecat-server php artisan queue:retry all
 ```
 
 ### Migration hataları
@@ -91,31 +91,31 @@ Migration'lar başarısız olursa:
 
 ```bash
 # Mevcut migration durumunu kontrol edin
-docker compose exec appstorecat-backend php artisan migrate:status
+docker compose exec appstorecat-server php artisan migrate:status
 
 # Bekleyen migration'ları çalıştırın
-docker compose exec appstorecat-backend php artisan migrate
+docker compose exec appstorecat-server php artisan migrate
 ```
 
 ## Frontend Sorunları
 
 ### Boş sayfa / API hataları
 
-Backend URL yapılandırmasını kontrol edin. Frontend, API çağrılarını backend'e yönlendirir:
+Server URL yapılandırmasını kontrol edin. Web, API çağrılarını server'a yönlendirir:
 
 ```bash
 # Frontend loglarını kontrol edin
-make logs-frontend
+make logs-web
 ```
 
 Frontend container ortamında `BACKEND_URL` değerinin doğru ayarlandığından emin olun.
 
 ### Canlı yeniden yükleme (hot reload) çalışmıyor
 
-Frontend volume bağlantısı `./frontend:/app` içermelidir. Vite geliştirme sunucusunun çalıştığını kontrol edin:
+Frontend volume bağlantısı `./web:/app` içermelidir. Vite geliştirme sunucusunun çalıştığını kontrol edin:
 
 ```bash
-make logs-frontend
+make logs-web
 ```
 
 ## Scraper Sorunları

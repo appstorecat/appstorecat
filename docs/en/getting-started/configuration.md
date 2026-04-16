@@ -1,13 +1,13 @@
 # Configuration
 
-AppStoreCat is configured through environment variables and a central config file. All configuration is in the backend service.
+AppStoreCat is configured through environment variables and a central config file. All configuration is in the server service.
 
 ## Environment Variables
 
-The backend `.env` file (`backend/.env`) controls core settings. Copy from the example:
+The server `.env` file (`server/.env`) controls core settings. Copy from the example:
 
 ```bash
-cp backend/.env.example backend/.env
+cp server/.env.example server/.env
 ```
 
 ### Application
@@ -46,11 +46,11 @@ cp backend/.env.example backend/.env
 
 ## AppStoreCat Configuration
 
-The main configuration file is `backend/config/appstorecat.php`. Settings are grouped into 4 sections:
+The main configuration file is `server/config/appstorecat.php`. Settings are grouped into 4 sections:
 
 ### Connector Settings
 
-Controls how the backend communicates with scraper microservices:
+Controls how the server communicates with scraper microservices:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -108,7 +108,7 @@ The root `docker-compose.yml` uses these port variables (set in the root `.env`)
 | Variable | Default | Service |
 |----------|---------|---------|
 | `BACKEND_PORT` | `7460` | Laravel API |
-| `FRONTEND_PORT` | `7461` | React frontend |
+| `FRONTEND_PORT` | `7461` | React web |
 | `APPSTORE_API_PORT` | `7462` | App Store scraper |
 | `GPLAY_API_PORT` | `7463` | Google Play scraper |
 | `FORWARD_DB_PORT` | `7464` | MySQL |

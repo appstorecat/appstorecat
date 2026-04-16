@@ -4,13 +4,13 @@ AppStoreCat is a monorepo with 4 services that communicate over HTTP:
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────────┐
-│  Frontend   │────▶│  Backend (API)   │────▶│  scraper-appstore   │
+│  Frontend   │────▶│  Backend (API)   │────▶│  scraper-ios   │
 │  React SPA  │     │  Laravel 13      │     │  Fastify + Node.js  │
 │  :7461      │     │  :7460           │     │  :7462              │
 └─────────────┘     └──────┬───────────┘     └─────────────────────┘
                            │           │
                            │           │     ┌─────────────────────┐
-                           │           └────▶│  scraper-gplay      │
+                           │           └────▶│  scraper-android      │
                            │                 │  FastAPI + Python   │
                     ┌──────▼───────┐         │  :7463              │
                     │    MySQL     │         └─────────────────────┘
@@ -22,11 +22,11 @@ AppStoreCat is a monorepo with 4 services that communicate over HTTP:
 
 ### Backend as Gateway
 
-The backend is the single point of entry for all data operations. The frontend never communicates directly with scrapers. This allows:
+The server is the single point of entry for all data operations. The web app never communicates directly with scrapers. This allows:
 
 - Centralized authentication and rate limiting
 - Data normalization across different store formats
-- Background sync without frontend involvement
+- Background sync without web app involvement
 
 ### Stateless Scrapers
 
@@ -47,10 +47,10 @@ This ensures one platform's rate limits or failures never block the other.
 
 | Service | Tech | Role |
 |---------|------|------|
-| **backend** | Laravel 13, PHP 8.4 | API gateway, business logic, database owner, queue workers |
-| **frontend** | React 19, Vite, TypeScript | User interface |
-| **scraper-appstore** | Fastify 5, Node.js | App Store data scraping |
-| **scraper-gplay** | FastAPI, Python | Google Play data scraping |
+| **server** | Laravel 13, PHP 8.4 | API gateway, business logic, database owner, queue workers |
+| **web** | React 19, Vite, TypeScript | User interface |
+| **scraper-ios** | Fastify 5, Node.js | App Store data scraping |
+| **scraper-android** | FastAPI, Python | Google Play data scraping |
 | **mysql** | MySQL 8.4 | Persistent storage |
 | **redis** | Redis 7 | Cache, queue broker, throttling (dev only) |
 
@@ -58,11 +58,11 @@ This ensures one platform's rate limits or failures never block the other.
 
 ### User-Initiated (Synchronous)
 
-1. User searches for an app in the frontend
+1. User searches for an app in the web app
 2. Frontend calls `GET /api/v1/apps/search?term=...&platform=ios`
-3. Backend forwards to `scraper-appstore` via `ITunesLookupConnector`
-4. Scraper returns results, backend normalizes and returns to frontend
-5. User clicks an app → backend fetches full details via connector and creates DB records
+3. Backend forwards to `scraper-ios` via `ITunesLookupConnector`
+4. Scraper returns results, server normalizes and returns to web
+5. User clicks an app → server fetches full details via connector and creates DB records
 
 ### Background (Asynchronous)
 

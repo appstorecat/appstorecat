@@ -2,7 +2,7 @@
 
 ## Overview
 
-Connectors are HTTP clients in the backend that fetch data from scraper microservices. Each connector implements `ConnectorInterface` and returns a `ConnectorResult` DTO.
+Connectors are HTTP clients in the server that fetch data from scraper microservices. Each connector implements `ConnectorInterface` and returns a `ConnectorResult` DTO.
 
 **Important:** Connectors do NOT scrape stores directly. They call scraper APIs via HTTP.
 
@@ -11,13 +11,13 @@ Connectors are HTTP clients in the backend that fetch data from scraper microser
 ```
 Backend Connector → HTTP → Scraper API → Store (web scraping)
 
-ITunesLookupConnector  → http://scraper-appstore:7462
-GooglePlayConnector    → http://scraper-gplay:7463
+ITunesLookupConnector  → http://scraper-ios:7462
+GooglePlayConnector    → http://scraper-android:7463
 ```
 
 ## Location
 
-`backend/app/Connectors/`
+`server/app/Connectors/`
 
 ## Interface
 
@@ -75,17 +75,17 @@ private function get(string $path, array $query = []): array
 
 ## Configuration
 
-`backend/config/dna.php`:
+`server/config/dna.php`:
 
 ```php
 'connectors' => [
     'appstore' => [
-        'base_url' => env('APPSTORE_API_URL', 'http://scraper-appstore:7462'),
+        'base_url' => env('APPSTORE_API_URL', 'http://scraper-ios:7462'),
         'rate_limit_per_minute' => 20,
         'timeout' => 30,
     ],
     'gplay' => [
-        'base_url' => env('GPLAY_API_URL', 'http://scraper-gplay:7463'),
+        'base_url' => env('GPLAY_API_URL', 'http://scraper-android:7463'),
         'rate_limit_per_minute' => 10,
         'timeout' => 30,
     ],
@@ -110,5 +110,5 @@ All listings must be saved with normalized locales. Backend always queries `wher
 - Always return `ConnectorResult` (success or failure)
 - Use `config('dna.connectors...')` for URLs, never hardcode
 - Normalize all locales to `xx_XX` format
-- Map scraper response fields to backend's expected format in `mapListingData()`
+- Map scraper response fields to server's expected format in `mapListingData()`
 - No caching in connectors

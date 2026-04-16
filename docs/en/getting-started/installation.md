@@ -23,8 +23,8 @@ make setup
 
 This will:
 
-1. **Build** all Docker containers (`backend`, `frontend`, `scraper-appstore`, `scraper-gplay`, `mysql`, `redis`)
-2. **Install** dependencies (Composer for backend, npm for frontend and App Store scraper)
+1. **Build** all Docker containers (`server`, `web`, `scraper-ios`, `scraper-android`, `mysql`, `redis`)
+2. **Install** dependencies (Composer for server, npm for web and App Store scraper)
 3. **Generate** the Laravel `APP_KEY`
 4. **Run** database migrations
 
@@ -52,9 +52,9 @@ Check that all services are running:
 make ps
 ```
 
-You should see 6 healthy containers: `appstorecat-backend`, `appstorecat-frontend`, `appstorecat-scraper-appstore`, `appstorecat-scraper-gplay`, `appstorecat-mysql`, `appstorecat-redis`.
+You should see 6 healthy containers: `appstorecat-server`, `appstorecat-web`, `appstorecat-scraper-ios`, `appstorecat-scraper-android`, `appstorecat-mysql`, `appstorecat-redis`.
 
-Visit http://localhost:7461 to access the frontend.
+Visit http://localhost:7461 to access the web app.
 
 ## Seed Store Categories
 
@@ -75,10 +75,10 @@ make down
 If you only need specific services:
 
 ```bash
-make dev-backend    # Backend + MySQL + Redis
-make dev-frontend   # Frontend only
-make dev-appstore   # App Store scraper only
-make dev-gplay      # Google Play scraper only
+make dev-server    # Backend + MySQL + Redis
+make dev-web   # Frontend only
+make dev-ios   # App Store scraper only
+make dev-android      # Google Play scraper only
 ```
 
 ## Troubleshooting
@@ -89,7 +89,7 @@ Default ports are 7460-7464. If any port is in use, edit the `.env` file in the 
 
 ### Database Connection Issues
 
-If the backend can't connect to MySQL, wait a few seconds for the health check to pass:
+If the server can't connect to MySQL, wait a few seconds for the health check to pass:
 
 ```bash
 docker compose logs appstorecat-mysql

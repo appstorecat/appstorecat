@@ -59,9 +59,9 @@ Google Play Store'dan uygulama verilerini ceken durumsuz bir Python mikroservisi
 ## Calistirma
 
 ```bash
-make dev-gplay      # Servisi baslat
-make logs-gplay     # Loglari goruntule
-make test-gplay     # pytest calistir
+make dev-android      # Servisi baslat
+make logs-android     # Loglari goruntule
+make test-android     # pytest calistir
 ```
 
 ## API Dokumantasyonu

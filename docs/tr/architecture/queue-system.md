@@ -93,7 +93,7 @@ Worker'lar atanan kuyruklarindaki job'lari isler. Uretimde Laravel Supervisor wo
 Kod degisikliklerinden sonra worker'lari yeniden baslatin:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:restart
+docker compose exec appstorecat-server php artisan queue:restart
 ```
 
 ## Yeni Job Ekleme

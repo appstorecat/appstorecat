@@ -1,8 +1,8 @@
 VERSION := $(shell cat VERSION)
 REGISTRY := ghcr.io/appstorecat
-SERVICES := backend frontend scraper-appstore scraper-gplay
-BACKEND := docker compose exec appstorecat-backend
-FRONTEND := docker compose exec appstorecat-frontend
+SERVICES := server web scraper-ios scraper-android
+SERVER := docker compose exec appstorecat-server
+WEB := docker compose exec appstorecat-web
 
 # ─── Pass-through engine ─────────────────────────────────────
 # Enables: make artisan migrate:fresh --seed
@@ -19,11 +19,11 @@ ifneq ($(filter $(FIRST_GOAL),$(PASS_THROUGH)),)
 endif
 
 .PHONY: setup dev down restart logs ps build \
-        dev-backend dev-frontend dev-gplay dev-appstore \
+        dev-server dev-web dev-android dev-ios \
         install key artisan composer tinker shell npm \
-        test test-backend test-gplay test-appstore lint pint lint-frontend \
+        test test-server test-android test-ios lint pint lint-web \
         swagger api-generate api \
-        logs-backend logs-frontend logs-gplay logs-appstore \
+        logs-server logs-web logs-android logs-ios \
         mysql redis-cli \
         clean nuke \
         build-prod release version
@@ -33,25 +33,25 @@ ifeq ($(filter $(FIRST_GOAL),$(PASS_THROUGH)),)
 .PHONY: migrate seed fresh cache-clear route-list queue-restart schedule
 
 migrate:
-	$(BACKEND) php artisan migrate
+	$(SERVER) php artisan migrate
 
 seed:
-	$(BACKEND) php artisan db:seed
+	$(SERVER) php artisan db:seed
 
 fresh:
-	$(BACKEND) php artisan migrate:fresh --seed
+	$(SERVER) php artisan migrate:fresh --seed
 
 cache-clear:
-	$(BACKEND) php artisan optimize:clear
+	$(SERVER) php artisan optimize:clear
 
 route-list:
-	$(BACKEND) php artisan route:list
+	$(SERVER) php artisan route:list
 
 queue-restart:
-	$(BACKEND) php artisan queue:restart
+	$(SERVER) php artisan queue:restart
 
 schedule:
-	$(BACKEND) php artisan schedule:run
+	$(SERVER) php artisan schedule:run
 endif
 
 # ─── Full Stack ───────────────────────────────────────────────
@@ -85,61 +85,61 @@ build:
 
 # ─── Individual Services ──────────────────────────────────────
 
-dev-backend:
-	docker compose up -d appstorecat-backend appstorecat-mysql appstorecat-redis
+dev-server:
+	docker compose up -d appstorecat-server appstorecat-mysql appstorecat-redis
 
-dev-frontend:
-	docker compose up -d appstorecat-frontend
+dev-web:
+	docker compose up -d appstorecat-web
 
-dev-gplay:
-	docker compose up -d appstorecat-scraper-gplay
+dev-android:
+	docker compose up -d appstorecat-scraper-android
 
-dev-appstore:
-	docker compose up -d appstorecat-scraper-appstore
+dev-ios:
+	docker compose up -d appstorecat-scraper-ios
 
-# ─── Backend (Laravel) ────────────────────────────────────────
+# ─── Server (Laravel) ────────────────────────────────────────
 
 ## Run any artisan command: make artisan migrate:fresh --seed
 artisan:
-	$(BACKEND) php artisan $(EXTRA_ARGS)
+	$(SERVER) php artisan $(EXTRA_ARGS)
 
 ## Run any composer command: make composer require foo/bar
 composer:
-	$(BACKEND) composer $(EXTRA_ARGS)
+	$(SERVER) composer $(EXTRA_ARGS)
 
 ## Install all dependencies
 install:
-	docker compose run --rm appstorecat-backend composer install
-	cd frontend && npm install
-	cd scraper-appstore && npm install
+	docker compose run --rm appstorecat-server composer install
+	cd web && npm install
+	cd scraper-ios && npm install
 
 ## Generate APP_KEY (only needed once)
 key:
-	docker compose run --rm appstorecat-backend php artisan key:generate
+	docker compose run --rm appstorecat-server php artisan key:generate
 
 ## Open tinker
 tinker:
-	$(BACKEND) php artisan tinker
+	$(SERVER) php artisan tinker
 
-## Open a shell in the backend container
+## Open a shell in the server container
 shell:
-	$(BACKEND) sh
+	$(SERVER) sh
 
-# ─── Frontend ────────────────────────────────────────────────
+# ─── Web ────────────────────────────────────────────────────
 
-## Run npm command in frontend: make npm install axios
+## Run npm command in web: make npm install axios
 npm:
-	$(FRONTEND) npm $(EXTRA_ARGS)
+	$(WEB) npm $(EXTRA_ARGS)
 
 # ─── API Docs ────────────────────────────────────────────────
 
-## Generate Swagger/OpenAPI docs (backend)
+## Generate Swagger/OpenAPI docs (server)
 swagger:
-	$(BACKEND) php artisan l5-swagger:generate
+	$(SERVER) php artisan l5-swagger:generate
 
-## Generate TypeScript API client from Swagger (frontend)
+## Generate TypeScript API client from Swagger (web)
 api-generate:
-	cd frontend && npx orval
+	cd web && npx orval
 
 ## Full API pipeline: swagger + generate client
 api: swagger api-generate
@@ -147,46 +147,46 @@ api: swagger api-generate
 # ─── Code Quality ────────────────────────────────────────────
 
 ## Run all linters
-lint: pint lint-frontend
+lint: pint lint-web
 
-## PHP code style (backend)
+## PHP code style (server)
 pint:
-	$(BACKEND) php ./vendor/bin/pint
+	$(SERVER) php ./vendor/bin/pint
 
-## ESLint (frontend)
-lint-frontend:
-	$(FRONTEND) npx eslint .
+## ESLint (web)
+lint-web:
+	$(WEB) npx eslint .
 
 # ─── Tests ────────────────────────────────────────────────────
 
 ## Run all tests
-test: test-backend test-gplay test-appstore
+test: test-server test-android test-ios
 
-## Backend tests (Pest)
-test-backend:
-	$(BACKEND) php artisan test
+## Server tests (Pest)
+test-server:
+	$(SERVER) php artisan test
 
 ## Google Play scraper tests (pytest)
-test-gplay:
-	docker compose exec appstorecat-scraper-gplay pytest
+test-android:
+	docker compose exec appstorecat-scraper-android pytest
 
 ## App Store scraper tests (vitest)
-test-appstore:
-	docker compose exec appstorecat-scraper-appstore npm test
+test-ios:
+	docker compose exec appstorecat-scraper-ios npm test
 
 # ─── Logs ─────────────────────────────────────────────────────
 
-logs-backend:
-	docker compose logs -f appstorecat-backend
+logs-server:
+	docker compose logs -f appstorecat-server
 
-logs-frontend:
-	docker compose logs -f appstorecat-frontend
+logs-web:
+	docker compose logs -f appstorecat-web
 
-logs-gplay:
-	docker compose logs -f appstorecat-scraper-gplay
+logs-android:
+	docker compose logs -f appstorecat-scraper-android
 
-logs-appstore:
-	docker compose logs -f appstorecat-scraper-appstore
+logs-ios:
+	docker compose logs -f appstorecat-scraper-ios
 
 # ─── Database ────────────────────────────────────────────────
 

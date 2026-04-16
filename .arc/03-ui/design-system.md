@@ -4,7 +4,7 @@
 
 This project uses **shadcn/ui** with `neutral` base color. All colors are CSS variables with light/dark mode support.
 
-### CSS Variables (defined in `frontend/src/index.css`)
+### CSS Variables (defined in `web/src/index.css`)
 
 ```
 :root / .dark {

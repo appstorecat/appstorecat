@@ -44,7 +44,7 @@ AppStoreCat, kuyruk işçileri kullanarak arka planda verileri otomatik olarak s
 - **Listeler** günlük olarak senkronize edilir
 - **Yorumlar** her uygulama senkronizasyonuyla birlikte senkronize edilir
 
-Senkronizasyon aktivitesini görmek için `make logs-backend` komutunu kontrol edin.
+Senkronizasyon aktivitesini görmek için `make logs-server` komutunu kontrol edin.
 
 ## API Erişimi
 

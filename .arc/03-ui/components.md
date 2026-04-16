@@ -2,19 +2,19 @@
 
 ## Component Library: shadcn/ui (React)
 
-The frontend is a separate React 19 SPA in the `frontend/` directory. UI components use shadcn/ui (React).
+The web app is a separate React 19 SPA in the `web/` directory. UI components use shadcn/ui (React).
 
-### Available UI Components (`frontend/src/components/ui/`)
+### Available UI Components (`web/src/components/ui/`)
 
 alert, avatar, badge, breadcrumb, button, card, checkbox, collapsible, dialog, dropdown-menu, input, input-otp, label, navigation-menu, select, separator, sheet, sidebar, skeleton, spinner, tabs, tooltip
 
 ### Adding New UI Components
 
 ```bash
-cd frontend && npx shadcn@latest add <component-name>
+cd web && npx shadcn@latest add <component-name>
 ```
 
-Components are installed to `frontend/src/components/ui/`.
+Components are installed to `web/src/components/ui/`.
 
 ## Component Patterns
 

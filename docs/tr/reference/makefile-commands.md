@@ -18,10 +18,10 @@ Tum komutlar proje kok dizininden calistirilir.
 
 | Komut | Aciklama |
 |-------|----------|
-| `make dev-backend` | Backend + MySQL + Redis'i baslat |
-| `make dev-frontend` | Yalnizca frontend'i baslat |
-| `make dev-appstore` | Yalnizca App Store scraper'i baslat |
-| `make dev-gplay` | Yalnizca Google Play scraper'i baslat |
+| `make dev-server` | Backend + MySQL + Redis'i baslat |
+| `make dev-web` | Yalnizca web'i baslat |
+| `make dev-ios` | Yalnizca App Store scraper'i baslat |
+| `make dev-android` | Yalnizca Google Play scraper'i baslat |
 
 ## Backend (Laravel)
 
@@ -40,20 +40,20 @@ Tum komutlar proje kok dizininden calistirilir.
 
 | Komut | Aciklama |
 |-------|----------|
-| `make test` | Tum testleri calistir (backend + her iki scraper) |
-| `make test-backend` | Yalnizca PHPUnit testlerini calistir |
-| `make test-appstore` | App Store scraper testlerini calistir (vitest) |
-| `make test-gplay` | Google Play scraper testlerini calistir (pytest) |
+| `make test` | Tum testleri calistir (server + her iki scraper) |
+| `make test-server` | Yalnizca PHPUnit testlerini calistir |
+| `make test-ios` | App Store scraper testlerini calistir (vitest) |
+| `make test-android` | Google Play scraper testlerini calistir (pytest) |
 
 ## Loglar
 
 | Komut | Aciklama |
 |-------|----------|
 | `make logs` | Tum servis loglarini takip et |
-| `make logs-backend` | Yalnizca backend loglarini takip et |
-| `make logs-frontend` | Yalnizca frontend loglarini takip et |
-| `make logs-appstore` | App Store scraper loglarini takip et |
-| `make logs-gplay` | Google Play scraper loglarini takip et |
+| `make logs-server` | Yalnizca server loglarini takip et |
+| `make logs-web` | Yalnizca web loglarini takip et |
+| `make logs-ios` | App Store scraper loglarini takip et |
+| `make logs-android` | Google Play scraper loglarini takip et |
 
 ## Temizlik
 

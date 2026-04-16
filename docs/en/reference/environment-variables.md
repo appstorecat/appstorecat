@@ -98,7 +98,7 @@ Complete reference of all environment variables used by AppStoreCat.
 
 ## Docker Compose Ports
 
-These are set in the root `.env` file (not `backend/.env`):
+These are set in the root `.env` file (not `server/.env`):
 
 | Variable | Default | Service |
 |----------|---------|---------|

@@ -79,4 +79,4 @@ Bir liste senkronize edildiginde icerigi bir `checksum` olarak hashlenir. Checks
 2. Degisen alanlar eski/yeni degerleriyle `StoreListingChange` kayitlari olusturur
 3. Dil eklemeleri ve kaldirmalari da takip edilir
 
-Bu ozellik, frontend'deki **Degisiklikler** sekmesini besler; takip edilen ve rakip uygulamalar arasindaki magaza listesi degisikliklerinin zaman cizelgesini gosterir.
+Bu ozellik, web'deki **Degisiklikler** sekmesini besler; takip edilen ve rakip uygulamalar arasindaki magaza listesi degisikliklerinin zaman cizelgesini gosterir.

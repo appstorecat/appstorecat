@@ -93,7 +93,7 @@ Workers process jobs from their assigned queues. In production, Laravel Supervis
 Restart workers after code changes:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:restart
+docker compose exec appstorecat-server php artisan queue:restart
 ```
 
 ## Adding New Jobs

@@ -3,9 +3,9 @@
 
 services:
     # Laravel API (Gateway)
-    appstorecat-backend:
+    appstorecat-server:
         build:
-            context: ./backend
+            context: ./server
             dockerfile: .docker/Dockerfile
         extra_hosts:
             - 'host.docker.internal:host-gateway'
@@ -21,7 +21,7 @@ services:
             DB_USERNAME: '${DB_USERNAME}'
             DB_PASSWORD: '${DB_PASSWORD}'
         volumes:
-            - './backend:/var/www/html'
+            - './server:/var/www/html'
         networks:
             - appstorecat
         depends_on:
@@ -31,33 +31,33 @@ services:
                 condition: service_healthy
 
     # React Frontend
-    appstorecat-frontend:
+    appstorecat-web:
         build:
-            context: ./frontend
+            context: ./web
             dockerfile: .docker/Dockerfile
         ports:
             - '${FRONTEND_PORT}:${FRONTEND_PORT}'
         volumes:
-            - './frontend:/app'
+            - './web:/app'
             - '/app/node_modules'
         environment:
             - NODE_ENV=development
             - PORT=${FRONTEND_PORT}
-            - BACKEND_URL=http://appstorecat-backend:80
+            - BACKEND_URL=http://appstorecat-server:80
         networks:
             - appstorecat
         depends_on:
-            - appstorecat-backend
+            - appstorecat-server
 
     # App Store Scraper API
-    appstorecat-scraper-appstore:
+    appstorecat-scraper-ios:
         build:
-            context: ./scraper-appstore
+            context: ./scraper-ios
             dockerfile: .docker/Dockerfile
         ports:
             - '${APPSTORE_API_PORT}:${APPSTORE_API_PORT}'
         volumes:
-            - './scraper-appstore:/app'
+            - './scraper-ios:/app'
             - '/app/node_modules'
         environment:
             - NODE_ENV=development
@@ -66,14 +66,14 @@ services:
             - appstorecat
 
     # Google Play Scraper API
-    appstorecat-scraper-gplay:
+    appstorecat-scraper-android:
         build:
-            context: ./scraper-gplay
+            context: ./scraper-android
             dockerfile: .docker/Dockerfile
         ports:
             - '${GPLAY_API_PORT}:${GPLAY_API_PORT}'
         volumes:
-            - './scraper-gplay:/app'
+            - './scraper-android:/app'
         environment:
             - PYTHONDONTWRITEBYTECODE=1
             - PYTHONUNBUFFERED=1
@@ -96,7 +96,7 @@ services:
             retries: 3
             timeout: 5s
 
-    # MySQL Database (only used by backend)
+    # MySQL Database (only used by server)
     appstorecat-mysql:
         image: 'mysql:8.4'
         ports:
@@ -110,7 +110,7 @@ services:
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
         volumes:
             - 'appstorecat-mysql:/var/lib/mysql'
-            - './backend/.docker/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+            - './server/.docker/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
             - appstorecat
         healthcheck:

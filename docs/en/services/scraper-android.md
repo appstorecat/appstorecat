@@ -59,9 +59,9 @@ A stateless Python microservice that scrapes app data from the Google Play Store
 ## Running
 
 ```bash
-make dev-gplay      # Start service
-make logs-gplay     # View logs
-make test-gplay     # Run pytest
+make dev-android      # Start service
+make logs-android     # View logs
+make test-android     # Run pytest
 ```
 
 ## API Documentation

@@ -9,8 +9,8 @@ Common issues and solutions when running AppStoreCat.
 Check if ports are already in use:
 
 ```bash
-lsof -i :7460   # Check backend port
-lsof -i :7461   # Check frontend port
+lsof -i :7460   # Check server port
+lsof -i :7461   # Check web port
 ```
 
 Solution: Change ports in the root `.env` file or stop the conflicting process.
@@ -32,7 +32,7 @@ make setup   # Rebuild
 
 ### Redis connection refused
 
-The backend expects Redis to be available. In development, check:
+The server expects Redis to be available. In development, check:
 
 ```bash
 docker compose ps appstorecat-redis
@@ -44,12 +44,12 @@ In production, Redis is not used — ensure `QUEUE_CONNECTION=database` and `CAC
 
 ### Scraper connection errors
 
-If the backend can't reach scrapers:
+If the server can't reach scrapers:
 
 1. Check scrapers are running: `make ps`
 2. Verify URLs in `.env`:
    - Dev: `APPSTORE_API_URL=http://host.docker.internal:7462`
-   - Prod: `APPSTORE_API_URL=http://appstorecat-scraper-appstore:7462`
+   - Prod: `APPSTORE_API_URL=http://appstorecat-scraper-ios:7462`
 3. Test scraper health: `curl http://localhost:7462/health`
 
 ### Queue jobs not processing
@@ -57,13 +57,13 @@ If the backend can't reach scrapers:
 Check if workers are running:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:work --once
+docker compose exec appstorecat-server php artisan queue:work --once
 ```
 
 Restart workers:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:restart
+docker compose exec appstorecat-server php artisan queue:restart
 ```
 
 ### Jobs going to failed_jobs
@@ -71,7 +71,7 @@ docker compose exec appstorecat-backend php artisan queue:restart
 List failed jobs:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:failed
+docker compose exec appstorecat-server php artisan queue:failed
 ```
 
 Common causes:
@@ -82,7 +82,7 @@ Common causes:
 Retry all failed jobs:
 
 ```bash
-docker compose exec appstorecat-backend php artisan queue:retry all
+docker compose exec appstorecat-server php artisan queue:retry all
 ```
 
 ### Migration errors
@@ -91,31 +91,31 @@ If migrations fail:
 
 ```bash
 # Check current migration status
-docker compose exec appstorecat-backend php artisan migrate:status
+docker compose exec appstorecat-server php artisan migrate:status
 
 # Run pending migrations
-docker compose exec appstorecat-backend php artisan migrate
+docker compose exec appstorecat-server php artisan migrate
 ```
 
 ## Frontend Issues
 
 ### Blank page / API errors
 
-Check the backend URL configuration. The frontend proxies API calls to the backend:
+Check the server URL configuration. The web app proxies API calls to the server:
 
 ```bash
-# Check frontend logs
-make logs-frontend
+# Check web logs
+make logs-web
 ```
 
-Ensure `BACKEND_URL` is set correctly in the frontend container environment.
+Ensure `BACKEND_URL` is set correctly in the web container environment.
 
 ### Hot reload not working
 
-The frontend volume mount should include `./frontend:/app`. Check that the Vite dev server is running:
+The web app volume mount should include `./web:/app`. Check that the Vite dev server is running:
 
 ```bash
-make logs-frontend
+make logs-web
 ```
 
 ## Scraper Issues

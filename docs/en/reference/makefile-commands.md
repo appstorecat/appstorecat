@@ -18,10 +18,10 @@ All commands are run from the project root directory.
 
 | Command | Description |
 |---------|-------------|
-| `make dev-backend` | Start backend + MySQL + Redis |
-| `make dev-frontend` | Start frontend only |
-| `make dev-appstore` | Start App Store scraper only |
-| `make dev-gplay` | Start Google Play scraper only |
+| `make dev-server` | Start server + MySQL + Redis |
+| `make dev-web` | Start web only |
+| `make dev-ios` | Start App Store scraper only |
+| `make dev-android` | Start Google Play scraper only |
 
 ## Backend (Laravel)
 
@@ -40,20 +40,20 @@ All commands are run from the project root directory.
 
 | Command | Description |
 |---------|-------------|
-| `make test` | Run all tests (backend + both scrapers) |
-| `make test-backend` | Run PHPUnit tests only |
-| `make test-appstore` | Run App Store scraper tests (vitest) |
-| `make test-gplay` | Run Google Play scraper tests (pytest) |
+| `make test` | Run all tests (server + both scrapers) |
+| `make test-server` | Run PHPUnit tests only |
+| `make test-ios` | Run App Store scraper tests (vitest) |
+| `make test-android` | Run Google Play scraper tests (pytest) |
 
 ## Logs
 
 | Command | Description |
 |---------|-------------|
 | `make logs` | Follow all service logs |
-| `make logs-backend` | Follow backend logs only |
-| `make logs-frontend` | Follow frontend logs only |
-| `make logs-appstore` | Follow App Store scraper logs |
-| `make logs-gplay` | Follow Google Play scraper logs |
+| `make logs-server` | Follow server logs only |
+| `make logs-web` | Follow web logs only |
+| `make logs-ios` | Follow App Store scraper logs |
+| `make logs-android` | Follow Google Play scraper logs |
 
 ## Cleanup
 

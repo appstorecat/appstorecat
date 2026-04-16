@@ -4,9 +4,9 @@
 
 - Scrapers are **stateless microservices** — no database, no cache, no auth
 - Both scrapers expose **identical endpoint structure** with unified schemas
-- Scrapers return data in a **normalized format** that backend connectors consume directly
+- Scrapers return data in a **normalized format** that server connectors consume directly
 - Each scraper has its own Dockerfile, docker-compose.yml, and test suite
-- Scraper APIs are **internal only** — not exposed to frontend or public
+- Scraper APIs are **internal only** — not exposed to web or public
 
 ## Endpoint Convention
 
@@ -40,7 +40,7 @@ Response schemas must match across both scrapers. Shared model names:
 
 ## No Cache Rule
 
-Scrapers must **never** cache data. Every request hits the store directly. Caching is the backend's responsibility (to be added later).
+Scrapers must **never** cache data. Every request hits the store directly. Caching is the server's responsibility (to be added later).
 
 ## Error Handling
 
@@ -54,14 +54,14 @@ Scrapers must **never** cache data. Every request hits the store directly. Cachi
 - Test all endpoints including edge cases (not found, invalid ID)
 - Health endpoint must always return 200
 
-## scraper-appstore Specific
+## scraper-ios Specific
 
 - **Stack:** TypeScript, Fastify 5, app-store-scraper
 - **Fallback:** Web scraping for subtitle, screenshots, video, rating breakdown
 - **Port:** 7462
 - **Test runner:** vitest
 
-## scraper-gplay Specific
+## scraper-android Specific
 
 - **Stack:** Python, FastAPI, gplay-scraper
 - **Developer page:** Direct HTML scraping (gplay-scraper developer endpoint unreliable)

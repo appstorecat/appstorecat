@@ -44,7 +44,7 @@ AppStoreCat automatically syncs data in the background using queue workers:
 - **Charts** sync daily
 - **Reviews** sync with each app sync
 
-Check `make logs-backend` to see sync activity.
+Check `make logs-server` to see sync activity.
 
 ## API Access
 

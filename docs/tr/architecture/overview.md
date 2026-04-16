@@ -4,13 +4,13 @@ AppStoreCat, HTTP uzerinden iletisim kuran 4 servisten olusan bir monorepo'dur:
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────────┐
-│  Frontend   │────▶│  Backend (API)   │────▶│  scraper-appstore   │
+│  Frontend   │────▶│  Backend (API)   │────▶│  scraper-ios   │
 │  React SPA  │     │  Laravel 13      │     │  Fastify + Node.js  │
 │  :7461      │     │  :7460           │     │  :7462              │
 └─────────────┘     └──────┬───────────┘     └─────────────────────┘
                            │           │
                            │           │     ┌─────────────────────┐
-                           │           └────▶│  scraper-gplay      │
+                           │           └────▶│  scraper-android      │
                            │                 │  FastAPI + Python   │
                     ┌──────▼───────┐         │  :7463              │
                     │    MySQL     │         └─────────────────────┘
@@ -47,10 +47,10 @@ Bu yaklasim, bir platformun hiz sinirlari veya hatalarinin digerini asla engelle
 
 | Servis | Teknoloji | Rol |
 |--------|-----------|-----|
-| **backend** | Laravel 13, PHP 8.4 | API gateway, is mantigi, veritabani sahibi, kuyruk isleyicileri |
-| **frontend** | React 19, Vite, TypeScript | Kullanici arayuzu |
-| **scraper-appstore** | Fastify 5, Node.js | App Store veri tarama |
-| **scraper-gplay** | FastAPI, Python | Google Play veri tarama |
+| **server** | Laravel 13, PHP 8.4 | API gateway, is mantigi, veritabani sahibi, kuyruk isleyicileri |
+| **web** | React 19, Vite, TypeScript | Kullanici arayuzu |
+| **scraper-ios** | Fastify 5, Node.js | App Store veri tarama |
+| **scraper-android** | FastAPI, Python | Google Play veri tarama |
 | **mysql** | MySQL 8.4 | Kalici depolama |
 | **redis** | Redis 7 | Onbellek, kuyruk aracisi, throttling (yalnizca gelistirme) |
 
@@ -58,11 +58,11 @@ Bu yaklasim, bir platformun hiz sinirlari veya hatalarinin digerini asla engelle
 
 ### Kullanici Tarafindan Baslatilan (Senkron)
 
-1. Kullanici frontend'de bir uygulama arar
+1. Kullanici web'de bir uygulama arar
 2. Frontend `GET /api/v1/apps/search?term=...&platform=ios` adresini cagrir
-3. Backend istegi `ITunesLookupConnector` araciligiyla `scraper-appstore`'a iletir
-4. Scraper sonuclari dondurur, backend normalize eder ve frontend'e iletir
-5. Kullanici bir uygulamaya tiklar → backend connector araciligiyla tam detaylari getirir ve veritabani kayitlarini olusturur
+3. Backend istegi `ITunesLookupConnector` araciligiyla `scraper-ios`'a iletir
+4. Scraper sonuclari dondurur, server normalize eder ve web'e iletir
+5. Kullanici bir uygulamaya tiklar → server connector araciligiyla tam detaylari getirir ve veritabani kayitlarini olusturur
 
 ### Arka Plan (Asenkron)
 

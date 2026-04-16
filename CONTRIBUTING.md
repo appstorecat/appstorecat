@@ -25,10 +25,10 @@ AppStoreCat is a monorepo with 4 services:
 
 | Service | Path | Tech |
 |---------|------|------|
-| Backend API | `backend/` | Laravel 13, PHP 8.4 |
-| Frontend | `frontend/` | React 19, TypeScript, Vite |
-| App Store Scraper | `scraper-appstore/` | Fastify 5, Node.js |
-| Google Play Scraper | `scraper-gplay/` | FastAPI, Python |
+| Server API | `server/` | Laravel 13, PHP 8.4 |
+| Web | `web/` | React 19, TypeScript, Vite |
+| App Store Scraper | `scraper-ios/` | Fastify 5, Node.js |
+| Google Play Scraper | `scraper-android/` | FastAPI, Python |
 
 Architecture rules are documented in `.arc/` — please read `.arc/README.md` before making changes.
 
@@ -37,7 +37,7 @@ Architecture rules are documented in `.arc/` — please read `.arc/README.md` be
 ### Code Style
 
 - **PHP:** Run `make pint` before committing. Laravel Pint enforces the project style.
-- **TypeScript/React:** Follow existing patterns in the frontend codebase.
+- **TypeScript/React:** Follow existing patterns in the web codebase.
 - **Python:** Follow PEP 8 conventions.
 
 ### Tests
@@ -46,9 +46,9 @@ Run tests before submitting a PR:
 
 ```bash
 make test             # All tests
-make test-backend     # PHPUnit (backend)
-make test-appstore    # Vitest (App Store scraper)
-make test-gplay       # pytest (Google Play scraper)
+make test-server      # PHPUnit (server)
+make test-ios         # Vitest (App Store scraper)
+make test-android     # pytest (Google Play scraper)
 ```
 
 ### Queue Jobs
@@ -91,7 +91,7 @@ config: enable trending discovery by default
 
 Before making significant architectural changes, please open an issue to discuss your approach. Key design principles:
 
-- **Backend as gateway:** All store data flows through the backend
+- **Server as gateway:** All store data flows through the server
 - **Stateless scrapers:** Scrapers have no database or state
 - **Platform separation:** iOS and Android pipelines are independent
 - **Organic data collection:** No bulk scraping or mass crawling

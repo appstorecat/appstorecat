@@ -39,27 +39,27 @@ jobs:
 
       - name: Install Node Dependencies
         run: npm i
-        working-directory: frontend
+        working-directory: web
 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
-        working-directory: backend
+        working-directory: server
 
       - name: Copy Environment File
         run: cp .env.example .env
-        working-directory: backend
+        working-directory: server
 
       - name: Generate Application Key
         run: php artisan key:generate
-        working-directory: backend
+        working-directory: server
 
       - name: Build Assets
         run: npm run build
-        working-directory: frontend
+        working-directory: web
 
       - name: Tests
         run: ./vendor/bin/pest --exclude-group=integration
-        working-directory: backend
+        working-directory: server
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'

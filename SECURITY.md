@@ -32,10 +32,10 @@ Include:
 
 This policy applies to all services in the AppStoreCat monorepo:
 
-- `backend/` — Laravel API
-- `frontend/` — React SPA
-- `scraper-appstore/` — App Store scraper microservice
-- `scraper-gplay/` — Google Play scraper microservice
+- `server/` — Laravel API
+- `web/` — React SPA
+- `scraper-ios/` — App Store scraper microservice
+- `scraper-android/` — Google Play scraper microservice
 
 ## Out of Scope
 

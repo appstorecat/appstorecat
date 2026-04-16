@@ -1,8 +1,8 @@
 # Scraper APIs
 
-The two scraper microservices expose REST APIs that the backend consumes through connectors. These APIs are not intended for direct external use — the backend API is the public interface.
+The two scraper microservices expose REST APIs that the server consumes through connectors. These APIs are not intended for direct external use — the server API is the public interface.
 
-## App Store Scraper (scraper-appstore)
+## App Store Scraper (scraper-ios)
 
 **Base URL:** `http://localhost:7462`
 **Framework:** Fastify 5 (Node.js/TypeScript)
@@ -31,7 +31,7 @@ The two scraper microservices expose REST APIs that the backend consumes through
 
 ---
 
-## Google Play Scraper (scraper-gplay)
+## Google Play Scraper (scraper-android)
 
 **Base URL:** `http://localhost:7463`
 **Framework:** FastAPI (Python)

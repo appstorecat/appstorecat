@@ -1,8 +1,8 @@
 # Scraper API'leri
 
-Iki scraper mikroservisi, backend'in connector'lar araciligiyla tuketigi REST API'leri sunar. Bu API'ler dogrudan dis kullanim icin tasarlanmamistir — backend API'si herkese acik arayuzdur.
+Iki scraper mikroservisi, server'in connector'lar araciligiyla tuketigi REST API'leri sunar. Bu API'ler dogrudan dis kullanim icin tasarlanmamistir — server API'si herkese acik arayuzdur.
 
-## App Store Scraper (scraper-appstore)
+## App Store Scraper (scraper-ios)
 
 **Base URL:** `http://localhost:7462`
 **Framework:** Fastify 5 (Node.js/TypeScript)
@@ -31,7 +31,7 @@ Iki scraper mikroservisi, backend'in connector'lar araciligiyla tuketigi REST AP
 
 ---
 
-## Google Play Scraper (scraper-gplay)
+## Google Play Scraper (scraper-android)
 
 **Base URL:** `http://localhost:7463`
 **Framework:** FastAPI (Python)

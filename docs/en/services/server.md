@@ -1,6 +1,6 @@
 # Backend Service
 
-The Laravel API backend is the central service in AppStoreCat. It acts as the API gateway, owns the database, manages background jobs, and orchestrates all communication with scraper microservices.
+The Laravel API server is the central service in AppStoreCat. It acts as the API gateway, owns the database, manages background jobs, and orchestrates all communication with scraper microservices.
 
 ## Tech Stack
 
@@ -18,7 +18,7 @@ The Laravel API backend is the central service in AppStoreCat. It acts as the AP
 ## Directory Structure
 
 ```
-backend/
+server/
 ├── app/
 │   ├── Connectors/          # Store API integrations
 │   │   ├── ConnectorInterface.php
@@ -52,10 +52,10 @@ backend/
 ## Key Responsibilities
 
 ### API Gateway
-All frontend requests go through the backend. The backend authenticates users (Sanctum), validates requests (Form Requests), and returns formatted responses (API Resources).
+All web requests go through the server. The server authenticates users (Sanctum), validates requests (Form Requests), and returns formatted responses (API Resources).
 
 ### Database Owner
-The backend is the sole owner of the MySQL database. No other service accesses the database directly.
+The server is the sole owner of the MySQL database. No other service accesses the database directly.
 
 ### Job Orchestration
 The Laravel scheduler dispatches sync and chart jobs. Queue workers process them with platform-specific throttling via Redis.
@@ -66,10 +66,10 @@ Connectors abstract HTTP communication with scraper microservices, normalizing r
 ## Running
 
 ```bash
-make dev-backend    # Start backend + MySQL + Redis
-make logs-backend   # View backend logs
+make dev-server    # Start server + MySQL + Redis
+make logs-server   # View server logs
 make pint           # Run code style fixer
-make test-backend   # Run PHPUnit tests
+make test-server   # Run PHPUnit tests
 ```
 
 ## API Documentation

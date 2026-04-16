@@ -20,7 +20,7 @@ AppStoreCat extracts keywords from store listings and calculates their frequency
 
 The analyzer includes stop word dictionaries for **50 languages**. Stop words (common words like "the", "and", "is") are filtered out to surface meaningful keywords.
 
-Stop word files are stored in `backend/resources/data/stopwords/{lang}.json`.
+Stop word files are stored in `server/resources/data/stopwords/{lang}.json`.
 
 ## N-gram Support
 

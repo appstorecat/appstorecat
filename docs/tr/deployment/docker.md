@@ -8,10 +8,10 @@ Geliştirme ortamı (`docker-compose.yml`) 6 container çalıştırır:
 
 | Container | Image | Port |
 |-----------|-------|------|
-| `appstorecat-backend` | `backend/.docker/Dockerfile` ile oluşturulur | 7460 |
-| `appstorecat-frontend` | `frontend/.docker/Dockerfile` ile oluşturulur | 7461 |
-| `appstorecat-scraper-appstore` | `scraper-appstore/.docker/Dockerfile` ile oluşturulur | 7462 |
-| `appstorecat-scraper-gplay` | `scraper-gplay/.docker/Dockerfile` ile oluşturulur | 7463 |
+| `appstorecat-server` | `server/.docker/Dockerfile` ile oluşturulur | 7460 |
+| `appstorecat-web` | `web/.docker/Dockerfile` ile oluşturulur | 7461 |
+| `appstorecat-scraper-ios` | `scraper-ios/.docker/Dockerfile` ile oluşturulur | 7462 |
+| `appstorecat-scraper-android` | `scraper-android/.docker/Dockerfile` ile oluşturulur | 7463 |
 | `appstorecat-mysql` | `mysql:8.4` | 7464 |
 | `appstorecat-redis` | `redis:7-alpine` | 6379 |
 
@@ -24,9 +24,9 @@ make dev     # Tüm servisleri başlat
 
 ### Volume'lar
 
-- `./backend` canlı yeniden yükleme (live reload) için backend container'ına bağlanır
-- `./frontend` frontend container'ına bağlanır (`/app/node_modules` hariç tutulur)
-- `./scraper-appstore` ve `./scraper-gplay` canlı yeniden yükleme için bağlanır
+- `./server` canlı yeniden yükleme (live reload) için server container'ına bağlanır
+- `./web` web container'ına bağlanır (`/app/node_modules` hariç tutulur)
+- `./scraper-ios` ve `./scraper-android` canlı yeniden yükleme için bağlanır
 - MySQL ve Redis verileri adlandırılmış Docker volume'larında kalıcı olarak saklanır
 
 ### Sağlık Kontrolleri
@@ -84,7 +84,7 @@ Production ortamı iki ağ kullanır:
 ```bash
 make ps          # Servis durumunu göster
 make logs        # Tüm logları takip et
-make logs-backend   # Sadece backend loglarını takip et
+make logs-server   # Sadece server loglarını takip et
 make restart     # Tüm servisleri yeniden başlat
 make clean       # Durdur + volume'ları kaldır
 make nuke        # Image'lar dahil tam temizlik

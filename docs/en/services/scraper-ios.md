@@ -58,9 +58,9 @@ All endpoints return JSON. Error responses use:
 ## Running
 
 ```bash
-make dev-appstore      # Start service
-make logs-appstore     # View logs
-make test-appstore     # Run vitest
+make dev-ios      # Start service
+make logs-ios     # View logs
+make test-ios     # Run vitest
 ```
 
 ## API Documentation

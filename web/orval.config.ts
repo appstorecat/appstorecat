@@ -2,7 +2,7 @@ import { defineConfig } from 'orval'
 
 export default defineConfig({
   appstorecat: {
-    input: '../backend/storage/api-docs/api-docs.json',
+    input: '../server/storage/api-docs/api-docs.json',
     output: {
       target: './src/api/endpoints',
       schemas: './src/api/models',

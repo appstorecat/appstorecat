@@ -98,7 +98,7 @@ AppStoreCat tarafindan kullanilan tum ortam degiskenlerinin tam referansi.
 
 ## Docker Compose Portlari
 
-Bunlar kok `.env` dosyasinda ayarlanir (`backend/.env` degil):
+Bunlar kok `.env` dosyasinda ayarlanir (`server/.env` degil):
 
 | Degisken | Varsayilan | Servis |
 |----------|------------|--------|

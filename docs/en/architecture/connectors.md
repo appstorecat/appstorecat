@@ -1,6 +1,6 @@
 # Connectors
 
-Connectors are the backend's interface to scraper microservices. They abstract HTTP communication, normalize response formats, and provide a unified API for both platforms.
+Connectors are the server's interface to scraper microservices. They abstract HTTP communication, normalize response formats, and provide a unified API for both platforms.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ ConnectorInterface
 ITunesLookupConnector    GooglePlayConnector
    │                       │
    ▼                       ▼
-scraper-appstore :7462   scraper-gplay :7463
+scraper-ios :7462   scraper-android :7463
 ```
 
 ## ConnectorInterface
@@ -56,7 +56,7 @@ class ConnectorResult
 
 ## ITunesLookupConnector
 
-Communicates with the App Store scraper microservice (`scraper-appstore`).
+Communicates with the App Store scraper microservice (`scraper-ios`).
 
 | Method | Scraper Endpoint | Key Response Fields |
 |--------|------------------|---------------------|
@@ -72,7 +72,7 @@ Communicates with the App Store scraper microservice (`scraper-appstore`).
 
 ## GooglePlayConnector
 
-Communicates with the Google Play scraper microservice (`scraper-gplay`).
+Communicates with the Google Play scraper microservice (`scraper-android`).
 
 | Method | Scraper Endpoint | Key Response Fields |
 |--------|------------------|---------------------|

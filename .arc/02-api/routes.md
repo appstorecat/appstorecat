@@ -31,7 +31,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 ```
 
 ## Web Routes
-`routes/web.php` only has a catch-all redirect to the frontend SPA.
+`routes/web.php` only has a catch-all redirect to the web SPA.
 
 ```php
 Route::get('/{any?}', fn () => redirect(config('app.frontend_url')))
@@ -42,7 +42,7 @@ Route::get('/{any?}', fn () => redirect(config('app.frontend_url')))
 - All API routes under `v1` prefix
 - Group by authentication: public vs protected (`auth:sanctum`)
 - Use Route Model Binding for model parameters
-- No named routes needed (frontend uses Orval-generated API client)
+- No named routes needed (web uses Orval-generated API client)
 - Version API routes (`v1`, `v2`)
 
 ## DO / DON'T

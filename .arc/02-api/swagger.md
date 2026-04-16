@@ -106,12 +106,12 @@ enum Platform: string
 Orval reads `storage/api-docs/api-docs.json` to generate typed React hooks and API functions.
 
 ```bash
-cd frontend && npm run api:generate
+cd web && npm run api:generate
 ```
 
 ## Workflow
 After adding or changing any endpoint:
 1. `./vendor/bin/sail artisan l5-swagger:generate`
-2. `cd frontend && npm run api:generate`
+2. `cd web && npm run api:generate`
 
-This keeps the frontend API client in sync with the backend.
+This keeps the web API client in sync with the server.

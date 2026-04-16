@@ -28,7 +28,7 @@ const buildApp = async (): Promise<FastifyInstance> => {
 
   app.get("/health", async () => ({
     status: "ok",
-    service: "scraper-appstore",
+    service: "scraper-ios",
   }));
 
   app.get("/apps/search", async (request) => {
@@ -83,7 +83,7 @@ describe("App Store API", () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body);
     expect(body.status).toBe("ok");
-    expect(body.service).toBe("scraper-appstore");
+    expect(body.service).toBe("scraper-ios");
   });
 
   it("GET /apps/:appId/identity returns app details", async () => {

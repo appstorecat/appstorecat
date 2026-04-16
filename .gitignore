@@ -8,40 +8,40 @@
 
 # AI local config
 .mcp.json
-/backend/.ai/
+/server/.ai/
 
 # Environment
 .env
 .env.backup
 .env.production
 
-# Backend (Laravel)
-/backend/appgenome
-/backend/.phpunit.cache
-/backend/bootstrap/ssr
-/backend/node_modules
-/backend/public/build
-/backend/public/hot
-/backend/public/storage
-/backend/storage/*.key
-/backend/storage/pail
-/backend/resources/js/actions
-/backend/resources/js/routes
-/backend/resources/js/wayfinder
-/backend/vendor
-/backend/.phpactor.json
-/backend/.phpunit.result.cache
-/backend/auth.json
+# Server (Laravel)
+/server/appgenome
+/server/.phpunit.cache
+/server/bootstrap/ssr
+/server/node_modules
+/server/public/build
+/server/public/hot
+/server/public/storage
+/server/storage/*.key
+/server/storage/pail
+/server/resources/js/actions
+/server/resources/js/routes
+/server/resources/js/wayfinder
+/server/vendor
+/server/.phpactor.json
+/server/.phpunit.result.cache
+/server/auth.json
 
-# Frontend
-/frontend/node_modules
-/frontend/dist
+# Web
+/web/node_modules
+/web/dist
 
 # Google Play Scraper
-/scraper-gplay/__pycache__
-/scraper-gplay/.venv
-/scraper-gplay/*.pyc
+/scraper-android/__pycache__
+/scraper-android/.venv
+/scraper-android/*.pyc
 
 # App Store Scraper
-/scraper-appstore/node_modules
-/scraper-appstore/dist
+/scraper-ios/node_modules
+/scraper-ios/dist

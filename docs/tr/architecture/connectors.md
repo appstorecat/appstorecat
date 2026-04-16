@@ -1,6 +1,6 @@
 # Connector'lar
 
-Connector'lar, backend'in scraper mikroservisleriyle iletisim arayuzudur. HTTP iletisimini soyutlar, yanit formatlarini normalize eder ve her iki platform icin birlesik bir API saglar.
+Connector'lar, server'in scraper mikroservisleriyle iletisim arayuzudur. HTTP iletisimini soyutlar, yanit formatlarini normalize eder ve her iki platform icin birlesik bir API saglar.
 
 ## Mimari
 
@@ -15,7 +15,7 @@ ConnectorInterface
 ITunesLookupConnector    GooglePlayConnector
    │                       │
    ▼                       ▼
-scraper-appstore :7462   scraper-gplay :7463
+scraper-ios :7462   scraper-android :7463
 ```
 
 ## ConnectorInterface
@@ -56,7 +56,7 @@ class ConnectorResult
 
 ## ITunesLookupConnector
 
-App Store scraper mikroservisi (`scraper-appstore`) ile iletisim kurar.
+App Store scraper mikroservisi (`scraper-ios`) ile iletisim kurar.
 
 | Metot | Scraper Endpoint'i | Temel Yanit Alanlari |
 |-------|-------------------|---------------------|
@@ -72,7 +72,7 @@ App Store scraper mikroservisi (`scraper-appstore`) ile iletisim kurar.
 
 ## GooglePlayConnector
 
-Google Play scraper mikroservisi (`scraper-gplay`) ile iletisim kurar.
+Google Play scraper mikroservisi (`scraper-android`) ile iletisim kurar.
 
 | Metot | Scraper Endpoint'i | Temel Yanit Alanlari |
 |-------|-------------------|---------------------|

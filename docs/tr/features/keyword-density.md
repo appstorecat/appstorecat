@@ -20,7 +20,7 @@ AppStoreCat, magaza listelerinden anahtar kelimeleri cikarir ve siklik ile yogun
 
 Analizci, **50 dil** icin dur-kelimesi sozlukleri icerir. Dur-kelimeleri ("the", "and", "is" gibi yaygin kelimeler) anlamli anahtar kelimeleri ortaya cikarmak icin filtrelenir.
 
-Dur-kelimesi dosyalari `backend/resources/data/stopwords/{lang}.json` konumunda saklanir.
+Dur-kelimesi dosyalari `server/resources/data/stopwords/{lang}.json` konumunda saklanir.
 
 ## N-gram Destegi
 

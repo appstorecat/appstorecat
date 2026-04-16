@@ -63,7 +63,7 @@ app.get(
       response: { 200: HealthResponseSchema },
     },
   },
-  async () => ({ status: "ok", service: "scraper-appstore" })
+  async () => ({ status: "ok", service: "scraper-ios" })
 );
 
 // Charts / Top lists

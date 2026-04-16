@@ -1,13 +1,13 @@
 # Yapılandırma
 
-AppStoreCat, ortam değişkenleri ve merkezi bir yapılandırma dosyası aracılığıyla yapılandırılır. Tüm yapılandırma backend servisindedir.
+AppStoreCat, ortam değişkenleri ve merkezi bir yapılandırma dosyası aracılığıyla yapılandırılır. Tüm yapılandırma server servisindedir.
 
 ## Ortam Değişkenleri
 
-Backend `.env` dosyası (`backend/.env`) temel ayarları kontrol eder. Örnek dosyadan kopyalayın:
+Backend `.env` dosyası (`server/.env`) temel ayarları kontrol eder. Örnek dosyadan kopyalayın:
 
 ```bash
-cp backend/.env.example backend/.env
+cp server/.env.example server/.env
 ```
 
 ### Uygulama
@@ -46,7 +46,7 @@ cp backend/.env.example backend/.env
 
 ## AppStoreCat Yapılandırması
 
-Ana yapılandırma dosyası `backend/config/appstorecat.php`'dir. Ayarlar 4 bölüme ayrılmıştır:
+Ana yapılandırma dosyası `server/config/appstorecat.php`'dir. Ayarlar 4 bölüme ayrılmıştır:
 
 ### Connector Ayarları
 
@@ -108,7 +108,7 @@ Kök dizindeki `docker-compose.yml` dosyası bu port değişkenlerini kullanır 
 | Değişken | Varsayılan | Servis |
 |----------|------------|--------|
 | `BACKEND_PORT` | `7460` | Laravel API |
-| `FRONTEND_PORT` | `7461` | React frontend |
+| `FRONTEND_PORT` | `7461` | React web |
 | `APPSTORE_API_PORT` | `7462` | App Store scraper |
 | `GPLAY_API_PORT` | `7463` | Google Play scraper |
 | `FORWARD_DB_PORT` | `7464` | MySQL |

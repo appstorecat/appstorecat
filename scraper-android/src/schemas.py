@@ -125,7 +125,7 @@ class ChartResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str = "ok"
-    service: str = "scraper-gplay"
+    service: str = "scraper-android"
 
 
 class ErrorResponse(BaseModel):

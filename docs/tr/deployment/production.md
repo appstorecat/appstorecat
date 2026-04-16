@@ -25,8 +25,8 @@ APP_URL=https://api.yourdomain.com
 FRONTEND_URL=https://app.yourdomain.com
 
 # Scraper URL'leri (dahili Docker ağı)
-APPSTORE_API_URL=http://appstorecat-scraper-appstore:7462
-GPLAY_API_URL=http://appstorecat-scraper-gplay:7463
+APPSTORE_API_URL=http://appstorecat-scraper-ios:7462
+GPLAY_API_URL=http://appstorecat-scraper-android:7463
 
 # Veritabanı
 DB_DATABASE=appstorecat
@@ -59,8 +59,8 @@ docker compose -f docker-compose.production.yml up -d
 ## Adım 3: Veritabanını Başlatın
 
 ```bash
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan migrate
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan db:seed
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan migrate
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan db:seed
 ```
 
 ## Adım 4: Reverse Proxy'yi Yapılandırın
@@ -69,8 +69,8 @@ Trafiği açığa çıkarılan portlara yönlendirin:
 
 | Alan Adı/Yol | Servis Portu |
 |--------------|-------------|
-| `api.yourdomain.com` | `appstorecat-backend:7460` |
-| `app.yourdomain.com` | `appstorecat-frontend:7461` |
+| `api.yourdomain.com` | `appstorecat-server:7460` |
+| `app.yourdomain.com` | `appstorecat-web:7461` |
 
 Scraper servisleri yalnızca dahili kullanım içindir ve herkese açık erişilebilir olmamalıdır.
 
@@ -84,12 +84,12 @@ docker compose -f docker-compose.production.yml pull
 docker compose -f docker-compose.production.yml up -d
 
 # Migration'ları çalıştırın
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan migrate
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan migrate
 ```
 
 ## Kuyruk İşçileri
 
-Production ortamında, backend container'ı aşağıdakileri yöneten bir Supervisor süreci çalıştırır:
+Production ortamında, server container'ı aşağıdakileri yöneten bir Supervisor süreci çalıştırır:
 
 - **Kuyruk işçileri** — Arka plan senkronizasyon ve grafik işlerini işler
 - **Zamanlayıcı** — Tekrarlayan işleri dağıtır (cron)
@@ -104,8 +104,8 @@ Bunlar production Docker image'ında otomatik olarak yapılandırılmıştır.
 # Tüm servis logları
 docker compose -f docker-compose.production.yml logs -f
 
-# Sadece backend
-docker compose -f docker-compose.production.yml logs -f appstorecat-backend
+# Sadece server
+docker compose -f docker-compose.production.yml logs -f appstorecat-server
 ```
 
 ### Başarısız İşler
@@ -113,13 +113,13 @@ docker compose -f docker-compose.production.yml logs -f appstorecat-backend
 Başarısız arka plan işlerini kontrol edin:
 
 ```bash
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan queue:failed
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan queue:failed
 ```
 
 Başarısız işleri yeniden deneyin:
 
 ```bash
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan queue:retry all
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan queue:retry all
 ```
 
 ## Güvenlik Hususları

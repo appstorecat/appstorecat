@@ -39,7 +39,7 @@ The default country for operations is set in `config/appstorecat.php`:
 
 ### In Sync Operations
 
-When syncing an app, the backend:
+When syncing an app, the server:
 
 1. Tries the `us` locale first
 2. Falls back to the app's `origin_country` if the US locale fails

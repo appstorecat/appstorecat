@@ -23,8 +23,8 @@ make setup
 
 Bu komut şunları yapar:
 
-1. Tüm Docker container'larını **derler** (`backend`, `frontend`, `scraper-appstore`, `scraper-gplay`, `mysql`, `redis`)
-2. Bağımlılıkları **yükler** (backend için Composer, frontend ve App Store scraper için npm)
+1. Tüm Docker container'larını **derler** (`server`, `web`, `scraper-ios`, `scraper-android`, `mysql`, `redis`)
+2. Bağımlılıkları **yükler** (server için Composer, web ve App Store scraper için npm)
 3. Laravel `APP_KEY` anahtarını **oluşturur**
 4. Veritabanı migration'larını **çalıştırır**
 
@@ -52,7 +52,7 @@ Tüm servislerin çalıştığını kontrol edin:
 make ps
 ```
 
-6 adet sağlıklı container görmelisiniz: `appstorecat-backend`, `appstorecat-frontend`, `appstorecat-scraper-appstore`, `appstorecat-scraper-gplay`, `appstorecat-mysql`, `appstorecat-redis`.
+6 adet sağlıklı container görmelisiniz: `appstorecat-server`, `appstorecat-web`, `appstorecat-scraper-ios`, `appstorecat-scraper-android`, `appstorecat-mysql`, `appstorecat-redis`.
 
 Frontend'e erişmek için http://localhost:7461 adresini ziyaret edin.
 
@@ -75,10 +75,10 @@ make down
 Yalnızca belirli servislere ihtiyacınız varsa:
 
 ```bash
-make dev-backend    # Backend + MySQL + Redis
-make dev-frontend   # Yalnızca Frontend
-make dev-appstore   # Yalnızca App Store scraper
-make dev-gplay      # Yalnızca Google Play scraper
+make dev-server    # Backend + MySQL + Redis
+make dev-web   # Yalnızca Frontend
+make dev-ios   # Yalnızca App Store scraper
+make dev-android      # Yalnızca Google Play scraper
 ```
 
 ## Sorun Giderme

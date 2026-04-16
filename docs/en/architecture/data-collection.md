@@ -79,4 +79,4 @@ When a listing is synced, its content is hashed into a `checksum`. If the checks
 2. Changed fields create `StoreListingChange` records with old/new values
 3. Locale additions and removals are also tracked
 
-This powers the **Changes** tab in the frontend, which shows a timeline of store listing changes across tracked and competitor apps.
+This powers the **Changes** tab in the web app, which shows a timeline of store listing changes across tracked and competitor apps.

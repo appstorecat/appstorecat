@@ -2,40 +2,40 @@
 
 ## Project
 
-AppStoreCat — Open source app intelligence toolkit. Monorepo with 4 services: Laravel API backend, React frontend, and two independent scraper microservices (App Store + Google Play).
+AppStoreCat — Open source app intelligence toolkit. Monorepo with 4 services: Laravel API server, React web frontend, and two independent scraper microservices (App Store + Google Play).
 
 ## Architecture
 
 ```
-Frontend :7461 → Backend (Laravel API) :7460 → scraper-appstore :7462
-                                              → scraper-gplay :7463
+Web :7461 → Server (Laravel API) :7460 → scraper-ios :7462
+                                        → scraper-android :7463
                    ↓
                 MySQL :7464
 ```
 
-- **Backend** acts as API gateway — all store data flows through scraper microservices
-- **Frontend** communicates only with Backend API
+- **Server** acts as API gateway — all store data flows through scraper microservices
+- **Web** communicates only with Server API
 - **Scrapers** are stateless — no database, no cache, just scrape and return
-- **Database** is owned exclusively by Backend (Laravel)
+- **Database** is owned exclusively by Server (Laravel)
 
 ## Stack
 
 | Service | Tech | Port |
 |---------|------|------|
-| **backend/** | Laravel 13, PHP 8.4, MySQL 8.4, Sanctum, L5-Swagger | 7460 |
-| **frontend/** | React 19, Vite 8, TypeScript, shadcn/ui, Tailwind CSS v4 | 7461 |
-| **scraper-appstore/** | Node.js, Fastify 5, TypeScript, app-store-scraper | 7462 |
-| **scraper-gplay/** | Python, FastAPI, gplay-scraper | 7463 |
+| **server/** | Laravel 13, PHP 8.4, MySQL 8.4, Sanctum, L5-Swagger | 7460 |
+| **web/** | React 19, Vite 8, TypeScript, shadcn/ui, Tailwind CSS v4 | 7461 |
+| **scraper-ios/** | Node.js, Fastify 5, TypeScript, app-store-scraper | 7462 |
+| **scraper-android/** | Python, FastAPI, gplay-scraper | 7463 |
 | **mysql** | MySQL 8.4 | 7464 |
 
 ## Monorepo Structure
 
 ```
 appstorecat/
-├── backend/           # Laravel API (gateway + DB owner)
-├── frontend/          # React SPA
-├── scraper-appstore/  # App Store scraper microservice
-├── scraper-gplay/     # Google Play scraper microservice
+├── server/            # Laravel API (gateway + DB owner)
+├── web/               # React SPA
+├── scraper-ios/       # App Store scraper microservice
+├── scraper-android/   # Google Play scraper microservice
 ├── .arc/              # Architecture rules (all services)
 ├── docker-compose.yml # Root orchestrator
 ├── Makefile           # Dev commands — single entry point
@@ -57,7 +57,7 @@ make ps                 # Service status
 make logs               # Follow all logs
 ```
 
-### Backend (Laravel)
+### Server (Laravel)
 
 ```bash
 make artisan migrate                    # Any artisan command — direct pass-through
@@ -71,7 +71,7 @@ make composer require foo/bar           # Any composer command — direct pass-t
 make composer update                    # Update dependencies
 
 make tinker             # Shortcut for artisan tinker
-make shell              # Open shell in backend container
+make shell              # Open shell in server container
 make migrate            # Run migrations
 make seed               # Run seeders
 make fresh              # migrate:fresh --seed
@@ -81,11 +81,11 @@ make queue-restart      # Restart queue workers
 make schedule           # Run scheduler once
 ```
 
-### Frontend
+### Web
 
 ```bash
 make npm install axios                  # Any npm command — direct pass-through
-make npm run build                      # Build frontend
+make npm run build                      # Build web
 ```
 
 ### API Docs Pipeline
@@ -101,11 +101,11 @@ make api                # Both: swagger + api-generate
 ```bash
 make lint               # All linters (pint + eslint)
 make pint               # PHP code style
-make lint-frontend      # ESLint
-make test               # All tests (backend + scrapers)
-make test-backend       # Pest (PHPUnit)
-make test-gplay         # pytest
-make test-appstore      # vitest
+make lint-web           # ESLint
+make test               # All tests (server + scrapers)
+make test-server        # Pest (PHPUnit)
+make test-android       # pytest
+make test-ios           # vitest
 ```
 
 ### Database
@@ -161,9 +161,9 @@ Run before committing or when explicitly asked:
 ```bash
 make lint               # All linters
 make test               # All tests
-make test-backend       # Pest only
-make test-gplay         # pytest only
-make test-appstore      # vitest only
+make test-server        # Pest only
+make test-android       # pytest only
+make test-ios           # vitest only
 ```
 
 ## Makefile-First Rule

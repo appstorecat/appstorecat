@@ -25,8 +25,8 @@ APP_URL=https://api.yourdomain.com
 FRONTEND_URL=https://app.yourdomain.com
 
 # Scraper URLs (internal Docker network)
-APPSTORE_API_URL=http://appstorecat-scraper-appstore:7462
-GPLAY_API_URL=http://appstorecat-scraper-gplay:7463
+APPSTORE_API_URL=http://appstorecat-scraper-ios:7462
+GPLAY_API_URL=http://appstorecat-scraper-android:7463
 
 # Database
 DB_DATABASE=appstorecat
@@ -59,8 +59,8 @@ docker compose -f docker-compose.production.yml up -d
 ## Step 3: Initialize Database
 
 ```bash
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan migrate
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan db:seed
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan migrate
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan db:seed
 ```
 
 ## Step 4: Configure Reverse Proxy
@@ -69,8 +69,8 @@ Route traffic to the exposed ports:
 
 | Domain/Path | Service Port |
 |-------------|-------------|
-| `api.yourdomain.com` | `appstorecat-backend:7460` |
-| `app.yourdomain.com` | `appstorecat-frontend:7461` |
+| `api.yourdomain.com` | `appstorecat-server:7460` |
+| `app.yourdomain.com` | `appstorecat-web:7461` |
 
 The scraper services are internal only and should not be publicly accessible.
 
@@ -84,12 +84,12 @@ docker compose -f docker-compose.production.yml pull
 docker compose -f docker-compose.production.yml up -d
 
 # Run migrations
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan migrate
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan migrate
 ```
 
 ## Queue Workers
 
-In production, the backend container runs a Supervisor process that manages:
+In production, the server container runs a Supervisor process that manages:
 
 - **Queue workers** — Process background sync and chart jobs
 - **Scheduler** — Dispatches recurring jobs (cron)
@@ -105,7 +105,7 @@ These are configured automatically in the production Docker image.
 docker compose -f docker-compose.production.yml logs -f
 
 # Backend only
-docker compose -f docker-compose.production.yml logs -f appstorecat-backend
+docker compose -f docker-compose.production.yml logs -f appstorecat-server
 ```
 
 ### Failed Jobs
@@ -113,13 +113,13 @@ docker compose -f docker-compose.production.yml logs -f appstorecat-backend
 Check failed background jobs:
 
 ```bash
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan queue:failed
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan queue:failed
 ```
 
 Retry failed jobs:
 
 ```bash
-docker compose -f docker-compose.production.yml exec appstorecat-backend php artisan queue:retry all
+docker compose -f docker-compose.production.yml exec appstorecat-server php artisan queue:retry all
 ```
 
 ## Security Considerations

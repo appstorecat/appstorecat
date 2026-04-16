@@ -11,7 +11,7 @@
 - Orval for API client generation from Swagger JSON
 
 ## Project Location
-Frontend lives in `frontend/` directory, runs on port 7461.
+Frontend lives in `web/` directory, runs on port 7461.
 
 ## Component Pattern
 
@@ -76,10 +76,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 Orval generates typed API hooks and functions from the Swagger JSON.
 
 ```bash
-cd frontend && npm run api:generate
+cd web && npm run api:generate
 ```
 
-Generated files live in `frontend/src/api/generated/`. Do not edit generated files manually.
+Generated files live in `web/src/api/generated/`. Do not edit generated files manually.
 
 ## Navigation: React Router
 ```tsx
