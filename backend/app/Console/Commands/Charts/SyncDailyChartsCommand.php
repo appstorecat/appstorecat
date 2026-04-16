@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands\Charts;
 
 use App\Jobs\Chart\SyncChartSnapshotJob;
+use App\Models\ChartSnapshot;
 use App\Models\Country;
 use App\Models\StoreCategory;
 use Illuminate\Console\Command;
@@ -29,11 +30,19 @@ class SyncDailyChartsCommand extends Command
 
         $jobCount = 0;
 
+        $today = now()->toDateString();
+
         foreach ($platforms as $platform) {
             if (! config("appstorecat.charts.{$platform}.daily_sync_enabled")) {
                 $this->components->info("  {$platform}: daily chart sync is disabled.");
                 continue;
             }
+
+            $existingSnapshots = ChartSnapshot::where('platform', $platform)
+                ->where('snapshot_date', $today)
+                ->get()
+                ->map(fn ($s) => "{$s->collection}:{$s->country}:{$s->category_id}")
+                ->flip();
 
             $countries = Country::activeForPlatform($platform)
                 ->orderByDesc('priority')
@@ -46,21 +55,31 @@ class SyncDailyChartsCommand extends Command
                 ->orderBy('name')
                 ->get();
 
+            $skipped = 0;
+
             foreach ($countries as $country) {
                 foreach ($collections as $collection) {
-                    SyncChartSnapshotJob::dispatch($platform, $collection, $country, null)
-                        ->onQueue("charts-{$platform}");
-                    $jobCount++;
-
-                    foreach ($categories as $category) {
-                        SyncChartSnapshotJob::dispatch($platform, $collection, $country, $category->id)
+                    if (! $existingSnapshots->has("{$collection}:{$country}:")) {
+                        SyncChartSnapshotJob::dispatch($platform, $collection, $country, null)
                             ->onQueue("charts-{$platform}");
                         $jobCount++;
+                    } else {
+                        $skipped++;
+                    }
+
+                    foreach ($categories as $category) {
+                        if (! $existingSnapshots->has("{$collection}:{$country}:{$category->id}")) {
+                            SyncChartSnapshotJob::dispatch($platform, $collection, $country, $category->id)
+                                ->onQueue("charts-{$platform}");
+                            $jobCount++;
+                        } else {
+                            $skipped++;
+                        }
                     }
                 }
             }
 
-            $this->components->info("  {$platform}: {$jobCount} jobs dispatched");
+            $this->components->info("  {$platform}: {$jobCount} dispatched, {$skipped} skipped (already synced)");
         }
 
         $this->components->info("Dispatched {$jobCount} chart sync jobs.");

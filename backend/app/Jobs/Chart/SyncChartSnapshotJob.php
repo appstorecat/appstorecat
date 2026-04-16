@@ -12,6 +12,7 @@ use App\Models\ChartEntry;
 use App\Models\ChartSnapshot;
 use App\Models\StoreCategory;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -19,11 +20,13 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
-class SyncChartSnapshotJob implements ShouldQueue
+class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 2;
+
+    public int $uniqueFor = 3600;
 
     /** @var array<int> */
     public array $backoff = [60, 300];
@@ -34,6 +37,11 @@ class SyncChartSnapshotJob implements ShouldQueue
         private readonly string $country = 'us',
         private readonly ?int $categoryId = null,
     ) {}
+
+    public function uniqueId(): string
+    {
+        return "{$this->platform}:{$this->collection}:{$this->country}:{$this->categoryId}";
+    }
 
     public function handle(ITunesLookupConnector $ios, GooglePlayConnector $android): void
     {
