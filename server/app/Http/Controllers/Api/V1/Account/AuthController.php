@@ -72,7 +72,7 @@ class AuthController extends BaseController
                 ->setStatusCode(401);
         }
 
-        $user->tokens()->delete();
+        $user->tokens()->where('name', 'auth-token')->delete();
 
         $token = $user->createToken('auth-token')->plainTextToken;
 

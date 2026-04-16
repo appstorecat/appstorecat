@@ -8,6 +8,8 @@ import AppsIndex from '@/pages/apps/Index'
 import AppsShow from '@/pages/apps/Show'
 import CompetitorsIndex from '@/pages/competitors/Index'
 import Settings from '@/pages/Settings'
+import ApiTokens from '@/pages/settings/ApiTokens'
+import McpSetup from '@/pages/settings/Mcp'
 import PublishersIndex from '@/pages/publishers/Index'
 import PublishersShow from '@/pages/publishers/Show'
 import AppChanges from '@/pages/changes/AppChanges'
@@ -82,6 +84,8 @@ export default function Router() {
 
             {/* Account */}
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/api-tokens" element={<ApiTokens />} />
+            <Route path="/settings/mcp" element={<McpSetup />} />
           </Route>
         </Route>
 

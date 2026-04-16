@@ -175,8 +175,8 @@ const explorerItems: NavItem[] = [
 ]
 
 const apiItems: NavItem[] = [
-  { title: 'API Keys', href: '#', icon: KeyRound, comingSoon: true },
-  { title: 'MCP', href: '#', icon: Webhook, comingSoon: true },
+  { title: 'API Keys', href: '/settings/api-tokens', icon: KeyRound },
+  { title: 'MCP', href: '/settings/mcp', icon: Webhook },
   { title: 'API Docs', href: '#', icon: BookOpen, comingSoon: true },
 ]
 

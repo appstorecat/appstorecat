@@ -25,6 +25,11 @@ Route::prefix('v1')->group(function () {
         Route::delete('account/profile', [V1\Account\ProfileController::class, 'destroy']);
         Route::put('account/password', [V1\Account\SecurityController::class, 'updatePassword']);
 
+        // API Tokens
+        Route::get('account/api-tokens', [V1\Account\ApiTokenController::class, 'index']);
+        Route::post('account/api-tokens', [V1\Account\ApiTokenController::class, 'store']);
+        Route::delete('account/api-tokens/{tokenId}', [V1\Account\ApiTokenController::class, 'destroy']);
+
         // Dashboard
         Route::get('dashboard', V1\DashboardController::class);
 

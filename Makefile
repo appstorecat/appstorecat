@@ -26,6 +26,7 @@ endif
         logs-server logs-web logs-android logs-ios \
         mysql redis-cli \
         clean nuke \
+        mcp-install mcp-build mcp-dev \
         build-prod release version
 
 # ─── Shortcuts (disabled during pass-through) ────────────────
@@ -208,6 +209,20 @@ clean:
 nuke:
 	docker compose down -v --remove-orphans --rmi local
 
+# ─── MCP ─────────────────────────────────────────────────────
+
+## Install MCP server dependencies
+mcp-install:
+	cd mcp && npm install
+
+## Build MCP server
+mcp-build:
+	cd mcp && npm run build
+
+## Run MCP server in dev mode
+mcp-dev:
+	cd mcp && npm run dev
+
 # ─── Production ──────────────────────────────────────────────
 
 ## Show current version
@@ -244,7 +259,8 @@ endif
 			-t $(REGISTRY)/$$svc:latest \
 			-f $$svc/.docker/Dockerfile.prod $$svc --push; \
 	done
-	@git add VERSION
+	@cd mcp && npm version $(v) --no-git-tag-version --allow-same-version && npm run build && npm publish --access public
+	@git add VERSION mcp/package.json mcp/package-lock.json
 	@git commit -m "release: v$(v)"
 	@git tag v$(v)
 	@git push origin master --tags

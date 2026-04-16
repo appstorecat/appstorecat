@@ -1,0 +1,31 @@
+# AppStoreCat
+
+> Open source app intelligence toolkit for iOS and Android.
+
+AppStoreCat is a self-hosted, free, and open-source alternative to paid app intelligence platforms like Sensor Tower, App Annie (data.ai), and AppFollow. It tracks store listings, monitors changes, analyzes keywords, and discovers trending apps across both App Store and Google Play.
+
+## Features
+
+- **Trending Charts**: Daily snapshots of top free, paid, and grossing apps with historical ranking data
+- **App Discovery**: Search apps across both stores, discover through charts, or import entire publisher catalogs
+- **Store Listing Tracking**: Multi-language listing tracking with title, description, screenshots, and metadata
+- **Ratings & Reviews**: Monitor rating trends and sync user reviews with country/rating/date filtering
+- **Keyword Density Analysis**: ASO-focused n-gram extraction with stop word filtering for 50+ languages
+- **Change Detection**: Automatic detection of listing changes with old/new value tracking
+- **Competitor Tracking**: Define competitor relationships and monitor store presence side by side
+- **Publisher Discovery**: Search publishers, view full app catalogs, and bulk import apps
+- **MCP Server**: Built-in Model Context Protocol server for AI tool integration (Claude, Cursor, etc.)
+
+## Tech Stack
+
+- **Server**: Laravel 13, PHP 8.4, MySQL 8.4
+- **Web**: React 19, TypeScript, Vite, Tailwind CSS
+- **iOS Scraper**: Node.js, Fastify, TypeScript
+- **Android Scraper**: Python, FastAPI
+
+## Links
+
+- Website: https://appstore.cat
+- Source Code: https://github.com/appstorecat/appstorecat
+- Documentation: https://github.com/appstorecat/appstorecat/blob/master/docs/en/getting-started/installation.md
+- License: MIT
