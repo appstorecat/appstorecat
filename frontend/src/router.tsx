@@ -30,7 +30,7 @@ function AuthGuard() {
   }
 
   if (!token) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/" replace />
   }
 
   return <Outlet />
@@ -52,8 +52,8 @@ export default function Router() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route element={<GuestGuard />}>
-          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>

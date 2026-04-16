@@ -50,6 +50,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } finally {
       localStorage.removeItem('token')
       set({ token: null, user: null })
+      window.location.href = '/'
     }
   },
 

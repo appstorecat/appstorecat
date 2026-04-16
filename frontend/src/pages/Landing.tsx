@@ -1,9 +1,81 @@
 import { Link } from 'react-router-dom'
+import { useAuthStore } from '@/stores/auth'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
 const GITHUB_URL = 'https://github.com/appstorecat/appstorecat'
+const DASHBOARD_URL = '/discovery/trending'
+
+function QuickStartAuthButtons() {
+  const token = useAuthStore((s) => s.token)
+  if (token) {
+    return (
+      <div className="mt-8 flex justify-center gap-3">
+        <Link to={DASHBOARD_URL} className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-8 h-12 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors">
+          Go to Dashboard
+        </Link>
+      </div>
+    )
+  }
+  return (
+    <div className="mt-8 flex justify-center gap-3">
+      <Link to="/register" className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-8 h-12 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors">
+        Get Started
+      </Link>
+      <a href={`${GITHUB_URL}/blob/master/docs/en/getting-started/installation.md`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-8 h-12 text-sm font-semibold text-white hover:bg-white/10 transition-colors">
+        Read the Docs
+      </a>
+    </div>
+  )
+}
+
+function HeroAuthButtons() {
+  const token = useAuthStore((s) => s.token)
+  if (token) {
+    return (
+      <div className="flex gap-3">
+        <Link to={DASHBOARD_URL} className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-8 h-12 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors">
+          <RocketIcon className="h-4 w-4" />
+          Go to Dashboard
+        </Link>
+      </div>
+    )
+  }
+  return (
+    <div className="flex gap-3">
+      <Link to="/register" className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-8 h-12 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors">
+        <RocketIcon className="h-4 w-4" />
+        Get Started
+      </Link>
+      <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-8 h-12 text-sm font-semibold text-white hover:bg-white/10 transition-colors">
+        <GithubIcon className="h-4 w-4" />
+        Star on GitHub
+      </a>
+    </div>
+  )
+}
+
+function NavAuthButtons() {
+  const token = useAuthStore((s) => s.token)
+  if (token) {
+    return (
+      <Link to={DASHBOARD_URL} className="inline-flex items-center rounded-lg bg-emerald-500 px-4 h-8 text-sm font-medium text-black hover:bg-emerald-400 transition-colors">
+        Dashboard
+      </Link>
+    )
+  }
+  return (
+    <>
+      <Link to="/login" className="inline-flex items-center rounded-lg px-3 h-8 text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors">
+        Sign In
+      </Link>
+      <Link to="/register" className="inline-flex items-center rounded-lg bg-emerald-500 px-4 h-8 text-sm font-medium text-black hover:bg-emerald-400 transition-colors">
+        Get Started
+      </Link>
+    </>
+  )
+}
 const INSTALL_CMD = `curl -sSL ${window.location.origin}/install.sh | sh`
 
 function Nav() {
@@ -24,12 +96,7 @@ function Nav() {
           </a>
         </div>
         <div className="flex items-center gap-3">
-          <Link to="/login" className="inline-flex items-center rounded-lg px-3 h-8 text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors">
-            Sign In
-          </Link>
-          <Link to="/register" className="inline-flex items-center rounded-lg bg-emerald-500 px-4 h-8 text-sm font-medium text-black hover:bg-emerald-400 transition-colors">
-            Get Started
-          </Link>
+          <NavAuthButtons />
         </div>
       </div>
     </nav>
@@ -106,16 +173,7 @@ function Hero() {
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <Link to="/register" className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-8 h-12 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors">
-              <RocketIcon className="h-4 w-4" />
-              Get Started
-            </Link>
-            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-8 h-12 text-sm font-semibold text-white hover:bg-white/10 transition-colors">
-              <GithubIcon className="h-4 w-4" />
-              Star on GitHub
-            </a>
-          </div>
+          <HeroAuthButtons />
         </div>
 
         {/* Dashboard screenshot */}
@@ -401,14 +459,7 @@ function QuickStart() {
         <p className="mt-8 text-sm text-white/40">
           Open <code className="rounded bg-white/10 px-1.5 py-0.5 text-emerald-400/70">https://{'{your-domain}'}.com</code> and create your account. That's it.
         </p>
-        <div className="mt-8 flex justify-center gap-3">
-          <Link to="/register" className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-8 h-12 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors">
-            Get Started
-          </Link>
-          <a href={`${GITHUB_URL}/blob/master/docs/en/getting-started/installation.md`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-8 h-12 text-sm font-semibold text-white hover:bg-white/10 transition-colors">
-            Read the Docs
-          </a>
-        </div>
+        <QuickStartAuthButtons />
       </div>
     </section>
   )

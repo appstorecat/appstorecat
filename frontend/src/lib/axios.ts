@@ -25,7 +25,7 @@ axios.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      window.location.href = '/'
     }
     return Promise.reject(error)
   },
