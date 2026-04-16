@@ -75,6 +75,6 @@ class SyncDiscoveryCommand extends Command
                         ->where('last_synced_at', '<', now()->subHours(config('appstorecat.sync.android.discovery_app_refresh_hours', 24)));
                 });
             }
-        })->orderBy('last_synced_at')->get();
+        })->orderBy('last_synced_at')->limit(100)->get();
     }
 }
