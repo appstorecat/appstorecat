@@ -3,38 +3,68 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Copy, Check, Terminal } from 'lucide-react'
 
+type Mode = 'prod' | 'dev'
+
+const PROD_URL = 'https://server.appstore.cat/api/v1'
+const DEV_URL = 'http://localhost:7460/api/v1'
+const DEV_MCP_PATH = '/Users/ismail/Projects/laravel/appstorecat/mcp/dist/index.js'
+
 export default function Mcp() {
-  const [apiUrl, setApiUrl] = useState(() => {
-    const origin = window.location.origin
-    return window.location.hostname === 'localhost'
-      ? origin.replace(/:\d+$/, ':7460') + '/api/v1'
-      : 'https://server.appstore.cat/api/v1'
-  })
+  const [mode, setMode] = useState<Mode>('prod')
+  const [apiUrl, setApiUrl] = useState(PROD_URL)
   const [apiToken, setApiToken] = useState('')
   const [copiedCli, setCopiedCli] = useState(false)
   const [copiedJson, setCopiedJson] = useState(false)
 
+  const handleModeChange = (value: Mode) => {
+    setMode(value)
+    setApiUrl(value === 'prod' ? PROD_URL : DEV_URL)
+  }
+
   const displayUrl = apiUrl || '<your-api-url>'
   const displayToken = apiToken || '<your-token>'
 
-  const cliCommand = `claude mcp add appstorecat \\
+  const cliCommand =
+    mode === 'prod'
+      ? `claude mcp add appstorecat \\
   -e APPSTORECAT_API_URL="${displayUrl}" \\
   -e APPSTORECAT_API_TOKEN="${displayToken}" \\
   -- npx -y @appstorecat/mcp`
+      : `claude mcp add appstorecat \\
+  -e APPSTORECAT_API_URL="${displayUrl}" \\
+  -e APPSTORECAT_API_TOKEN="${displayToken}" \\
+  -- node ${DEV_MCP_PATH}`
 
   const jsonConfig = JSON.stringify(
     {
       mcpServers: {
-        appstorecat: {
-          command: 'npx',
-          args: ['-y', '@appstorecat/mcp'],
-          env: {
-            APPSTORECAT_API_URL: displayUrl,
-            APPSTORECAT_API_TOKEN: displayToken,
-          },
-        },
+        appstorecat:
+          mode === 'prod'
+            ? {
+                command: 'npx',
+                args: ['-y', '@appstorecat/mcp'],
+                env: {
+                  APPSTORECAT_API_URL: displayUrl,
+                  APPSTORECAT_API_TOKEN: displayToken,
+                },
+              }
+            : {
+                command: 'node',
+                args: [DEV_MCP_PATH],
+                env: {
+                  APPSTORECAT_API_URL: displayUrl,
+                  APPSTORECAT_API_TOKEN: displayToken,
+                },
+              },
       },
     },
     null,
@@ -79,6 +109,23 @@ export default function Mcp() {
                 value={apiUrl}
                 onChange={(e) => setApiUrl(e.target.value)}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="mode">Mode</Label>
+              <Select value={mode} onValueChange={(v) => handleModeChange(v as Mode)}>
+                <SelectTrigger id="mode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="prod">Production mode</SelectItem>
+                  <SelectItem value="dev">Development mode</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {mode === 'prod'
+                  ? 'Runs the published @appstorecat/mcp package via npx.'
+                  : `Runs the local build from ${DEV_MCP_PATH}. Remember to run \`npm run build\` in the mcp folder.`}
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="api_token">API Token</Label>
