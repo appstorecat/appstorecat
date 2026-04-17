@@ -1,8 +1,30 @@
 import { Outlet, Link, useLocation, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Building2, TrendingUp, Compass, Key, Camera, Image, KeyRound, Webhook, BookOpen, Smartphone, Users, FileSearch, FileSearch2 } from 'lucide-react'
+import {
+  Building2,
+  TrendingUp,
+  Compass,
+  Key,
+  Camera,
+  Image as ImageIcon,
+  KeyRound,
+  Webhook,
+  BookOpen,
+  Smartphone,
+  Users,
+  FileSearch,
+  FileSearch2,
+  GitCompare,
+  ChartBar as BarIcon,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   Sidebar,
   SidebarContent,
@@ -167,10 +189,12 @@ const trackingItems: NavItem[] = [
 
 const asoItems: NavItem[] = [
   { title: 'Keyword Explorer', href: '#', icon: Key, comingSoon: true },
+  { title: 'Keyword Density', href: '#', icon: BarIcon, comingSoon: true },
+  { title: 'Keyword Compare', href: '#', icon: GitCompare, comingSoon: true },
 ]
 
 const explorerItems: NavItem[] = [
-  { title: 'App Icons', href: '/explorer/icons', icon: Image },
+  { title: 'App Icons', href: '/explorer/icons', icon: ImageIcon },
   { title: 'Screenshots', href: '/explorer/screenshots', icon: Camera },
 ]
 
@@ -182,20 +206,35 @@ const apiItems: NavItem[] = [
 
 function NavGroup({ label, items, pathname }: { label: string; items: NavItem[]; pathname: string }) {
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>{label}</SidebarGroupLabel>
-      <SidebarMenu>
+    <SidebarGroup className="pb-1">
+      <SidebarGroupLabel className="px-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/50">
+        {label}
+      </SidebarGroupLabel>
+      <SidebarMenu className="gap-0.5">
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
             {item.comingSoon ? (
-              <SidebarMenuButton disabled className="opacity-50">
-                <item.icon />
-                <span>{item.title}</span>
-                <Badge variant="outline" className="ml-auto text-[10px] px-1.5 py-0">Soon</Badge>
-              </SidebarMenuButton>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-foreground/40 cursor-not-allowed select-none">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1 truncate">{item.title}</span>
+                      <Badge
+                        variant="outline"
+                        className="ml-auto h-5 border-emerald-500/30 bg-emerald-500/5 px-1.5 text-[10px] font-medium text-emerald-400/80"
+                      >
+                        Soon
+                      </Badge>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Coming soon</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : (
               <SidebarMenuButton
                 render={<Link to={item.href} />}
+                className="group/nav relative data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:top-1 data-[active=true]:before:bottom-1 data-[active=true]:before:w-0.5 data-[active=true]:before:bg-emerald-500 data-[active=true]:before:rounded-r-sm"
                 isActive={
                   item.href === '/dashboard'
                     ? pathname === '/dashboard'
@@ -244,9 +283,9 @@ export default function AppLayout() {
         <SidebarRail />
       </Sidebar>
       <SidebarInset className="min-w-0">
-        <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/70 backdrop-blur-lg px-4">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Separator orientation="vertical" className="mr-1 h-4" />
           <Breadcrumbs items={breadcrumbs} />
         </header>
         <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">

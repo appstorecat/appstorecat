@@ -80,13 +80,17 @@ export default function NavUser() {
             }
           >
             <Avatar className="h-8 w-8 rounded-lg">
-              <AvatarFallback className="rounded-lg">{getInitials(user.name)}</AvatarFallback>
+              <AvatarFallback className="rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-semibold">
+                {getInitials(user.name)}
+              </AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
               <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+              <span className="truncate text-xs text-muted-foreground" title={user.email}>
+                {user.email}
+              </span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4" />
+            <ChevronsUpDown className="ml-auto size-4 shrink-0" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"

@@ -1,14 +1,14 @@
 export default function AppLogo() {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
       <img
         src="/appstorecat-icon.svg"
         alt="AppStoreCat"
-        className="h-8 w-8 rounded-md"
+        className="h-7 w-7 rounded-md"
       />
-      <div className="grid leading-tight">
-        <span className="truncate text-sm font-bold tracking-wide uppercase">AppStoreCat</span>
-        <span className="truncate text-[10px] text-muted-foreground">App Intelligence Toolkit</span>
+      <div className="flex min-w-0 flex-col leading-none">
+        <span className="truncate text-sm font-semibold tracking-tight">appstorecat</span>
+        <span className="mt-1 truncate text-[10px] text-muted-foreground">App intelligence</span>
       </div>
     </div>
   )
