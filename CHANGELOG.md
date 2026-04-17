@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 - Open-source documentation restructuring
 - Job performance logging for queue monitoring
+- Rankings tab on app detail page with country/collection/category pivot and date navigation
 
 ### Fixed
 - Chart fetch exceptions now always propagate for retry and failed_jobs tracking

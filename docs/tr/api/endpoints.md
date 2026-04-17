@@ -44,6 +44,7 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 | GET | `/apps/search` | Magazalarda uygulama ara (`?term=X&platform=ios&country=us`) |
 | GET | `/apps/{platform}/{externalId}` | Uygulama detaylarini getir |
 | GET | `/apps/{platform}/{externalId}/listing` | Magaza listesini getir (`?country=us&language=en-US`) |
+| GET | `/apps/{platform}/{externalId}/rankings` | Secilen gun icin uygulamanin liste siralamalari (`?date=YYYY-MM-DD`) |
 | POST | `/apps/{platform}/{externalId}/track` | Bir uygulamayi takip et |
 | DELETE | `/apps/{platform}/{externalId}/track` | Bir uygulamanin takibini birak |
 

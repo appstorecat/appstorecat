@@ -13,6 +13,9 @@ Her iki mağazada da ücretsiz, ücretli ve en çok kazanan uygulamaların günl
 
 ![Trend Listeler](screenshots/trending-charts.jpeg)
 
+### Uygulama Sıralamaları
+Seçilen bir gün için uygulamanın ülke, koleksiyon ve kategori bazında liste pozisyonlarını önceki sıralama ve değişim göstergeleriyle birlikte pivot tablo olarak gösterir.
+
 ### Uygulama Keşfi
 App Store ve Google Play'de uygulama arayın, trend listelerden keşfedin veya tüm yayıncı kataloglarını içe aktarın.
 
@@ -94,6 +97,7 @@ Detaylı kurulum talimatları için [Kurulum Kılavuzu](docs/tr/getting-started/
 
 ### Özellikler
 - [Trend Listeler](docs/tr/features/trending-charts.md)
+- [Uygulama Sıralamaları](docs/tr/features/app-rankings.md)
 - [Uygulama Keşfi](docs/tr/features/app-discovery.md)
 - [Mağaza Listeleri](docs/tr/features/store-listings.md)
 - [Puanlar ve Yorumlar](docs/tr/features/ratings-reviews.md)

@@ -31,6 +31,9 @@ Daily snapshots of top free, top paid, and top grossing apps across both stores 
 
 ![Trending Charts](screenshots/trending-charts.jpeg)
 
+### App Rankings
+Per-app pivot of chart positions across countries, collections, and categories for any given day, with previous rank and change indicators.
+
 ### App Discovery
 Search for apps across App Store and Google Play, discover through trending charts, or import entire publisher catalogs.
 
@@ -112,6 +115,7 @@ See the [Installation Guide](docs/en/getting-started/installation.md) for detail
 
 ### Features
 - [Trending Charts](docs/en/features/trending-charts.md)
+- [App Rankings](docs/en/features/app-rankings.md)
 - [App Discovery](docs/en/features/app-discovery.md)
 - [Store Listings](docs/en/features/store-listings.md)
 - [Ratings & Reviews](docs/en/features/ratings-reviews.md)

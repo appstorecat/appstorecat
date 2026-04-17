@@ -44,6 +44,7 @@ All API endpoints are prefixed with `/api/v1` and require authentication via San
 | GET | `/apps/search` | Search apps in stores (`?term=X&platform=ios&country=us`) |
 | GET | `/apps/{platform}/{externalId}` | Get app details |
 | GET | `/apps/{platform}/{externalId}/listing` | Get store listing (`?country=us&language=en-US`) |
+| GET | `/apps/{platform}/{externalId}/rankings` | Chart rankings for the app on a given day (`?date=YYYY-MM-DD`) |
 | POST | `/apps/{platform}/{externalId}/track` | Track an app |
 | DELETE | `/apps/{platform}/{externalId}/track` | Untrack an app |
 
