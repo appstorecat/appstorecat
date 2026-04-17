@@ -116,7 +116,7 @@ class ExplorerController extends BaseController
         ]);
 
         $query = App::query()
-            ->whereNotNull('last_synced_at')
+            ->whereNotNull('display_icon')
             ->with(['publisher', 'category']);
 
         if ($request->filled('platform')) {
@@ -128,10 +128,10 @@ class ExplorerController extends BaseController
         }
 
         if ($request->filled('search')) {
-            $query->whereHas('storeListings', fn ($q) => $q->where('title', 'like', '%'.$request->input('search').'%'));
+            $query->where('display_name', 'like', '%'.$request->input('search').'%');
         }
 
-        $query->orderByDesc('last_synced_at');
+        $query->orderByDesc('discovered_at');
 
         $paginated = $query->paginate($request->integer('per_page', 48));
 
