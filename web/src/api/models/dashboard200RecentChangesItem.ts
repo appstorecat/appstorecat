@@ -10,6 +10,6 @@ export type Dashboard200RecentChangesItem = {
   id?: number;
   app_name?: string;
   field_changed?: string;
-  locale?: string;
+  language?: string;
   detected_at?: string;
 };

@@ -14,4 +14,9 @@ export interface PublisherSearchRequest {
      */
   term: string;
   platform: PublisherSearchRequestPlatform;
+  /**
+     * @minLength 2
+     * @maxLength 2
+     */
+  country?: string;
 }

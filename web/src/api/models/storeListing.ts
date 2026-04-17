@@ -10,25 +10,21 @@ export interface StoreListing {
   id: number;
   /** @nullable */
   version_id?: number | null;
-  locale: string;
+  language: string;
   title?: string;
   /** @nullable */
   subtitle?: string | null;
-  /** @nullable */
-  short_description?: string | null;
   description?: string;
-  /** @nullable */
-  promotional_text?: string | null;
   /** @nullable */
   whats_new?: string | null;
   /** @nullable */
   icon_url?: string | null;
   /** @nullable */
   screenshots?: string[] | null;
+  price?: number;
   /** @nullable */
-  feature_graphic_url?: string | null;
+  currency?: string | null;
   /** @nullable */
   video_url?: string | null;
-  description_length?: number;
   fetched_at?: string;
 }

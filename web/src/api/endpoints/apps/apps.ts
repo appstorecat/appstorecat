@@ -27,17 +27,19 @@ import type {
 import type {
   AppDetailResource,
   AppKeywordsParams,
+  AppListingParams,
+  AppRankingResource,
   AppResource,
   AppReviewsParams,
   AppReviewsSummary200,
   AppReviewsSummaryParams,
-  AppSearchResultResource,
-  BuildStatusResource,
   CompareKeywordsParams,
   CompetitorResource,
   KeywordCompareResource,
   KeywordDensityResource,
+  ListAppRankingsParams,
   ListAppsParams,
+  ListingResource,
   ReviewResource,
   SearchAppsParams,
   StoreAppRequest,
@@ -267,7 +269,7 @@ export const useStoreApp = <TError = void,
       return useMutation(getStoreAppMutationOptions(options), queryClient);
     }
     /**
- * @summary Get app details (creates and builds DNA if first visit)
+ * @summary Get app details
  */
 export type showAppResponse200 = {
   data: AppDetailResource
@@ -371,7 +373,7 @@ export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError =
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get app details (creates and builds DNA if first visit)
+ * @summary Get app details
  */
 
 export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError = unknown>(
@@ -391,43 +393,45 @@ export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError =
 
 
 /**
- * @summary Rebuild app DNA
+ * @summary Get store listing for a specific country
  */
-export type rebuildAppResponse200 = {
-  data: AppDetailResource
+export type appListingResponse200 = {
+  data: ListingResource
   status: 200
 }
 
-export type rebuildAppResponse404 = {
-  data: void
-  status: 404
-}
-
-export type rebuildAppResponseSuccess = (rebuildAppResponse200) & {
+export type appListingResponseSuccess = (appListingResponse200) & {
   headers: Headers;
 };
-export type rebuildAppResponseError = (rebuildAppResponse404) & {
-  headers: Headers;
-};
+;
 
-export type rebuildAppResponse = (rebuildAppResponseSuccess | rebuildAppResponseError)
+export type appListingResponse = (appListingResponseSuccess)
 
-export const getRebuildAppUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const getAppListingUrl = (platform: 'ios' | 'android',
+    externalId: string,
+    params: AppListingParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/v1/apps/${platform}/${externalId}/rebuild`
+  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/listing?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/listing`
 }
 
-export const rebuildApp = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<rebuildAppResponse> => {
+export const appListing = async (platform: 'ios' | 'android',
+    externalId: string,
+    params: AppListingParams, options?: RequestInit): Promise<appListingResponse> => {
 
-  const res = await fetch(getRebuildAppUrl(platform,externalId),
+  const res = await fetch(getAppListingUrl(platform,externalId,params),
   {
     ...options,
-    method: 'POST'
+    method: 'GET'
 
 
   }
@@ -435,59 +439,100 @@ export const rebuildApp = async (platform: 'ios' | 'android',
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
 
-  const data: rebuildAppResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as rebuildAppResponse
+  const data: appListingResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as appListingResponse
 }
 
 
 
 
-export const getRebuildAppMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rebuildApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
-): UseMutationOptions<Awaited<ReturnType<typeof rebuildApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext> => {
 
-const mutationKey = ['rebuildApp'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rebuildApp>>, {platform: 'ios' | 'android';externalId: string}> = (props) => {
-          const {platform,externalId} = props ?? {};
-
-          return  rebuildApp(platform,externalId,fetchOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RebuildAppMutationResult = NonNullable<Awaited<ReturnType<typeof rebuildApp>>>
-
-    export type RebuildAppMutationError = void
-
-    /**
- * @summary Rebuild app DNA
- */
-export const useRebuildApp = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rebuildApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof rebuildApp>>,
-        TError,
-        {platform: 'ios' | 'android';externalId: string},
-        TContext
-      > => {
-      return useMutation(getRebuildAppMutationOptions(options), queryClient);
+export const getAppListingQueryKey = (platform: 'ios' | 'android',
+    externalId: string,
+    params?: AppListingParams,) => {
+    return [
+    `/api/v1/apps/${platform}/${externalId}/listing`, ...(params ? [params] : [])
+    ] as const;
     }
-    /**
- * @summary Track an app (adds to daily refresh)
+
+
+export const getAppListingQueryOptions = <TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(platform: 'ios' | 'android',
+    externalId: string,
+    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAppListingQueryKey(platform,externalId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof appListing>>> = ({ signal }) => appListing(platform,externalId,params, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AppListingQueryResult = NonNullable<Awaited<ReturnType<typeof appListing>>>
+export type AppListingQueryError = unknown
+
+
+export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params: AppListingParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof appListing>>,
+          TError,
+          Awaited<ReturnType<typeof appListing>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof appListing>>,
+          TError,
+          Awaited<ReturnType<typeof appListing>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get store listing for a specific country
+ */
+
+export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAppListingQueryOptions(platform,externalId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Track an app
  */
 export type trackAppResponse204 = {
   data: void
@@ -563,7 +608,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type TrackAppMutationError = unknown
 
     /**
- * @summary Track an app (adds to daily refresh)
+ * @summary Track an app
  */
 export const useTrackApp = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
@@ -576,7 +621,7 @@ export const useTrackApp = <TError = unknown,
       return useMutation(getTrackAppMutationOptions(options), queryClient);
     }
     /**
- * @summary Untrack an app (removes from daily refresh)
+ * @summary Untrack an app
  */
 export type untrackAppResponse204 = {
   data: void
@@ -652,7 +697,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type UntrackAppMutationError = unknown
 
     /**
- * @summary Untrack an app (removes from daily refresh)
+ * @summary Untrack an app
  */
 export const useUntrackApp = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof untrackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
@@ -665,10 +710,156 @@ export const useUntrackApp = <TError = unknown,
       return useMutation(getUntrackAppMutationOptions(options), queryClient);
     }
     /**
+ * @summary List chart rankings for an app on a given date
+ */
+export type listAppRankingsResponse200 = {
+  data: AppRankingResource[]
+  status: 200
+}
+
+export type listAppRankingsResponse404 = {
+  data: void
+  status: 404
+}
+
+export type listAppRankingsResponseSuccess = (listAppRankingsResponse200) & {
+  headers: Headers;
+};
+export type listAppRankingsResponseError = (listAppRankingsResponse404) & {
+  headers: Headers;
+};
+
+export type listAppRankingsResponse = (listAppRankingsResponseSuccess | listAppRankingsResponseError)
+
+export const getListAppRankingsUrl = (platform: 'ios' | 'android',
+    externalId: string,
+    params?: ListAppRankingsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/rankings?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/rankings`
+}
+
+export const listAppRankings = async (platform: 'ios' | 'android',
+    externalId: string,
+    params?: ListAppRankingsParams, options?: RequestInit): Promise<listAppRankingsResponse> => {
+
+  const res = await fetch(getListAppRankingsUrl(platform,externalId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listAppRankingsResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listAppRankingsResponse
+}
+
+
+
+
+
+export const getListAppRankingsQueryKey = (platform: 'ios' | 'android',
+    externalId: string,
+    params?: ListAppRankingsParams,) => {
+    return [
+    `/api/v1/apps/${platform}/${externalId}/rankings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAppRankingsQueryOptions = <TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(platform: 'ios' | 'android',
+    externalId: string,
+    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAppRankingsQueryKey(platform,externalId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAppRankings>>> = ({ signal }) => listAppRankings(platform,externalId,params, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAppRankingsQueryResult = NonNullable<Awaited<ReturnType<typeof listAppRankings>>>
+export type ListAppRankingsQueryError = void
+
+
+export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params: undefined |  ListAppRankingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAppRankings>>,
+          TError,
+          Awaited<ReturnType<typeof listAppRankings>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAppRankings>>,
+          TError,
+          Awaited<ReturnType<typeof listAppRankings>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List chart rankings for an app on a given date
+ */
+
+export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAppRankingsQueryOptions(platform,externalId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
  * @summary Search apps in stores
  */
 export type searchAppsResponse200 = {
-  data: AppSearchResultResource[]
+  data: AppResource[]
   status: 200
 }
 
@@ -778,137 +969,6 @@ export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getSearchAppsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-/**
- * @summary Get app build status
- */
-export type appBuildStatusResponse200 = {
-  data: BuildStatusResource
-  status: 200
-}
-
-export type appBuildStatusResponse404 = {
-  data: void
-  status: 404
-}
-
-export type appBuildStatusResponseSuccess = (appBuildStatusResponse200) & {
-  headers: Headers;
-};
-export type appBuildStatusResponseError = (appBuildStatusResponse404) & {
-  headers: Headers;
-};
-
-export type appBuildStatusResponse = (appBuildStatusResponseSuccess | appBuildStatusResponseError)
-
-export const getAppBuildStatusUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
-
-
-
-
-  return `/api/v1/apps/${platform}/${externalId}/build-status`
-}
-
-export const appBuildStatus = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<appBuildStatusResponse> => {
-
-  const res = await fetch(getAppBuildStatusUrl(platform,externalId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: appBuildStatusResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as appBuildStatusResponse
-}
-
-
-
-
-
-export const getAppBuildStatusQueryKey = (platform: 'ios' | 'android',
-    externalId: string,) => {
-    return [
-    `/api/v1/apps/${platform}/${externalId}/build-status`
-    ] as const;
-    }
-
-
-export const getAppBuildStatusQueryOptions = <TData = Awaited<ReturnType<typeof appBuildStatus>>, TError = void>(platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appBuildStatus>>, TError, TData>>, fetch?: RequestInit}
-) => {
-
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAppBuildStatusQueryKey(platform,externalId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appBuildStatus>>> = ({ signal }) => appBuildStatus(platform,externalId, { signal, ...fetchOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof appBuildStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AppBuildStatusQueryResult = NonNullable<Awaited<ReturnType<typeof appBuildStatus>>>
-export type AppBuildStatusQueryError = void
-
-
-export function useAppBuildStatus<TData = Awaited<ReturnType<typeof appBuildStatus>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof appBuildStatus>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof appBuildStatus>>,
-          TError,
-          Awaited<ReturnType<typeof appBuildStatus>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppBuildStatus<TData = Awaited<ReturnType<typeof appBuildStatus>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appBuildStatus>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof appBuildStatus>>,
-          TError,
-          Awaited<ReturnType<typeof appBuildStatus>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppBuildStatus<TData = Awaited<ReturnType<typeof appBuildStatus>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appBuildStatus>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get app build status
- */
-
-export function useAppBuildStatus<TData = Awaited<ReturnType<typeof appBuildStatus>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appBuildStatus>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAppBuildStatusQueryOptions(platform,externalId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

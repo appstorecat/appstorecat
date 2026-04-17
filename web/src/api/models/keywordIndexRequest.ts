@@ -8,7 +8,7 @@
 import type { KeywordIndexRequestNgram } from './keywordIndexRequestNgram';
 
 export interface KeywordIndexRequest {
-  locale?: string;
+  language?: string;
   ngram?: KeywordIndexRequestNgram;
   version_id?: number;
 }

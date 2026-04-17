@@ -12,6 +12,113 @@
         }
     ],
     "paths": {
+        "/account/api-tokens": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "List all API tokens",
+                "operationId": "listApiTokens",
+                "responses": {
+                    "200": {
+                        "description": "Token list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ApiTokenResource"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Create a new API token",
+                "operationId": "createApiToken",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreApiTokenRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Token created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "$ref": "#/components/schemas/ApiTokenResource"
+                                        },
+                                        "plain_text_token": {
+                                            "type": "string",
+                                            "example": "1|abc123..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/account/api-tokens/{tokenId}": {
+            "delete": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Revoke an API token",
+                "operationId": "revokeApiToken",
+                "parameters": [
+                    {
+                        "name": "tokenId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Token revoked"
+                    },
+                    "404": {
+                        "description": "Token not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/auth/register": {
             "post": {
                 "tags": [
@@ -418,6 +525,15 @@
                             "type": "string",
                             "example": "tr"
                         }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "tr"
+                        }
                     }
                 ],
                 "responses": {
@@ -519,6 +635,69 @@
                 ]
             }
         },
+        "/apps/{platform}/{externalId}/rankings": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "List chart rankings for an app on a given date",
+                "operationId": "listAppRankings",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rankings on the selected date",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AppRankingResource"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/apps/search": {
             "get": {
                 "tags": [
@@ -547,6 +726,17 @@
                                 "ios",
                                 "android"
                             ]
+                        }
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "us",
+                            "maxLength": 2,
+                            "minLength": 2
                         }
                     }
                 ],
@@ -798,12 +988,12 @@
                         }
                     },
                     {
-                        "name": "country_code",
+                        "name": "language",
                         "in": "query",
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "example": "us"
+                            "example": "en-US"
                         }
                     },
                     {
@@ -908,7 +1098,7 @@
                         }
                     },
                     {
-                        "name": "country_code",
+                        "name": "language",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -1446,7 +1636,7 @@
                                                     "field_changed": {
                                                         "type": "string"
                                                     },
-                                                    "country_code": {
+                                                    "language": {
                                                         "type": "string"
                                                     },
                                                     "detected_at": {
@@ -1632,6 +1822,17 @@
                                 "ios",
                                 "android"
                             ]
+                        }
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "us",
+                            "maxLength": 2,
+                            "minLength": 2
                         }
                     }
                 ],
@@ -2033,6 +2234,29 @@
                 },
                 "type": "object"
             },
+            "StoreApiTokenRequest": {
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "My MCP Token",
+                        "maxLength": 255
+                    }
+                },
+                "type": "object"
+            },
+            "AppRankingIndexRequest": {
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-04-17"
+                    }
+                },
+                "type": "object"
+            },
             "AppSearchRequest": {
                 "required": [
                     "term",
@@ -2052,6 +2276,12 @@
                             "ios",
                             "android"
                         ]
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "us",
+                        "maxLength": 2,
+                        "minLength": 2
                     }
                 },
                 "type": "object"
@@ -2081,7 +2311,7 @@
                             "type": "integer"
                         }
                     },
-                    "country_code": {
+                    "language": {
                         "type": "string",
                         "example": "us"
                     },
@@ -2100,7 +2330,7 @@
             },
             "KeywordIndexRequest": {
                 "properties": {
-                    "country_code": {
+                    "language": {
                         "type": "string",
                         "example": "us"
                     },
@@ -2235,6 +2465,41 @@
                             "ios",
                             "android"
                         ]
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "us",
+                        "maxLength": 2,
+                        "minLength": 2
+                    }
+                },
+                "type": "object"
+            },
+            "ApiTokenResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "My MCP Token"
+                    },
+                    "abilities": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": "[\"mcp\"]"
+                    },
+                    "last_used_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -2396,6 +2661,54 @@
                 },
                 "type": "object"
             },
+            "AppRankingResource": {
+                "properties": {
+                    "country": {
+                        "description": "Expects $resource as array with keys:\n country, collection, category, rank, previous_rank, status, snapshot_date.",
+                        "type": "string"
+                    },
+                    "collection": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "rank": {
+                        "type": "integer"
+                    },
+                    "previous_rank": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "rank_change": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "new",
+                            "up",
+                            "down",
+                            "same"
+                        ]
+                    },
+                    "snapshot_date": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "type": "object"
+            },
             "AppResource": {
                 "required": [
                     "id",
@@ -2536,7 +2849,7 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "country_code": {
+                    "language": {
                         "type": "string",
                         "example": "us"
                     },
@@ -2640,7 +2953,7 @@
                         "type": "integer",
                         "nullable": true
                     },
-                    "country_code": {
+                    "language": {
                         "type": "string",
                         "example": "us"
                     },
@@ -2829,8 +3142,7 @@
                 "required": [
                     "id",
                     "platform",
-                    "external_id",
-                    "name"
+                    "external_id"
                 ],
                 "properties": {
                     "id": {
@@ -2843,14 +3155,6 @@
                     "external_id": {
                         "type": "string",
                         "example": "389801252"
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Instagram"
-                    },
-                    "icon_url": {
-                        "type": "string",
-                        "nullable": true
                     },
                     "supported_locales": {
                         "type": "array",
@@ -2919,7 +3223,7 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "country_code": {
+                    "language": {
                         "type": "string",
                         "example": "us"
                     },
@@ -3079,10 +3383,6 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "version_id": {
-                        "type": "integer",
-                        "nullable": true
-                    },
                     "country_code": {
                         "type": "string",
                         "example": "US"
@@ -3151,7 +3451,7 @@
             "StoreListing": {
                 "required": [
                     "id",
-                    "country_code"
+                    "language"
                 ],
                 "properties": {
                     "id": {
@@ -3162,9 +3462,9 @@
                         "type": "integer",
                         "nullable": true
                     },
-                    "country_code": {
+                    "language": {
                         "type": "string",
-                        "example": "us"
+                        "example": "tr"
                     },
                     "title": {
                         "type": "string",
@@ -3193,6 +3493,16 @@
                         },
                         "nullable": true
                     },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 6.99
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "USD",
+                        "nullable": true
+                    },
                     "video_url": {
                         "type": "string",
                         "nullable": true
@@ -3214,7 +3524,7 @@
                         "type": "integer",
                         "nullable": true
                     },
-                    "country_code": {
+                    "language": {
                         "type": "string",
                         "example": "us"
                     },

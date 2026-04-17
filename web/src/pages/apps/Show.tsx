@@ -28,6 +28,7 @@ import VersionsTab from '@/components/tabs/VersionsTab'
 import CompetitorsTab from '@/components/tabs/CompetitorsTab'
 import KeywordsTab from '@/components/tabs/KeywordsTab'
 import ReviewsTab from '@/components/tabs/ReviewsTab'
+import RankingsTab from '@/components/tabs/RankingsTab'
 import QueryError from '@/components/QueryError'
 
 function formatBytes(bytes: number | null): string {
@@ -308,6 +309,7 @@ export default function AppsShow() {
                 ['competitors', 'Competitors'],
                 ['keywords', 'Keyword Density'],
                 ['reviews', 'Ratings & Reviews'],
+                ['rankings', 'Rankings'],
                 ['changes', 'Changes'],
                 ['versions', 'Versions'],
               ] as [string, string][]).map(([value, label]) => (
@@ -375,6 +377,13 @@ export default function AppsShow() {
                     externalId={app.external_id}
                     currentRating={app.rating ?? null}
                     currentRatingCount={app.rating_count ?? null}
+                    selectedCountry={selectedCountry}
+                  />
+                )}
+                {activeTab === 'rankings' && (
+                  <RankingsTab
+                    platform={app.platform}
+                    externalId={app.external_id}
                     selectedCountry={selectedCountry}
                   />
                 )}

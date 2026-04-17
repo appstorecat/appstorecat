@@ -14,4 +14,9 @@ export interface AppSearchRequest {
      */
   term: string;
   platform: AppSearchRequestPlatform;
+  /**
+     * @minLength 2
+     * @maxLength 2
+     */
+  country?: string;
 }

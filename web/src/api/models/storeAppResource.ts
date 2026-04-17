@@ -15,8 +15,7 @@ export interface StoreAppResource {
   rating?: number | null;
   /** @nullable */
   rating_count?: number | null;
-  /** @nullable */
-  price_model?: string | null;
+  is_free?: boolean;
   /** @nullable */
   category?: string | null;
   is_tracked?: boolean;

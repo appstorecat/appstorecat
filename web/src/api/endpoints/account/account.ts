@@ -25,10 +25,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApiTokenResource,
+  CreateApiToken201,
   MessageResource,
   PasswordUpdateRequest,
   ProfileDeleteRequest,
   ProfileUpdateRequest,
+  StoreApiTokenRequest,
   UserResource
 } from '../../models';
 
@@ -37,6 +40,311 @@ import type {
 
 
 /**
+ * @summary List all API tokens
+ */
+export type listApiTokensResponse200 = {
+  data: ApiTokenResource[]
+  status: 200
+}
+
+export type listApiTokensResponseSuccess = (listApiTokensResponse200) & {
+  headers: Headers;
+};
+;
+
+export type listApiTokensResponse = (listApiTokensResponseSuccess)
+
+export const getListApiTokensUrl = () => {
+
+
+
+
+  return `/api/v1/account/api-tokens`
+}
+
+export const listApiTokens = async ( options?: RequestInit): Promise<listApiTokensResponse> => {
+
+  const res = await fetch(getListApiTokensUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listApiTokensResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listApiTokensResponse
+}
+
+
+
+
+
+export const getListApiTokensQueryKey = () => {
+    return [
+    `/api/v1/account/api-tokens`
+    ] as const;
+    }
+
+
+export const getListApiTokensQueryOptions = <TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListApiTokensQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApiTokens>>> = ({ signal }) => listApiTokens({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListApiTokensQueryResult = NonNullable<Awaited<ReturnType<typeof listApiTokens>>>
+export type ListApiTokensQueryError = unknown
+
+
+export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApiTokens>>,
+          TError,
+          Awaited<ReturnType<typeof listApiTokens>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApiTokens>>,
+          TError,
+          Awaited<ReturnType<typeof listApiTokens>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List all API tokens
+ */
+
+export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListApiTokensQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Create a new API token
+ */
+export type createApiTokenResponse201 = {
+  data: CreateApiToken201
+  status: 201
+}
+
+export type createApiTokenResponse422 = {
+  data: void
+  status: 422
+}
+
+export type createApiTokenResponseSuccess = (createApiTokenResponse201) & {
+  headers: Headers;
+};
+export type createApiTokenResponseError = (createApiTokenResponse422) & {
+  headers: Headers;
+};
+
+export type createApiTokenResponse = (createApiTokenResponseSuccess | createApiTokenResponseError)
+
+export const getCreateApiTokenUrl = () => {
+
+
+
+
+  return `/api/v1/account/api-tokens`
+}
+
+export const createApiToken = async (storeApiTokenRequest: StoreApiTokenRequest, options?: RequestInit): Promise<createApiTokenResponse> => {
+
+  const res = await fetch(getCreateApiTokenUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      storeApiTokenRequest,)
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createApiTokenResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createApiTokenResponse
+}
+
+
+
+
+export const getCreateApiTokenMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext> => {
+
+const mutationKey = ['createApiToken'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createApiToken>>, {data: StoreApiTokenRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createApiToken(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateApiTokenMutationResult = NonNullable<Awaited<ReturnType<typeof createApiToken>>>
+    export type CreateApiTokenMutationBody = StoreApiTokenRequest
+    export type CreateApiTokenMutationError = void
+
+    /**
+ * @summary Create a new API token
+ */
+export const useCreateApiToken = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createApiToken>>,
+        TError,
+        {data: StoreApiTokenRequest},
+        TContext
+      > => {
+      return useMutation(getCreateApiTokenMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Revoke an API token
+ */
+export type revokeApiTokenResponse204 = {
+  data: void
+  status: 204
+}
+
+export type revokeApiTokenResponse404 = {
+  data: void
+  status: 404
+}
+
+export type revokeApiTokenResponseSuccess = (revokeApiTokenResponse204) & {
+  headers: Headers;
+};
+export type revokeApiTokenResponseError = (revokeApiTokenResponse404) & {
+  headers: Headers;
+};
+
+export type revokeApiTokenResponse = (revokeApiTokenResponseSuccess | revokeApiTokenResponseError)
+
+export const getRevokeApiTokenUrl = (tokenId: number,) => {
+
+
+
+
+  return `/api/v1/account/api-tokens/${tokenId}`
+}
+
+export const revokeApiToken = async (tokenId: number, options?: RequestInit): Promise<revokeApiTokenResponse> => {
+
+  const res = await fetch(getRevokeApiTokenUrl(tokenId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: revokeApiTokenResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as revokeApiTokenResponse
+}
+
+
+
+
+export const getRevokeApiTokenMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext> => {
+
+const mutationKey = ['revokeApiToken'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeApiToken>>, {tokenId: number}> = (props) => {
+          const {tokenId} = props ?? {};
+
+          return  revokeApiToken(tokenId,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeApiTokenMutationResult = NonNullable<Awaited<ReturnType<typeof revokeApiToken>>>
+
+    export type RevokeApiTokenMutationError = void
+
+    /**
+ * @summary Revoke an API token
+ */
+export const useRevokeApiToken = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeApiToken>>,
+        TError,
+        {tokenId: number},
+        TContext
+      > => {
+      return useMutation(getRevokeApiTokenMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Get authenticated user profile
  */
 export type showProfileResponse200 = {

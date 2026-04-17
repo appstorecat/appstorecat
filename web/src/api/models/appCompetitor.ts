@@ -12,6 +12,4 @@ export interface AppCompetitor {
   app_id?: number;
   competitor_app_id?: number;
   relationship?: CompetitorRelationship;
-  /** @nullable */
-  notes?: string | null;
 }

@@ -5,12 +5,9 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
-import type { SentimentLabel } from './sentimentLabel';
 
 export interface Review {
   id?: number;
-  /** @nullable */
-  version_id?: number | null;
   country_code?: string;
   /** @nullable */
   external_id?: string | null;
@@ -25,9 +22,4 @@ export interface Review {
   review_date?: string | null;
   /** @nullable */
   app_version?: string | null;
-  /** @nullable */
-  sentiment_score?: number | null;
-  sentiment_label?: SentimentLabel | null;
-  /** @nullable */
-  extracted_keywords?: string[] | null;
 }

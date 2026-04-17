@@ -16,6 +16,6 @@ app_ids: number[];
  * Version ID per app (keyed by app ID)
  */
 version_ids?: {[key: string]: number};
-locale?: string;
+language?: string;
 ngram?: CompareKeywordsNgram;
 };

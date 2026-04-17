@@ -5,7 +5,6 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
-import type { DashboardResourceBuildStatusCounts } from './dashboardResourceBuildStatusCounts';
 import type { DashboardResourceRecentChangesItem } from './dashboardResourceRecentChangesItem';
 import type { DashboardResourceRecentReviewsItem } from './dashboardResourceRecentReviewsItem';
 
@@ -16,5 +15,4 @@ export interface DashboardResource {
   total_changes?: number;
   recent_reviews?: DashboardResourceRecentReviewsItem[];
   recent_changes?: DashboardResourceRecentChangesItem[];
-  build_status_counts?: DashboardResourceBuildStatusCounts;
 }

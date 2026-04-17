@@ -14,4 +14,9 @@ export type SearchAppsParams = {
  */
 term: string;
 platform: SearchAppsPlatform;
+/**
+ * @minLength 2
+ * @maxLength 2
+ */
+country?: string;
 };

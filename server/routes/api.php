@@ -51,6 +51,7 @@ Route::prefix('v1')->group(function () {
             Route::get('keywords/compare', [V1\App\KeywordController::class, 'compare']);
             Route::get('reviews', [V1\App\ReviewController::class, 'index']);
             Route::get('reviews/summary', [V1\App\ReviewController::class, 'summary']);
+            Route::get('rankings', [V1\App\AppRankingController::class, 'index']);
         });
 
         // Competitors (all)

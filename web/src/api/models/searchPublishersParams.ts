@@ -13,4 +13,9 @@ export type SearchPublishersParams = {
  */
 term: string;
 platform: SearchPublishersPlatform;
+/**
+ * @minLength 2
+ * @maxLength 2
+ */
+country?: string;
 };

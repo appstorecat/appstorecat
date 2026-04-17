@@ -20,12 +20,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -214,23 +208,19 @@ function NavGroup({ label, items, pathname }: { label: string; items: NavItem[];
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
             {item.comingSoon ? (
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-foreground/40 cursor-not-allowed select-none">
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      <span className="flex-1 truncate">{item.title}</span>
-                      <Badge
-                        variant="outline"
-                        className="ml-auto h-5 border-emerald-500/30 bg-emerald-500/5 px-1.5 text-[10px] font-medium text-emerald-400/80"
-                      >
-                        Soon
-                      </Badge>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">Coming soon</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div
+                title="Coming soon"
+                className="relative flex cursor-not-allowed select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-foreground/40"
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                <span className="flex-1 truncate">{item.title}</span>
+                <Badge
+                  variant="outline"
+                  className="ml-auto h-5 border-emerald-500/30 bg-emerald-500/5 px-1.5 text-[10px] font-medium text-emerald-400/80"
+                >
+                  Soon
+                </Badge>
+              </div>
             ) : (
               <SidebarMenuButton
                 render={<Link to={item.href} />}
