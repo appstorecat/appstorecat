@@ -128,3 +128,10 @@
     @apply font-sans;
     }
 }
+@keyframes terminal-line {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-terminal-line {
+  animation: terminal-line 0.3s ease-out both;
+}
