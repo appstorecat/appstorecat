@@ -9,6 +9,7 @@
 # AI local config
 .mcp.json
 /server/.ai/
+/bug_hunt_apps.json
 
 # Environment
 .env

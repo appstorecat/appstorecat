@@ -65,6 +65,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'unknown_categories' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/unknown-categories.log'),
+            'level' => 'error',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

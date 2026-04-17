@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(
@@ -59,14 +58,6 @@ class StoreCategory extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
-    }
-
-    public static function findOrCreateByName(string $name, string $platform): self
-    {
-        return static::firstOrCreate(
-            ['platform' => $platform, 'slug' => Str::slug($name), 'type' => 'app'],
-            ['name' => $name],
-        );
     }
 
     protected function casts(): array

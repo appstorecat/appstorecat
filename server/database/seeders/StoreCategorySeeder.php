@@ -10,50 +10,54 @@ class StoreCategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $this->seedPlatform('ios', database_path('data/appstore_categories.json'));
-        $this->seedPlatform('android', database_path('data/gplay_categories.json'));
+        $data = json_decode(file_get_contents(database_path('data/store_categories.json')), true);
+
+        foreach (['ios', 'android'] as $platform) {
+            $this->seedPlatform($platform, $data[$platform]);
+        }
     }
 
-    private function seedPlatform(string $platform, string $path): void
+    /**
+     * @param  array{apps: array<int,array<string,mixed>>, games: array<int,array<string,mixed>>}  $payload
+     */
+    private function seedPlatform(string $platform, array $payload): void
     {
-        $data = json_decode(file_get_contents($path), true);
-
-        foreach ($data['apps'] as $cat) {
+        foreach ($payload['apps'] as $cat) {
             $this->upsert($platform, $cat, 'app');
         }
 
         $gamesParent = StoreCategory::where('platform', $platform)
-            ->where('slug', 'games')
-            ->where('type', 'app')
+            ->where('external_id', $platform === 'ios' ? '6014' : 'GAME')
             ->first();
 
-        foreach ($data['games'] as $cat) {
-            $this->upsert($platform, $cat, 'game', $gamesParent?->id);
-        }
+        foreach ($payload['games'] as $cat) {
+            $parentId = $gamesParent?->id;
 
-        if (isset($data['magazines'])) {
-            $magazinesParent = StoreCategory::where('platform', $platform)
-                ->where('slug', 'magazines-newspapers')
-                ->where('type', 'app')
-                ->first();
-
-            foreach ($data['magazines'] as $cat) {
-                $this->upsert($platform, $cat, 'magazine', $magazinesParent?->id);
+            if (! empty($cat['parent_key'])) {
+                $parent = StoreCategory::where('platform', $platform)
+                    ->where('external_id', $cat['parent_key'])
+                    ->first();
+                $parentId = $parent?->id ?? $parentId;
             }
+
+            $this->upsert($platform, $cat, 'game', $parentId);
         }
     }
 
+    /**
+     * @param  array<string,mixed>  $cat
+     */
     private function upsert(string $platform, array $cat, string $type, ?int $parentId = null): void
     {
         StoreCategory::updateOrCreate(
             [
                 'platform' => $platform,
-                'slug' => Str::slug($cat['name']),
-                'type' => $type,
+                'external_id' => (string) $cat['external_id'],
             ],
             [
                 'name' => $cat['name'],
-                'external_id' => (string) ($cat['id'] ?? $cat['key'] ?? null),
+                'slug' => Str::slug($cat['name']),
+                'type' => $type,
                 'parent_id' => $parentId,
             ],
         );

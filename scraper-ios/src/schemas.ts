@@ -22,6 +22,7 @@ export const AppIdentitySchema = {
     publisher_external_id: { type: "string" as const, nullable: true },
     publisher_url: { type: "string" as const, nullable: true },
     category: { type: "string" as const },
+    category_id: { type: "string" as const, nullable: true },
     content_rating: { type: "string" as const, nullable: true },
     supported_locales: {
       type: "array" as const,
@@ -112,6 +113,7 @@ export const DeveloperAppSchema = {
     rating_count: { type: "integer" as const, nullable: true },
     price_model: { type: "string" as const },
     category: { type: "string" as const, nullable: true },
+    category_id: { type: "string" as const, nullable: true },
   },
   required: ["external_id", "name"],
 };
@@ -212,6 +214,7 @@ export interface AppIdentity {
   publisher_external_id: string | null;
   publisher_url: string | null;
   category: string;
+  category_id: string | null;
   content_rating: string | null;
   supported_locales: string[] | null;
   original_release_date: string | null;
@@ -267,6 +270,7 @@ export interface DeveloperApp {
   rating_count: number | null;
   price_model: string;
   category: string | null;
+  category_id: string | null;
 }
 
 export interface ChartEntry {

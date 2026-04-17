@@ -36,7 +36,7 @@ REVIEW_FIELDS = ["reviewId", "userName", "content", "score", "at", "reviewCreate
 
 SEARCH_FIELDS = ["appId", "title", "developer", "developerId", "icon", "score", "free", "price", "currency", "version"]
 
-CHART_FIELDS = ["appId", "title", "icon", "developer", "developerId", "genre", "price", "free", "score", "currency", "version"]
+CHART_FIELDS = ["appId", "title", "icon", "developer", "developerId", "genre", "genreId", "price", "free", "score", "currency", "version"]
 
 COLLECTION_MAP = {
     "top_free": "topselling_free",
@@ -44,7 +44,7 @@ COLLECTION_MAP = {
     "top_grossing": "topgrossing",
 }
 
-DEVELOPER_FIELDS = ["appId", "title", "icon", "score", "ratings", "free", "genre"]
+DEVELOPER_FIELDS = ["appId", "title", "icon", "score", "ratings", "free", "genre", "genreId"]
 
 scraper = GPlayScraper()
 
@@ -61,7 +61,7 @@ def fetch_identity(app_id: str, country: str = "us") -> AppIdentity:
     """Fetch app identity/details from Google Play."""
     info = scraper.app_get_fields(app_id, [
         "appId", "title", "developer", "developerId", "developerWebsite",
-        "genre", "contentRating", "released", "lastUpdated", "free",
+        "genre", "genreId", "contentRating", "released", "lastUpdated", "free",
         "appUrl", "version", "price", "currency",
     ], country=country)
 
@@ -76,6 +76,7 @@ def fetch_identity(app_id: str, country: str = "us") -> AppIdentity:
         publisher_external_id=_resolve_developer_id(info),
         publisher_url=info.get("developerWebsite"),
         category=info.get("genre", ""),
+        category_id=info.get("genreId"),
         content_rating=info.get("contentRating"),
         supported_locales=None,
         original_release_date=info.get("released"),
@@ -233,6 +234,7 @@ def fetch_developer_apps(developer_id: str) -> DeveloperAppsResponse:
         price=info.get("price", 0) or 0,
         currency=info.get("currency"),
                     category=info.get("genre"),
+                    category_id=info.get("genreId"),
                 )
             )
         except Exception:
@@ -272,6 +274,7 @@ def fetch_chart(
                 developer=info.get("developer"),
                 developer_id=_resolve_developer_id(info),
                 genre=info.get("genre"),
+                genre_id=info.get("genreId"),
                 price=info.get("price", 0),
                 free=info.get("free", True),
                 rating=info.get("score"),

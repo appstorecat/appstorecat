@@ -177,15 +177,12 @@ class App extends Model
             $publisherId = $publisher->id;
         }
 
-        $categoryId = null;
-        if (! empty($data['genre_id'])) {
-            $category = StoreCategory::where('platform', $platform)->where('external_id', $data['genre_id'])->first();
-            $categoryId = $category?->id;
-        }
-        if (! $categoryId && ! empty($data['genre'])) {
-            $category = StoreCategory::findOrCreateByName($data['genre'], $platform);
-            $categoryId = $category->id;
-        }
+        $categoryId = app(\App\Services\StoreCategoryResolver::class)->resolveId(
+            $platform,
+            $data['genre_id'] ?? null,
+            $data['genre'] ?? null,
+            ['source' => 'App::discover', 'external_id' => $externalId, 'country' => $country],
+        );
 
         $app = static::create([
             'platform' => $platform,

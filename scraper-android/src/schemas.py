@@ -16,6 +16,7 @@ class AppIdentity(BaseModel):
     publisher_external_id: str | None = None
     publisher_url: str | None = None
     category: str = ""
+    category_id: str | None = None
     content_rating: str | None = None
     supported_locales: list[str] | None = None
     original_release_date: str | None = None
@@ -77,6 +78,7 @@ class DeveloperApp(BaseModel):
     price: float = 0
     currency: str | None = None
     category: str | None = None
+    category_id: str | None = None
 
 
 class DeveloperAppsResponse(BaseModel):
@@ -112,6 +114,7 @@ class ChartEntry(BaseModel):
     developer: str | None = None
     developer_id: str | None = None
     genre: str | None = None
+    genre_id: str | None = None
     price: float | None = None
     free: bool = True
     rating: float | None = None

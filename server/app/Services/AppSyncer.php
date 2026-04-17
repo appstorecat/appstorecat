@@ -13,9 +13,9 @@ use App\Models\AppVersion;
 use App\Models\Country;
 use App\Models\Publisher;
 use App\Models\Review;
-use App\Models\StoreCategory;
 use App\Models\StoreListing;
 use App\Models\StoreListingChange;
+use App\Services\StoreCategoryResolver;
 use Illuminate\Support\Facades\Log;
 
 class AppSyncer
@@ -23,6 +23,7 @@ class AppSyncer
     public function __construct(
         private readonly ITunesLookupConnector $ios,
         private readonly GooglePlayConnector $android,
+        private readonly StoreCategoryResolver $categoryResolver,
     ) {}
 
     /**
@@ -94,10 +95,12 @@ class AppSyncer
                 $appData['publisher_id'] = $publisher->id;
             }
 
-            if (! empty($data['category_primary'])) {
-                $category = StoreCategory::findOrCreateByName($data['category_primary'], $platform);
-                $appData['category_id'] = $category->id;
-            }
+            $appData['category_id'] = $this->categoryResolver->resolveId(
+                $platform,
+                $data['category_external_id'] ?? null,
+                $data['category_primary'] ?? null,
+                ['source' => 'AppSyncer', 'external_id' => $app->external_id],
+            );
 
             $app->update($appData);
 

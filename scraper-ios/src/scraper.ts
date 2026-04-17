@@ -134,6 +134,7 @@ export async function fetchIdentity(appId: string, country: string = "us", lang?
     publisher_external_id: info.developerId ? String(info.developerId).split("?")[0] : null,
     publisher_url: info.developerUrl || null,
     category: info.primaryGenre || "",
+    category_id: info.primaryGenreId != null ? String(info.primaryGenreId) : null,
     content_rating: info.contentRating || null,
     supported_locales: info.languages || null,
     original_release_date: info.released
@@ -298,6 +299,7 @@ export async function fetchDeveloperApps(
     price: info.price ?? 0,
     currency: info.currency ?? null,
     category: info.primaryGenre || null,
+    category_id: info.primaryGenreId != null ? String(info.primaryGenreId) : null,
   }));
 }
 

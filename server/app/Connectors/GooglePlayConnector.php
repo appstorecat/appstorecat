@@ -27,6 +27,7 @@ class GooglePlayConnector implements ConnectorInterface
             'publisher_external_id' => $data['publisher_external_id'] ?? null,
             'publisher_url' => $data['publisher_url'] ?? null,
             'category_primary' => $data['category'] ?? '',
+            'category_external_id' => $data['category_id'] ?? null,
             'content_rating' => $data['content_rating'] ?? null,
             'supported_locales' => $data['supported_locales'] ?? null,
             'original_release_date' => $data['original_release_date'] ?? null,
