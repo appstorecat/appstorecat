@@ -164,6 +164,17 @@ class App extends Model
         $app = static::where('platform', $platform)->where('external_id', $externalId)->first();
 
         if ($app) {
+            $updates = [];
+            if (! empty($data['name']) && $app->display_name !== $data['name']) {
+                $updates['display_name'] = $data['name'];
+            }
+            if (! empty($data['icon_url']) && $app->display_icon !== $data['icon_url']) {
+                $updates['display_icon'] = $data['icon_url'];
+            }
+            if ($updates !== []) {
+                $app->update($updates);
+            }
+
             return $app;
         }
 
