@@ -112,6 +112,10 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
 
         $newApps = 0;
         foreach ($results as $entry) {
+            if ($categoryExternalId !== null && empty($entry['genre_id'])) {
+                $entry['genre_id'] = $categoryExternalId;
+            }
+
             $app = App::discover($this->platform, $entry['app_id'], $entry, DiscoverSource::Trending, $this->country);
 
             if (! $app) {

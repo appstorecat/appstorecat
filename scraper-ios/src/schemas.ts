@@ -135,6 +135,8 @@ export const SearchResultSchema = {
     icon_url: { type: "string" as const, nullable: true },
     rating: { type: "number" as const, nullable: true },
     version: { type: "string" as const, nullable: true },
+    genre: { type: "string" as const, nullable: true },
+    genre_id: { type: "string" as const, nullable: true },
     price: { type: "number" as const, nullable: true },
     free: { type: "boolean" as const },
     currency: { type: "string" as const, nullable: true },
@@ -298,6 +300,8 @@ export interface SearchResult {
   icon_url: string | null;
   rating: number | null;
   version: string | null;
+  genre: string | null;
+  genre_id: string | null;
   price: number | null;
   free: boolean;
   currency: string | null;

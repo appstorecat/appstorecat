@@ -369,6 +369,8 @@ export async function searchApps(
     icon_url: info.icon || null,
     rating: info.score || null,
     version: info.version || null,
+    genre: info.primaryGenre || null,
+    genre_id: info.primaryGenreId != null ? String(info.primaryGenreId) : null,
     price: info.price || null,
     currency: info.currency ?? null,
     free: info.free ?? true,

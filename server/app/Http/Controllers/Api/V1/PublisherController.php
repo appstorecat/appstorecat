@@ -176,6 +176,7 @@ class PublisherController extends BaseController
                 'developer_id' => $publisher?->external_id,
                 'icon_url' => $a['icon_url'] ?? null,
                 'genre' => $a['category'] ?? null,
+                'genre_id' => $a['category_id'] ?? null,
                 'free' => $a['is_free'] ?? true,
             ], DiscoverSource::PublisherApps);
 
@@ -260,6 +261,8 @@ class PublisherController extends BaseController
                     'developer' => $devName,
                     'developer_id' => $devExtId,
                     'icon_url' => $item['icon_url'] ?? null,
+                    'genre' => $item['genre'] ?? null,
+                    'genre_id' => $item['genre_id'] ?? null,
                 ], DiscoverSource::Search);
             }
         }

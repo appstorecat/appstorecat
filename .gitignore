@@ -10,6 +10,7 @@
 .mcp.json
 /server/.ai/
 /bug_hunt_apps.json
+/.tmp/
 
 # Environment
 .env

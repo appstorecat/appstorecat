@@ -50,6 +50,8 @@ class AppSearchController extends BaseController
                 'developer' => $result['developer'] ?? null,
                 'developer_id' => $result['developer_id'] ?? null,
                 'icon_url' => $result['icon_url'] ?? null,
+                'genre' => $result['genre'] ?? null,
+                'genre_id' => $result['genre_id'] ?? null,
             ], DiscoverSource::Search, $country);
         })->filter()->values();
 
