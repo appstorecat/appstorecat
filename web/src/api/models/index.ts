@@ -60,6 +60,7 @@ export * from './keywordCompareRequestNgram';
 export * from './keywordCompareRequestVersionIds';
 export * from './keywordCompareResource';
 export * from './keywordCompareResourceAppsItem';
+export * from './keywordCompareResourceAppsItemVersionsItem';
 export * from './keywordCompareResourceKeywords';
 export * from './keywordDensityResource';
 export * from './keywordIndexRequest';

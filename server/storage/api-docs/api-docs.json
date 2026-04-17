@@ -2821,6 +2821,20 @@
                                 "icon_url": {
                                     "type": "string",
                                     "nullable": true
+                                },
+                                "versions": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "version": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
                                 }
                             },
                             "type": "object"
@@ -2829,7 +2843,19 @@
                     "keywords": {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "object"
+                            "type": "object",
+                            "additionalProperties": {
+                                "properties": {
+                                    "count": {
+                                        "type": "integer"
+                                    },
+                                    "density": {
+                                        "type": "number",
+                                        "format": "float"
+                                    }
+                                },
+                                "type": "object"
+                            }
                         }
                     }
                 },

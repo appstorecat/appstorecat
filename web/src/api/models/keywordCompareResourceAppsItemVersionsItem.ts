@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type KeywordCompareResourceKeywords = {[key: string]: {[key: string]: {
-  count?: number;
-  density?: number;
-}}};
+export type KeywordCompareResourceAppsItemVersionsItem = {
+  id?: number;
+  version?: string;
+};

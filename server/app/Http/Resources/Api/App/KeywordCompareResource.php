@@ -19,9 +19,30 @@ use OpenApi\Attributes as OA;
                 new OA\Property(property: 'id', type: 'integer'),
                 new OA\Property(property: 'name', type: 'string'),
                 new OA\Property(property: 'icon_url', type: 'string', nullable: true),
+                new OA\Property(
+                    property: 'versions',
+                    type: 'array',
+                    items: new OA\Items(properties: [
+                        new OA\Property(property: 'id', type: 'integer'),
+                        new OA\Property(property: 'version', type: 'string'),
+                    ], type: 'object'),
+                ),
             ], type: 'object'),
         ),
-        new OA\Property(property: 'keywords', type: 'object', additionalProperties: new OA\AdditionalProperties(type: 'object')),
+        new OA\Property(
+            property: 'keywords',
+            type: 'object',
+            additionalProperties: new OA\AdditionalProperties(
+                type: 'object',
+                additionalProperties: new OA\AdditionalProperties(
+                    type: 'object',
+                    properties: [
+                        new OA\Property(property: 'count', type: 'integer'),
+                        new OA\Property(property: 'density', type: 'number', format: 'float'),
+                    ],
+                ),
+            ),
+        ),
     ],
 )]
 class KeywordCompareResource extends BaseResource
