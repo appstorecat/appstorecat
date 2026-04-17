@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use OpenApi\Attributes as OA;
+use App\Models\Concerns\HasPlatform;
 
 #[OA\Schema(
     schema: 'Publisher',
@@ -24,6 +25,8 @@ use OpenApi\Attributes as OA;
 ])]
 class Publisher extends Model
 {
+    use HasPlatform;
+
     protected $table = 'publishers';
 
     /**
@@ -38,23 +41,24 @@ class Publisher extends Model
     {
         // Android uses developer name as external_id (URL-encoded for safe linking)
         $resolvedExternalId = $externalId ?? ($platform === 'android' ? urlencode($name) : null);
+        $platformValue = self::normalizePlatform($platform);
 
         if ($resolvedExternalId) {
             return static::firstOrCreate(
-                ['platform' => $platform, 'external_id' => $resolvedExternalId],
+                ['platform' => $platformValue, 'external_id' => $resolvedExternalId],
                 ['name' => $name],
             );
         }
 
         return static::firstOrCreate(
-            ['platform' => $platform, 'name' => $name],
+            ['platform' => $platformValue, 'name' => $name],
         );
     }
 
     protected function casts(): array
     {
         return [
-            'platform' => Platform::class,
+            'platform' => \App\Casts\PlatformCast::class,
         ];
     }
 }

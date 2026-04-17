@@ -44,7 +44,7 @@ class AppController extends BaseController
     {
         $apps = $request->user()->apps()
             ->when($request->query('platform'), function ($query, $platform) {
-                $query->where('platform', $platform);
+                $query->platform($platform);
             })
             ->latest()
             ->get();
@@ -72,7 +72,7 @@ class AppController extends BaseController
         $app = $this->registrar->register(
             $request->user(),
             $request->external_id,
-            Platform::from($request->platform),
+            Platform::fromSlug($request->platform),
         );
 
         return AppDetailResource::make($app->fresh())
@@ -163,7 +163,7 @@ class AppController extends BaseController
         }
 
         $listing = $this->syncer->syncListingForCountry($app, $country, $language, $latestVersion);
-        if (config("appstorecat.sync.{$app->platform->value}.reviews_enabled")) {
+        if (config("appstorecat.sync.{$app->platform->slug()}.reviews_enabled")) {
             $this->syncer->syncReviewsForCountry($app, $country);
         }
 

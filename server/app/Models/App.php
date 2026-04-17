@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use OpenApi\Attributes as OA;
+use App\Models\Concerns\HasPlatform;
 
 /**
  * @property int $id
@@ -56,6 +57,8 @@ use OpenApi\Attributes as OA;
 ])]
 class App extends Model
 {
+    use HasPlatform;
+
     /** @use HasFactory<AppFactory> */
     use HasFactory;
 
@@ -136,14 +139,6 @@ class App extends Model
         return $this->hasMany(AppCompetitor::class);
     }
 
-    /**
-     * @return HasMany<AppKeywordDensity, $this>
-     */
-    public function keywordDensities(): HasMany
-    {
-        return $this->hasMany(AppKeywordDensity::class);
-    }
-
     public function displayName(): string
     {
         return $this->display_name ?? $this->external_id;
@@ -161,7 +156,7 @@ class App extends Model
      */
     public static function discover(string $platform, string $externalId, array $data = [], DiscoverSource $source = DiscoverSource::Unknown, string $country = 'us'): ?self
     {
-        $app = static::where('platform', $platform)->where('external_id', $externalId)->first();
+        $app = static::platform($platform)->where('external_id', $externalId)->first();
 
         if ($app) {
             $updates = [];
@@ -228,7 +223,7 @@ class App extends Model
     protected function casts(): array
     {
         return [
-            'platform' => Platform::class,
+            'platform' => \App\Casts\PlatformCast::class,
             'supported_locales' => 'array',
             'is_free' => 'boolean',
             'original_release_date' => 'date',

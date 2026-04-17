@@ -7,7 +7,6 @@
  */
 
 export interface KeywordDensityResource {
-  id: number;
   language?: string;
   ngram_size?: number;
   keyword: string;

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('external_id')->nullable();
             $table->string('name');
             $table->string('slug');
-            $table->string('platform');
+            $table->unsignedTinyInteger('platform');
             $table->string('type')->default('app');
             $table->foreignId('parent_id')->nullable()->constrained('store_categories')->nullOnDelete();
             $table->smallInteger('priority')->default(0);

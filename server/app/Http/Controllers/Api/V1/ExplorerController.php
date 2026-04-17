@@ -48,7 +48,7 @@ class ExplorerController extends BaseController
             }]);
 
         if ($request->filled('platform')) {
-            $query->where('platform', $request->input('platform'));
+            $query->platform($request->input('platform'));
         }
 
         if ($request->filled('category_id')) {
@@ -69,7 +69,7 @@ class ExplorerController extends BaseController
             return [
                 'app_id' => $app->id,
                 'external_id' => $app->external_id,
-                'platform' => $app->platform->value,
+                'platform' => $app->platform->slug(),
                 'name' => $app->displayName(),
                 'icon_url' => $app->displayIcon(),
                 'publisher_name' => $app->publisher?->name,
@@ -120,7 +120,7 @@ class ExplorerController extends BaseController
             ->with(['publisher', 'category']);
 
         if ($request->filled('platform')) {
-            $query->where('platform', $request->input('platform'));
+            $query->platform($request->input('platform'));
         }
 
         if ($request->filled('category_id')) {
@@ -139,7 +139,7 @@ class ExplorerController extends BaseController
             return [
                 'app_id' => $app->id,
                 'external_id' => $app->external_id,
-                'platform' => $app->platform->value,
+                'platform' => $app->platform->slug(),
                 'name' => $app->displayName(),
                 'icon_url' => $app->displayIcon(),
                 'publisher_name' => $app->publisher?->name,

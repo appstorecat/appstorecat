@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('apps', function (Blueprint $table) {
             $table->id();
-            $table->string('platform');
+            $table->unsignedTinyInteger('platform');
             $table->string('external_id');
             $table->foreignId('publisher_id')->nullable()->constrained('publishers')->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained('store_categories')->nullOnDelete();

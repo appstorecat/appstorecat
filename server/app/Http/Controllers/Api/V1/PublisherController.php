@@ -113,7 +113,7 @@ class PublisherController extends BaseController
     )]
     public function show(Request $request, string $platform, string $externalId): PublisherDetailResource
     {
-        $publisher = Publisher::where('platform', $platform)->where('external_id', $externalId)->first();
+        $publisher = Publisher::platform($platform)->where('external_id', $externalId)->first();
 
         if (! $publisher) {
             $name = $request->query('name', $externalId);
@@ -156,7 +156,7 @@ class PublisherController extends BaseController
     )]
     public function storeApps(Request $request, string $platform, string $externalId, ITunesLookupConnector $ios, GooglePlayConnector $android): AnonymousResourceCollection
     {
-        $platformEnum = Platform::from($platform);
+        $platformEnum = Platform::fromSlug($platform);
         $connector = $platformEnum === Platform::Ios ? $ios : $android;
         $result = $connector->fetchDeveloperApps($externalId);
 
@@ -214,7 +214,7 @@ class PublisherController extends BaseController
     )]
     public function import(PublisherImportRequest $request, string $platform, string $externalId, AppRegistrar $registrar): Response
     {
-        $platformEnum = Platform::from($platform);
+        $platformEnum = Platform::fromSlug($platform);
 
         foreach ($request->validated('external_ids') as $appExternalId) {
             $registrar->register($request->user(), $appExternalId, $platformEnum);

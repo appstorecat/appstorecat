@@ -27,7 +27,7 @@ class KeywordCompareRequest extends FormRequest
      */
     public function rules(): array
     {
-        $app = App::where('platform', $this->route('platform'))
+        $app = App::platform($this->route('platform'))
             ->where('external_id', $this->route('externalId'))
             ->first();
 

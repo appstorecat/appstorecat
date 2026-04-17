@@ -31,7 +31,7 @@ class SyncTrackedCommand extends Command
         }
 
         $apps->each(function (App $app) {
-            SyncAppJob::dispatch($app->id)->onQueue('sync-tracked-' . $app->platform->value);
+            SyncAppJob::dispatch($app->id)->onQueue('sync-tracked-' . $app->platform->slug());
         });
 
         $this->components->info("Dispatched {$apps->count()} tracked sync jobs." . ($platform ? " ({$platform})" : ''));
@@ -57,7 +57,7 @@ class SyncTrackedCommand extends Command
             ->where('is_available', true);
 
         if ($platform) {
-            $query->where('platform', $platform);
+            $query->platform($platform);
         }
 
         return $query->where(function ($q) use ($platform) {
@@ -68,10 +68,10 @@ class SyncTrackedCommand extends Command
                 $q->orWhere('last_synced_at', '<', now()->subHours($staleHours));
             } else {
                 $q->orWhere(function ($q2) {
-                    $q2->where('platform', 'ios')
+                    $q2->platform('ios')
                         ->where('last_synced_at', '<', now()->subHours(config('appstorecat.sync.ios.tracked_app_refresh_hours', 24)));
                 })->orWhere(function ($q2) {
-                    $q2->where('platform', 'android')
+                    $q2->platform('android')
                         ->where('last_synced_at', '<', now()->subHours(config('appstorecat.sync.android.tracked_app_refresh_hours', 24)));
                 });
             }

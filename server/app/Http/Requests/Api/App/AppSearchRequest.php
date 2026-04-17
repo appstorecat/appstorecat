@@ -27,7 +27,7 @@ class AppSearchRequest extends FormRequest
     {
         return [
             'term' => ['required', 'string', 'min:2', 'max:100'],
-            'platform' => ['required', Rule::enum(Platform::class)],
+            'platform' => ['required', 'in:ios,android'],
             'country' => ['sometimes', 'string', 'size:2'],
         ];
     }

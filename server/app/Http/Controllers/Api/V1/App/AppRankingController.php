@@ -39,7 +39,7 @@ class AppRankingController extends BaseController
             ->select('trending_chart_entries.*')
             ->join('trending_charts', 'trending_charts.id', '=', 'trending_chart_entries.trending_chart_id')
             ->where('trending_chart_entries.app_id', $app->id)
-            ->where('trending_charts.platform', $platform)
+            ->where('trending_charts.platform', \App\Enums\Platform::fromSlug($platform)->value)
             ->where('trending_charts.snapshot_date', $selectedDate)
             ->with(['snapshot.category'])
             ->get();
@@ -48,7 +48,7 @@ class AppRankingController extends BaseController
             $snapshot = $entry->snapshot;
 
             $previous = ChartSnapshot::forChart(
-                $snapshot->platform->value,
+                $snapshot->platform->slug(),
                 $snapshot->collection->value,
                 $snapshot->country,
                 $snapshot->category_id,

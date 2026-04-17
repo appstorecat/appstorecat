@@ -31,7 +31,7 @@ class StoreCategoryController extends BaseController
         $query = StoreCategory::query()->orderBy('name');
 
         if ($request->has('platform')) {
-            $query->where('platform', $request->input('platform'));
+            $query->platform($request->input('platform'));
         }
 
         if ($request->has('type')) {

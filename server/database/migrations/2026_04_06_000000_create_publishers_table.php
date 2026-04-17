@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('external_id')->nullable();
-            $table->string('platform');
+            $table->unsignedTinyInteger('platform');
             $table->text('url')->nullable();
             $table->timestamps();
 

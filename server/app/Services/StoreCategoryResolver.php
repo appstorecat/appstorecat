@@ -51,7 +51,7 @@ class StoreCategoryResolver
     {
         static $cache = [];
 
-        return $cache[$platform] ??= StoreCategory::where('platform', $platform)
+        return $cache[$platform] ??= StoreCategory::platform($platform)
             ->whereNotNull('external_id')
             ->pluck('id', 'external_id')
             ->map(fn ($id) => (int) $id)
@@ -70,7 +70,7 @@ class StoreCategoryResolver
         }
 
         $map = [];
-        foreach (StoreCategory::where('platform', $platform)->get(['id', 'name']) as $row) {
+        foreach (StoreCategory::platform($platform)->get(['id', 'name']) as $row) {
             $map[mb_strtolower((string) $row->name)] = (int) $row->id;
         }
 

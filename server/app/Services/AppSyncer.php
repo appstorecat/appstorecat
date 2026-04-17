@@ -36,7 +36,7 @@ class AppSyncer
         $this->syncListing($app, $version);
         $this->detectLocaleChanges($app, $version);
         $this->syncMetrics($app, $version);
-        $platform = $app->platform->value;
+        $platform = $app->platform->slug();
         if (config("appstorecat.sync.{$platform}.reviews_enabled")) {
             $this->syncReviews($app);
         }
@@ -77,7 +77,7 @@ class AppSyncer
             }
 
             $data = $result->data;
-            $platform = $app->platform->value;
+            $platform = $app->platform->slug();
 
             $appData = collect($data)->only([
                 'supported_locales', 'original_release_date', 'is_free',
@@ -89,7 +89,7 @@ class AppSyncer
 
             if (! empty($data['publisher_name']) && ! empty($data['publisher_external_id'])) {
                 $publisher = Publisher::firstOrCreate(
-                    ['platform' => $platform, 'external_id' => $data['publisher_external_id']],
+                    ['platform' => Publisher::normalizePlatform($platform), 'external_id' => $data['publisher_external_id']],
                     ['name' => $data['publisher_name'], 'url' => $data['publisher_url'] ?? null],
                 );
                 $appData['publisher_id'] = $publisher->id;
@@ -194,10 +194,6 @@ class AppSyncer
 
         if ($listing->icon_url && ! $app->display_icon) {
             $app->update(['display_icon' => $listing->icon_url]);
-        }
-
-        if ($listing->description && $version) {
-            app(KeywordAnalyzer::class)->analyzeFromListing($app, $listing);
         }
 
         return $listing;

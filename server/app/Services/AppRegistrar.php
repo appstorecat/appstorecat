@@ -11,7 +11,7 @@ class AppRegistrar
     public function register(User $user, string $externalId, Platform $platform): App
     {
         $app = App::firstOrCreate(
-            ['platform' => $platform, 'external_id' => $externalId],
+            ['platform' => $platform->value, 'external_id' => $externalId],
         );
 
         if (! $app->isTrackedBy($user)) {

@@ -1006,8 +1006,7 @@
                             "enum": [
                                 1,
                                 2,
-                                3,
-                                4
+                                3
                             ]
                         }
                     },
@@ -1114,8 +1113,7 @@
                             "enum": [
                                 1,
                                 2,
-                                3,
-                                4
+                                3
                             ]
                         }
                     }
@@ -2133,8 +2131,8 @@
                 "type": "string",
                 "example": "ios",
                 "enum": [
-                    "ios",
-                    "android"
+                    "Ios",
+                    "Android"
                 ]
             },
             "LoginRequest": {
@@ -2839,19 +2837,14 @@
             },
             "KeywordDensityResource": {
                 "required": [
-                    "id",
                     "keyword",
                     "count",
                     "density"
                 ],
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
                     "language": {
                         "type": "string",
-                        "example": "us"
+                        "example": "en-US"
                     },
                     "ngram_size": {
                         "type": "integer",
@@ -3213,36 +3206,6 @@
                     },
                     "relationship": {
                         "$ref": "#/components/schemas/CompetitorRelationship"
-                    }
-                },
-                "type": "object"
-            },
-            "AppKeywordDensity": {
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "language": {
-                        "type": "string",
-                        "example": "us"
-                    },
-                    "ngram_size": {
-                        "type": "integer",
-                        "example": 2
-                    },
-                    "keyword": {
-                        "type": "string",
-                        "example": "photo editor"
-                    },
-                    "count": {
-                        "type": "integer",
-                        "example": 5
-                    },
-                    "density": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 2.35
                     }
                 },
                 "type": "object"

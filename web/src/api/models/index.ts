@@ -12,7 +12,6 @@ export * from './appChangesField';
 export * from './appChangesParams';
 export * from './appCompetitor';
 export * from './appDetailResource';
-export * from './appKeywordDensity';
 export * from './appKeywordsNgram';
 export * from './appKeywordsParams';
 export * from './appListingParams';

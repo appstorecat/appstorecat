@@ -38,7 +38,7 @@ class SyncDailyChartsCommand extends Command
                 continue;
             }
 
-            $existingSnapshots = ChartSnapshot::where('platform', $platform)
+            $existingSnapshots = ChartSnapshot::platform($platform)
                 ->where('snapshot_date', $today)
                 ->get()
                 ->map(fn ($s) => "{$s->collection->value}:{$s->country}:{$s->category_id}")
@@ -49,7 +49,7 @@ class SyncDailyChartsCommand extends Command
                 ->orderBy('name')
                 ->pluck('code');
 
-            $categories = StoreCategory::where('platform', $platform)
+            $categories = StoreCategory::platform($platform)
                 ->where('type', 'app')
                 ->orderByDesc('priority')
                 ->orderBy('name')

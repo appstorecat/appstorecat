@@ -26,7 +26,7 @@ class StoreCategorySeeder extends Seeder
             $this->upsert($platform, $cat, 'app');
         }
 
-        $gamesParent = StoreCategory::where('platform', $platform)
+        $gamesParent = StoreCategory::platform($platform)
             ->where('external_id', $platform === 'ios' ? '6014' : 'GAME')
             ->first();
 
@@ -34,7 +34,7 @@ class StoreCategorySeeder extends Seeder
             $parentId = $gamesParent?->id;
 
             if (! empty($cat['parent_key'])) {
-                $parent = StoreCategory::where('platform', $platform)
+                $parent = StoreCategory::platform($platform)
                     ->where('external_id', $cat['parent_key'])
                     ->first();
                 $parentId = $parent?->id ?? $parentId;
@@ -51,7 +51,7 @@ class StoreCategorySeeder extends Seeder
     {
         StoreCategory::updateOrCreate(
             [
-                'platform' => $platform,
+                'platform' => StoreCategory::normalizePlatform($platform),
                 'external_id' => (string) $cat['external_id'],
             ],
             [

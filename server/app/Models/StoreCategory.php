@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use OpenApi\Attributes as OA;
+use App\Models\Concerns\HasPlatform;
 
 #[OA\Schema(
     schema: 'StoreCategory',
@@ -34,6 +35,8 @@ use OpenApi\Attributes as OA;
  */
 class StoreCategory extends Model
 {
+    use HasPlatform;
+
     protected $table = 'store_categories';
 
     /**
@@ -63,7 +66,7 @@ class StoreCategory extends Model
     protected function casts(): array
     {
         return [
-            'platform' => Platform::class,
+            'platform' => \App\Casts\PlatformCast::class,
         ];
     }
 }

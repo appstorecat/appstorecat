@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('trending_charts', function (Blueprint $table) {
             $table->id();
-            $table->string('platform', 10);
+            $table->unsignedTinyInteger('platform');
             $table->string('collection', 30);
             $table->foreignId('category_id')->nullable()->constrained('store_categories')->nullOnDelete();
             $table->string('country', 2)->default('us');

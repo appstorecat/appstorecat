@@ -26,7 +26,7 @@ class StoreAppRequest extends FormRequest
     {
         return [
             'external_id' => ['required', 'string', 'max:255'],
-            'platform' => ['required', Rule::enum(Platform::class)],
+            'platform' => ['required', 'in:ios,android'],
         ];
     }
 }

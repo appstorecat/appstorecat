@@ -11,12 +11,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Concerns\HasPlatform;
 
 #[Fillable([
     'platform', 'collection', 'category_id', 'country', 'snapshot_date',
 ])]
 class ChartSnapshot extends Model
 {
+    use HasPlatform;
+
     protected $table = 'trending_charts';
 
     /**
@@ -42,7 +45,7 @@ class ChartSnapshot extends Model
     public function scopeForChart(Builder $query, string $platform, string $collection, string $country, ?int $categoryId = null): Builder
     {
         return $query
-            ->where('platform', $platform)
+            ->platform($platform)
             ->where('collection', $collection)
             ->where('country', $country)
             ->where('category_id', $categoryId);
@@ -51,7 +54,7 @@ class ChartSnapshot extends Model
     protected function casts(): array
     {
         return [
-            'platform' => Platform::class,
+            'platform' => \App\Casts\PlatformCast::class,
             'collection' => ChartCollection::class,
             'snapshot_date' => 'date',
         ];

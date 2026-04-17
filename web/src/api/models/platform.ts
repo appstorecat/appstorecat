@@ -10,6 +10,6 @@ export type Platform = typeof Platform[keyof typeof Platform];
 
 
 export const Platform = {
-  ios: 'ios',
-  android: 'android',
+  Ios: 'Ios',
+  Android: 'Android',
 } as const;

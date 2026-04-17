@@ -46,7 +46,7 @@ class SyncAppJob implements ShouldBeUnique, ShouldQueue
         $platform = $app->isIos() ? 'appstore' : 'gplay';
         $jobsPerMin = (int) config("appstorecat.connectors.{$platform}.throttle.sync_jobs", 3);
 
-        Redis::throttle("sync-job:{$app->platform->value}")
+        Redis::throttle("sync-job:{$app->platform->slug()}")
             ->allow($jobsPerMin)
             ->every(60)
             ->block(300)
@@ -58,7 +58,7 @@ class SyncAppJob implements ShouldBeUnique, ShouldQueue
                 Log::info('App sync completed', [
                     'app_id' => $app->id,
                     'external_id' => $app->external_id,
-                    'platform' => $app->platform->value,
+                    'platform' => $app->platform->slug(),
                     'total_ms' => $totalMs,
                 ]);
             });

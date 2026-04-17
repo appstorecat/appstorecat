@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Enums\DiscoverSource;
+use App\Enums\Platform;
 use App\Http\Controllers\Controller;
 use App\Models\App;
 use OpenApi\Attributes as OA;
@@ -29,7 +30,9 @@ abstract class BaseController extends Controller
 {
     protected function resolveApp(string $platform, string $externalId): App
     {
-        return App::where('platform', $platform)->where('external_id', $externalId)->firstOrFail();
+        return App::platform($platform)
+            ->where('external_id', $externalId)
+            ->firstOrFail();
     }
 
     protected function resolveOrCreateApp(string $platform, string $externalId): App
