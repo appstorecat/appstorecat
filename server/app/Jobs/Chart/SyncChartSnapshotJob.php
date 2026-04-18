@@ -34,8 +34,8 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
     public function __construct(
         private readonly string $platform,
         private readonly string $collection,
-        private readonly string $country = 'us',
-        private readonly ?int $categoryId = null,
+        private readonly string $country,
+        private readonly int $categoryId,
     ) {}
 
     public function uniqueId(): string
@@ -71,9 +71,7 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
     {
         $start = microtime(true);
         $connector = $this->platform === 'ios' ? $ios : $android;
-        $categoryExternalId = $this->categoryId
-            ? StoreCategory::find($this->categoryId)?->external_id
-            : null;
+        $categoryExternalId = StoreCategory::find($this->categoryId)?->external_id;
 
         try {
             $results = $connector->fetchChart($this->collection, $this->country, $categoryExternalId);

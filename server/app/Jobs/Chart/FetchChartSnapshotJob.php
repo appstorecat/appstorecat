@@ -30,8 +30,8 @@ class FetchChartSnapshotJob implements ShouldQueue
     public function __construct(
         private readonly string $platform,
         private readonly string $collection,
-        private readonly string $country = 'us',
-        private readonly ?int $categoryId = null,
+        private readonly string $country,
+        private readonly int $categoryId,
     ) {}
 
     public function handle(ITunesLookupConnector $ios, GooglePlayConnector $android): void
@@ -52,9 +52,7 @@ class FetchChartSnapshotJob implements ShouldQueue
     private function fetchAndStore(ITunesLookupConnector $ios, GooglePlayConnector $android, string $today): void
     {
         $connector = $this->platform === 'ios' ? $ios : $android;
-        $categoryExternalId = $this->categoryId
-            ? StoreCategory::find($this->categoryId)?->external_id
-            : null;
+        $categoryExternalId = StoreCategory::find($this->categoryId)?->external_id;
 
         $results = $connector->fetchChart($this->collection, $this->country, $categoryExternalId);
 

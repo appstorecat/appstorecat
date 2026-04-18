@@ -52,7 +52,7 @@ class StoreCategorySeeder extends Seeder
         StoreCategory::updateOrCreate(
             [
                 'platform' => StoreCategory::normalizePlatform($platform),
-                'external_id' => (string) $cat['external_id'],
+                'external_id' => $cat['external_id'] !== null ? (string) $cat['external_id'] : null,
             ],
             [
                 'name' => $cat['name'],

@@ -42,7 +42,7 @@ class ChartSnapshot extends Model
      * @param  Builder<self>  $query
      * @return Builder<self>
      */
-    public function scopeForChart(Builder $query, string $platform, string $collection, string $country, ?int $categoryId = null): Builder
+    public function scopeForChart(Builder $query, string $platform, string $collection, string $country, int $categoryId): Builder
     {
         return $query
             ->platform($platform)

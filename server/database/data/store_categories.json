@@ -1,7 +1,7 @@
 {
   "ios": {
     "apps": [
-      { "external_id": "0",    "key": "ALL",                "name": "All" },
+      { "external_id": null,  "key": "ALL",                "name": "All" },
       { "external_id": "6018", "key": "BOOKS",              "name": "Books" },
       { "external_id": "6000", "key": "BUSINESS",           "name": "Business" },
       { "external_id": "6026", "key": "DEVELOPER_TOOLS",    "name": "Developer Tools" },
@@ -49,9 +49,8 @@
   },
   "android": {
     "apps": [
-      { "external_id": "ALL",                 "name": "All" },
+      { "external_id": null,                  "name": "All" },
       { "external_id": "ANDROID_WEAR",        "name": "Android Wear" },
-      { "external_id": "APPLICATION",         "name": "Application" },
       { "external_id": "ART_AND_DESIGN",      "name": "Art & Design" },
       { "external_id": "AUTO_AND_VEHICLES",   "name": "Auto & Vehicles" },
       { "external_id": "BEAUTY",              "name": "Beauty" },

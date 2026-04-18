@@ -42,7 +42,10 @@ class ChartController extends BaseController
         $platform = $request->input('platform');
         $collection = $request->input('collection');
         $country = $request->input('country', 'us');
-        $categoryId = $request->input('category_id') ? (int) $request->input('category_id') : null;
+        // Default to the platform's "All" category when no explicit filter is given.
+        $categoryId = $request->input('category_id')
+            ? (int) $request->input('category_id')
+            : \App\Models\StoreCategory::platform($platform)->whereNull('external_id')->where('type', 'app')->value('id');
 
         $snapshot = ChartSnapshot::forChart($platform, $collection, $country, $categoryId)
             ->orderByDesc('snapshot_date')

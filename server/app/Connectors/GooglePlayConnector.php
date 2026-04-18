@@ -131,19 +131,13 @@ class GooglePlayConnector implements ConnectorInterface
 
     public function fetchChart(string $collection, string $country, ?string $categoryExternalId = null): array
     {
-        $query = [
+        // null external_id = "All" sentinel → use APPLICATION for overall chart.
+        $data = $this->get('/charts', [
             'collection' => $collection,
             'country' => $country,
             'count' => 100,
-        ];
-
-        if ($categoryExternalId) {
-            $query['category'] = $categoryExternalId;
-        } else {
-            $query['category'] = 'APPLICATION';
-        }
-
-        $data = $this->get('/charts', $query);
+            'category' => $categoryExternalId ?? 'APPLICATION',
+        ]);
 
         return $data['results'] ?? [];
     }

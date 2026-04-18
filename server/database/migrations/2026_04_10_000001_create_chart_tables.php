@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedTinyInteger('platform');
             $table->string('collection', 30);
-            $table->foreignId('category_id')->nullable()->constrained('store_categories')->nullOnDelete();
+            $table->foreignId('category_id')->constrained('store_categories')->cascadeOnDelete();
             $table->string('country', 2)->default('us');
             $table->foreign('country')->references('code')->on('countries');
             $table->date('snapshot_date');

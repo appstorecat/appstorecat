@@ -59,14 +59,6 @@ class SyncDailyChartsCommand extends Command
 
             foreach ($countries as $country) {
                 foreach ($collections as $collection) {
-                    if (! $existingSnapshots->has("{$collection}:{$country}:")) {
-                        SyncChartSnapshotJob::dispatch($platform, $collection, $country, null)
-                            ->onQueue("charts-{$platform}");
-                        $jobCount++;
-                    } else {
-                        $skipped++;
-                    }
-
                     foreach ($categories as $category) {
                         if (! $existingSnapshots->has("{$collection}:{$country}:{$category->id}")) {
                             SyncChartSnapshotJob::dispatch($platform, $collection, $country, $category->id)

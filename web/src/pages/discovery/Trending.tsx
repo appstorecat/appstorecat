@@ -54,7 +54,7 @@ interface ChartResponse {
 interface StoreCategory {
   id: number
   name: string
-  external_id: string
+  external_id: string | null
   platform: string
   type: string
 }
@@ -157,14 +157,15 @@ export default function Trending() {
           ))}
         </div>
 
-        <Select value={categoryId || 'all'} onValueChange={setCategoryId}>
+        <Select value={categoryId || ''} onValueChange={setCategoryId}>
           <SelectTrigger className="w-[180px]">
             <SelectValue>
-              {categoryId ? categories?.find((c) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
+              {categories?.find((c) => String(c.id) === categoryId)?.name
+                ?? categories?.find((c) => c.external_id === null)?.name
+                ?? 'All'}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
             {categories?.map((cat) => (
               <SelectItem key={cat.id} value={String(cat.id)}>
                 {cat.name}

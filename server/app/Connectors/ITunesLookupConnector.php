@@ -139,7 +139,8 @@ class ITunesLookupConnector implements ConnectorInterface
             'num' => 200,
         ];
 
-        if ($categoryExternalId) {
+        // null external_id = "All" sentinel → omit category to fetch overall chart.
+        if ($categoryExternalId !== null) {
             $query['category'] = (int) $categoryExternalId;
         }
 
