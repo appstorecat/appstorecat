@@ -11,8 +11,6 @@ User ──M:N──▶ App ──1:N──▶ StoreListing
                 │
                 ├──1:N──▶ Review
                 │
-                ├──1:N──▶ AppKeywordDensity
-                │
                 ├──N:1──▶ Publisher
                 │
                 ├──N:1──▶ StoreCategory
@@ -33,7 +31,7 @@ The central entity. Each record represents a unique app on a specific platform.
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | bigint | Primary key |
-| `platform` | enum | `ios` or `android` |
+| `platform` | tinyint | Int-backed enum: `1` (iOS) or `2` (Android). Serialized as slug (`ios` / `android`) in all JSON responses. |
 | `external_id` | string | Store ID (e.g., `com.example.app` or `123456789`) |
 | `publisher_id` | FK | Links to publishers table |
 | `category_id` | FK | Links to store_categories table |
@@ -145,7 +143,7 @@ Tracks changes detected in store listings.
 |--------|------|-------------|
 | `name` | string | Publisher/developer name |
 | `external_id` | string | Store-specific developer ID |
-| `platform` | enum | `ios` or `android` |
+| `platform` | tinyint | Int-backed enum (`1` iOS / `2` Android), serialized as slug in JSON |
 | `url` | string | Publisher store URL |
 
 ### store_categories
@@ -154,10 +152,10 @@ Seeded from App Store and Google Play category lists.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `external_id` | string | Store-specific category ID |
+| `external_id` | string | Store-specific category ID (nullable — `NULL` marks the "All" sentinel row used for overall/uncategorised charts) |
 | `name` | string | Category name |
 | `slug` | string | URL-friendly name |
-| `platform` | enum | `ios` or `android` |
+| `platform` | tinyint | Int-backed enum (`1` iOS / `2` Android), serialized as slug in JSON |
 | `type` | string | `app`, `game`, or `magazine` |
 | `parent_id` | FK | Self-referencing for subcategories |
 | `priority` | int | Display order |
@@ -184,9 +182,9 @@ Daily chart snapshots.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `platform` | enum | `ios` or `android` |
+| `platform` | tinyint | Int-backed enum (`1` iOS / `2` Android), serialized as slug in JSON |
 | `collection` | enum | `top_free`, `top_paid`, `top_grossing` |
-| `category_id` | FK | Store category (nullable for overall charts) |
+| `category_id` | FK | Store category (NOT NULL; overall charts point at the platform's "All" sentinel row — iOS id=1, Android id=43) |
 | `country` | FK | Country code |
 | `snapshot_date` | date | Chart date |
 

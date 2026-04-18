@@ -24,11 +24,10 @@ AppSyncer::syncAll(App)
     ├─ 5. syncMetrics()        → AppMetric (gunluk goruntusu)
     │       └─ rating_delta hesapla
     │
-    ├─ 6. syncReviews()        → Review kayitlari (sayfalanmis)
-    │
-    └─ 7. updateVersionDetails() → Liste metni uzerinde KeywordAnalyzer
-            └─ AppKeywordDensity kayitlari (1/2/3-gram)
+    └─ 6. syncReviews()        → Review kayitlari (sayfalanmis)
 ```
+
+Anahtar kelime yogunlugu bir pipeline adimi **degildir** — `KeywordAnalyzer` keyword ucundan talep uzerine cagrilir ve mevcut `StoreListing`'den okur. Bkz. [Anahtar Kelime Yogunlugu](../features/keyword-density.md) ozellik sayfasi.
 
 ## Adim Detaylari
 
@@ -82,28 +81,22 @@ Magazadan kullanici incelemelerini getirir.
 - `Review` kayitlari olusturur (`app_id` + `external_id` bazinda benzersiz)
 - Yakalar: author, title, body, rating, review_date, app_version
 
-### 7. Anahtar Kelime Analizi
-
-Liste metnini anahtar kelime yogunlugu acisindan analiz eder.
-
-- Birlestir: title + subtitle + description + whats_new
-- Dil duyarli stop kelime filtrelemesi ile tokenize eder (50 dil)
-- N-gram cikarir: 1 kelimelik, 2 kelimelik ve 3 kelimelik kombinasyonlar
-- Frekans ve yogunluk yuzdesi hesaplar
-- `AppKeywordDensity` kayitlarini depolar
-
 ## Senkronizasyon Zamanlamasi
 
-Laravel zamanlayicisi `last_synced_at` zaman damgasina gore senkronizasyon job'larini gonderir:
+Laravel zamanlayicisi her iki platformda da `appstorecat:apps:sync-discovery` ve `appstorecat:apps:sync-tracked` komutlarini her **20 dakikada** bir tetikler; eskiyen uygulamalari cekerek her uygulama icin eslesen kuyruga bir `SyncAppJob` gonderir.
 
 | Uygulama Tipi | Yenileme Araligi | Kuyruk |
 |---------------|------------------|--------|
 | Takip Edilen iOS | 24 saat | `sync-tracked-ios` |
 | Takip Edilen Android | 24 saat | `sync-tracked-android` |
-| Kesfedilen iOS | 72 saat | `sync-discovery-ios` |
-| Kesfedilen Android | 72 saat | `sync-discovery-android` |
+| Kesfedilen iOS | 24 saat | `sync-discovery-ios` |
+| Kesfedilen Android | 24 saat | `sync-discovery-android` |
 
 Uygulamalar yalnizca `last_synced_at` degeri yapilandirilmis yenileme araligindan eskiyse yeniden senkronize edilir.
+
+### Talep Uzerine Yenileme Kuyrugu
+
+`AppController::show()` ve `AppController::listing()`, ziyaret edilen bir uygulamanin verisi eskiyse `SyncAppJob`'u `sync-on-demand-ios` / `sync-on-demand-android` kuyrugana gonderir. Bu, kullanici tetikli yenilemelerin kendi worker havuzunda calismasini ve olagan kesif/takip kuyruklarini beklememesini saglar.
 
 ## Benzersizlik Korumalari
 

@@ -9,12 +9,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 - Open-source documentation restructuring
 - Job performance logging for queue monitoring
-- Rankings tab on app detail page with country/collection/category pivot and date navigation
 
 ### Fixed
 - Chart fetch exceptions now always propagate for retry and failed_jobs tracking
 - Fallback to web-scraped iPhone screenshots when iTunes API returns none
 - App icon aspect ratio in explorer icons page
+
+## [1.0.1] - 2026-04-18
+
+### Added
+- Rankings tab on app detail page with country/collection/category pivot and date navigation
+- On-demand sync queues (`sync-on-demand-ios`, `sync-on-demand-android`) dispatched from the UI when an app's data is stale, so user-triggered refreshes don't wait behind the cron backlog
+- `HasPlatform` trait with `scopePlatform()` helper and `PlatformCast` for uniform platform input handling
+
+### Changed
+- `platform` column on `apps`, `publishers`, `store_categories`, and `chart_snapshots` switched from VARCHAR to TINYINT (int-backed enum: iOS=1, Android=2). JSON API output still uses the slug strings `ios` / `android`
+- Keyword density is now computed on-the-fly from the current `StoreListing` on every request — no persistent storage
+- Sync scheduler cadence changed from daily to every 20 minutes for both discovery and tracked pools across both platforms
+- Default scraper throttle rates raised: `APPSTORE_THROTTLE_SYNC_JOBS` 3→5, `GPLAY_THROTTLE_SYNC_JOBS` 2→5 per minute
+- Default `discovery_app_refresh_hours` lowered from 72h to 24h to match the tracked cadence
+
+### Fixed
+- `trending_charts.category_id` is now NOT NULL; "overall" charts use a dedicated "All" sentinel `StoreCategory` row (iOS id=1, Android id=43) with `external_id = NULL`
+- App rediscovery refreshes cached `display_name` and `display_icon` when they differ from store data
+
+### Removed
+- `app_keyword_densities` table and `AppKeywordDensity` model (keyword density no longer persisted)
 
 ## [0.0.3] - 2026-04-01
 
@@ -82,6 +102,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/appstorecat/appstorecat/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/appstorecat/appstorecat/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/appstorecat/appstorecat/releases/tag/v0.0.2

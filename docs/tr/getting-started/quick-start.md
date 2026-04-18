@@ -40,7 +40,7 @@ Bir uygulama senkronize edildikten sonra şunları inceleyebilirsiniz:
 AppStoreCat, kuyruk işçileri kullanarak arka planda verileri otomatik olarak senkronize eder:
 
 - **Takip edilen uygulamalar** her 24 saatte bir senkronize edilir
-- **Keşfedilen uygulamalar** her 72 saatte bir senkronize edilir
+- **Keşfedilen uygulamalar** her 24 saatte bir senkronize edilir
 - **Listeler** günlük olarak senkronize edilir
 - **Yorumlar** her uygulama senkronizasyonuyla birlikte senkronize edilir
 

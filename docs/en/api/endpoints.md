@@ -63,7 +63,7 @@ All API endpoints are prefixed with `/api/v1` and require authentication via San
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/apps/{platform}/{externalId}/keywords` | Keyword density (`?language=en-US&ngram=2&version_id=X`) |
+| GET | `/apps/{platform}/{externalId}/keywords` | Keyword density (`?language=en-US&ngram=2`) — computed on demand from the current listing |
 | GET | `/apps/{platform}/{externalId}/keywords/compare` | Compare keywords (`?app_ids=1,2,3&language=en`) |
 
 ## Reviews

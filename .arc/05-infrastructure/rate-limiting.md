@@ -90,12 +90,16 @@ All queues are platform-separated:
 
 | Queue | Purpose | Rate |
 |-------|---------|------|
-| sync-discovery-ios | Untracked iOS app sync | 1 app/min (4 req) |
-| sync-discovery-android | Untracked Android app sync | 1 app/min (4 req) |
-| sync-tracked-ios | Tracked iOS app sync | 1 app/min (4 req) |
-| sync-tracked-android | Tracked Android app sync | 1 app/min (4 req) |
+| sync-discovery-ios | Untracked iOS app sync | 5 app/min (shared iOS sync throttle) |
+| sync-discovery-android | Untracked Android app sync | 5 app/min (shared Android sync throttle) |
+| sync-tracked-ios | Tracked iOS app sync | 5 app/min (shared iOS sync throttle) |
+| sync-tracked-android | Tracked Android app sync | 5 app/min (shared Android sync throttle) |
+| sync-on-demand-ios | UI-triggered iOS app refresh | 5 app/min (shared iOS sync throttle) |
+| sync-on-demand-android | UI-triggered Android app refresh | 5 app/min (shared Android sync throttle) |
 | charts-ios | iOS chart snapshots | 10 job/min (6s delay) |
 | charts-android | Android chart snapshots | 10 job/min (6s delay) |
+
+All `sync-*-{platform}` queues share the same `sync-job:{platform}` Redis throttle key, so adding the on-demand pool does not multiply the outbound request rate — it just changes job priority.
 
 ### Total scraper load per platform per minute:
 

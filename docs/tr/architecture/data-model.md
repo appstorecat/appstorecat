@@ -11,8 +11,6 @@ User ──M:N──▶ App ──1:N──▶ StoreListing
                 │
                 ├──1:N──▶ Review
                 │
-                ├──1:N──▶ AppKeywordDensity
-                │
                 ├──N:1──▶ Publisher
                 │
                 ├──N:1──▶ StoreCategory
@@ -33,7 +31,7 @@ Merkezi varlik. Her kayit, belirli bir platformdaki benzersiz bir uygulamayi tem
 | Sutun | Tip | Aciklama |
 |-------|-----|----------|
 | `id` | bigint | Birincil anahtar |
-| `platform` | enum | `ios` veya `android` |
+| `platform` | tinyint | Int destekli enum: `1` (iOS) veya `2` (Android). Tum JSON yanitlarinda slug (`ios` / `android`) olarak serilestirilir. |
 | `external_id` | string | Magaza ID'si (ornegin `com.example.app` veya `123456789`) |
 | `publisher_id` | FK | publishers tablosuna baglanti |
 | `category_id` | FK | store_categories tablosuna baglanti |
@@ -145,7 +143,7 @@ Magaza listelerinde tespit edilen degisiklikleri takip eder.
 |-------|-----|----------|
 | `name` | string | Yayinci/gelistirici adi |
 | `external_id` | string | Magazaya ozgu gelistirici ID'si |
-| `platform` | enum | `ios` veya `android` |
+| `platform` | tinyint | Int destekli enum (`1` iOS / `2` Android), JSON'da slug olarak serilestirilir |
 | `url` | string | Yayinci magaza URL'si |
 
 ### store_categories
@@ -154,10 +152,10 @@ App Store ve Google Play kategori listelerinden beslenir.
 
 | Sutun | Tip | Aciklama |
 |-------|-----|----------|
-| `external_id` | string | Magazaya ozgu kategori ID'si |
+| `external_id` | string | Magazaya ozgu kategori ID'si (nullable — `NULL`, genel/kategorisiz chart'lar icin kullanilan "All" sentinel kaydini isaret eder) |
 | `name` | string | Kategori adi |
 | `slug` | string | URL dostu ad |
-| `platform` | enum | `ios` veya `android` |
+| `platform` | tinyint | Int destekli enum (`1` iOS / `2` Android), JSON'da slug olarak serilestirilir |
 | `type` | string | `app`, `game` veya `magazine` |
 | `parent_id` | FK | Alt kategoriler icin kendine referans |
 | `priority` | int | Goruntulenme sirasi |
@@ -184,9 +182,9 @@ Gunluk chart goruntuleri.
 
 | Sutun | Tip | Aciklama |
 |-------|-----|----------|
-| `platform` | enum | `ios` veya `android` |
+| `platform` | tinyint | Int destekli enum (`1` iOS / `2` Android), JSON'da slug olarak serilestirilir |
 | `collection` | enum | `top_free`, `top_paid`, `top_grossing` |
-| `category_id` | FK | Magaza kategorisi (genel chart'lar icin nullable) |
+| `category_id` | FK | Magaza kategorisi (NOT NULL; genel chart'lar platform basina "All" sentinel kaydini gosterir — iOS id=1, Android id=43) |
 | `country` | FK | Ulke kodu |
 | `snapshot_date` | date | Chart tarihi |
 

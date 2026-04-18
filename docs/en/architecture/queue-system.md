@@ -9,6 +9,8 @@ AppStoreCat uses platform-separated queues to ensure iOS and Android pipelines n
                     ├─ sync-tracked-android ──▶ SyncAppJob (Android tracked)
                     ├─ sync-discovery-ios ────▶ SyncAppJob (iOS discovered)
 Scheduler ─────────▶├─ sync-discovery-android ▶ SyncAppJob (Android discovered)
+                    ├─ sync-on-demand-ios ────▶ SyncAppJob (UI-triggered stale refresh, iOS)
+                    ├─ sync-on-demand-android ▶ SyncAppJob (UI-triggered stale refresh, Android)
                     ├─ charts-ios ────────────▶ SyncChartSnapshotJob (iOS)
                     ├─ charts-android ────────▶ SyncChartSnapshotJob (Android)
                     ├─ discover ──────────────▶ Discovery jobs
@@ -23,6 +25,8 @@ Scheduler ─────────▶├─ sync-discovery-android ▶ SyncAp
 | `sync-tracked-android` | Sync tracked Android apps | `SyncAppJob` |
 | `sync-discovery-ios` | Sync discovered iOS apps | `SyncAppJob` |
 | `sync-discovery-android` | Sync discovered Android apps | `SyncAppJob` |
+| `sync-on-demand-ios` | UI-triggered refresh for stale iOS apps | `SyncAppJob` |
+| `sync-on-demand-android` | UI-triggered refresh for stale Android apps | `SyncAppJob` |
 | `charts-ios` | iOS chart snapshots | `SyncChartSnapshotJob` |
 | `charts-android` | Android chart snapshots | `SyncChartSnapshotJob` |
 | `discover` | App discovery | Various |
@@ -32,12 +36,12 @@ Scheduler ─────────▶├─ sync-discovery-android ▶ SyncAp
 
 ### SyncAppJob
 
-Syncs a single app's full data (identity, listing, metrics, reviews, keywords).
+Syncs a single app's full data (identity, listing, metrics, reviews).
 
-- **Queue:** Platform-specific sync queue
+- **Queue:** Platform-specific sync queue (`sync-tracked-*`, `sync-discovery-*`, or `sync-on-demand-*`)
 - **Unique:** Per app ID, 1 hour window (prevents duplicate syncs)
 - **Retries:** 3 attempts with backoff `[30, 60, 120]` seconds
-- **Throttle:** Redis-based, per platform (iOS: 3/min, Android: 2/min)
+- **Throttle:** Redis-based, per platform (iOS: 5/min, Android: 5/min)
 - **Block timeout:** 300 seconds (waits for throttle slot)
 
 ### SyncChartSnapshotJob
@@ -62,7 +66,7 @@ All scraper-bound jobs use Redis throttle to respect store rate limits:
 ```php
 // Example: iOS sync throttle
 Redis::throttle('sync-job:ios')
-    ->allow(3)          // 3 jobs
+    ->allow(5)          // 5 jobs
     ->every(60)         // per minute
     ->block(300)        // wait up to 300s for a slot
     ->then(fn() => ...)
@@ -72,8 +76,8 @@ Redis::throttle('sync-job:ios')
 
 | Key | Allow | Per | Platform |
 |-----|-------|-----|----------|
-| `sync-job:ios` | 3 | 60s | iOS |
-| `sync-job:android` | 2 | 60s | Android |
+| `sync-job:ios` | 5 | 60s | iOS |
+| `sync-job:android` | 5 | 60s | Android |
 | `chart-job:ios` | 24 | 60s | iOS |
 | `chart-job:android` | 37 | 60s | Android |
 

@@ -9,6 +9,8 @@ AppStoreCat, iOS ve Android pipeline'larinin birbirini asla engellemeyeceginden 
                     ├─ sync-tracked-android ──▶ SyncAppJob (Android takip edilen)
                     ├─ sync-discovery-ios ────▶ SyncAppJob (iOS kesfedilen)
 Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob (Android kesfedilen)
+                    ├─ sync-on-demand-ios ────▶ SyncAppJob (UI tetikli eskimis yenileme, iOS)
+                    ├─ sync-on-demand-android ▶ SyncAppJob (UI tetikli eskimis yenileme, Android)
                     ├─ charts-ios ────────────▶ SyncChartSnapshotJob (iOS)
                     ├─ charts-android ────────▶ SyncChartSnapshotJob (Android)
                     ├─ discover ──────────────▶ Kesif job'lari
@@ -23,6 +25,8 @@ Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob
 | `sync-tracked-android` | Takip edilen Android uygulamalarini senkronize et | `SyncAppJob` |
 | `sync-discovery-ios` | Kesfedilen iOS uygulamalarini senkronize et | `SyncAppJob` |
 | `sync-discovery-android` | Kesfedilen Android uygulamalarini senkronize et | `SyncAppJob` |
+| `sync-on-demand-ios` | Eskimis iOS uygulamalari icin UI tetikli yenileme | `SyncAppJob` |
+| `sync-on-demand-android` | Eskimis Android uygulamalari icin UI tetikli yenileme | `SyncAppJob` |
 | `charts-ios` | iOS chart goruntuleri | `SyncChartSnapshotJob` |
 | `charts-android` | Android chart goruntuleri | `SyncChartSnapshotJob` |
 | `discover` | Uygulama kesfi | Cesitli |
@@ -32,12 +36,12 @@ Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob
 
 ### SyncAppJob
 
-Tek bir uygulamanin tam verisini senkronize eder (kimlik, liste, metrikler, incelemeler, anahtar kelimeler).
+Tek bir uygulamanin tam verisini senkronize eder (kimlik, liste, metrikler, incelemeler).
 
-- **Kuyruk:** Platforma ozel senkronizasyon kuyrugu
+- **Kuyruk:** Platforma ozel senkronizasyon kuyrugu (`sync-tracked-*`, `sync-discovery-*` veya `sync-on-demand-*`)
 - **Benzersiz:** Uygulama ID'si basina, 1 saatlik pencere (tekrar senkronizasyonu onler)
 - **Yeniden deneme:** `[30, 60, 120]` saniye geri cekilme ile 3 deneme
-- **Throttle:** Redis tabanli, platform bazinda (iOS: 3/dk, Android: 2/dk)
+- **Throttle:** Redis tabanli, platform bazinda (iOS: 5/dk, Android: 5/dk)
 - **Blok zaman asimi:** 300 saniye (throttle slotu icin bekler)
 
 ### SyncChartSnapshotJob
@@ -62,7 +66,7 @@ Scraper'a bagli tum job'lar magaza hiz sinirlarini asmayi onlemek icin Redis thr
 ```php
 // Ornek: iOS senkronizasyon throttle
 Redis::throttle('sync-job:ios')
-    ->allow(3)          // 3 job
+    ->allow(5)          // 5 job
     ->every(60)         // dakikada
     ->block(300)        // slot icin en fazla 300 saniye bekle
     ->then(fn() => ...)
@@ -72,8 +76,8 @@ Redis::throttle('sync-job:ios')
 
 | Anahtar | Izin | Basina | Platform |
 |---------|------|--------|----------|
-| `sync-job:ios` | 3 | 60s | iOS |
-| `sync-job:android` | 2 | 60s | Android |
+| `sync-job:ios` | 5 | 60s | iOS |
+| `sync-job:android` | 5 | 60s | Android |
 | `chart-job:ios` | 24 | 60s | iOS |
 | `chart-job:android` | 37 | 60s | Android |
 

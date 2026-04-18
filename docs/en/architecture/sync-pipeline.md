@@ -24,11 +24,10 @@ AppSyncer::syncAll(App)
     ├─ 5. syncMetrics()        → AppMetric (daily snapshot)
     │       └─ Calculate rating_delta
     │
-    ├─ 6. syncReviews()        → Review records (paginated)
-    │
-    └─ 7. updateVersionDetails() → KeywordAnalyzer on listing text
-            └─ AppKeywordDensity records (1/2/3-grams)
+    └─ 6. syncReviews()        → Review records (paginated)
 ```
+
+Keyword density is **not** a pipeline step — `KeywordAnalyzer` is invoked on demand from the keyword endpoints and reads directly from the current `StoreListing`. See the [Keyword Density](../features/keyword-density.md) feature page.
 
 ## Step Details
 
@@ -82,28 +81,22 @@ Fetches user reviews from the store.
 - Stores `Review` records (unique per `app_id` + `external_id`)
 - Captures: author, title, body, rating, review_date, app_version
 
-### 7. Keyword Analysis
-
-Analyzes the listing text for keyword density.
-
-- Combines: title + subtitle + description + whats_new
-- Tokenizes with language-aware stop word filtering (50 languages)
-- Extracts n-grams: 1-word, 2-word, and 3-word combinations
-- Calculates frequency and density percentage
-- Stores `AppKeywordDensity` records
-
 ## Sync Scheduling
 
-The Laravel scheduler dispatches sync jobs based on the `last_synced_at` timestamp:
+The Laravel scheduler fires the `appstorecat:apps:sync-discovery` and `appstorecat:apps:sync-tracked` commands every **20 minutes** on both platforms, pulling the oldest stale apps and pushing one `SyncAppJob` per app to the matching queue.
 
 | App Type | Refresh Interval | Queue |
 |----------|-----------------|-------|
 | Tracked iOS | 24 hours | `sync-tracked-ios` |
 | Tracked Android | 24 hours | `sync-tracked-android` |
-| Discovered iOS | 72 hours | `sync-discovery-ios` |
-| Discovered Android | 72 hours | `sync-discovery-android` |
+| Discovered iOS | 24 hours | `sync-discovery-ios` |
+| Discovered Android | 24 hours | `sync-discovery-android` |
 
 Apps are only re-synced if `last_synced_at` is older than the configured refresh interval.
+
+### On-Demand Refresh Queue
+
+`AppController::show()` and `AppController::listing()` dispatch `SyncAppJob` to `sync-on-demand-ios` / `sync-on-demand-android` whenever a visited app is stale. This keeps UI-triggered refreshes on a dedicated worker pool so they don't wait behind the regular discovery/tracked queues.
 
 ## Uniqueness Guards
 

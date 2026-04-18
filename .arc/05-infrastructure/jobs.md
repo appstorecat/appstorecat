@@ -38,14 +38,15 @@ Commands live in `app/Console/Commands/{Domain}/`.
 
 ## Queue Architecture
 
-Two independent sync pools run in parallel:
+All scraper-bound queues are platform-separated so iOS and Android rate limits never block each other:
 
 | Queue | Responsibility | Selection Criteria |
 |-------|---------------|-------------------|
-| `sync-discovery` | Untracked apps (discovered via search, trending, etc.) | `doesntHave('users')`, oldest `last_synced_at` |
-| `sync-tracked` | Tracked apps (user is actively following) | `whereHas('users')`, oldest `last_synced_at` |
+| `sync-discovery-ios` / `sync-discovery-android` | Untracked apps (discovered via search, trending, etc.) | `doesntHave('users')`, oldest `last_synced_at` |
+| `sync-tracked-ios` / `sync-tracked-android` | Tracked apps (user is actively following) | `whereHas('users')`, oldest `last_synced_at` |
+| `sync-on-demand-ios` / `sync-on-demand-android` | UI-triggered refresh for stale apps | Dispatched from `AppController::show()` / `::listing()` |
 
-Both pools use the same `SyncAppJob` and `AppSyncer` service. A tracked app gets synced more frequently because it has its own dedicated pool.
+All three pools use the same `SyncAppJob` and `AppSyncer` service. Tracked apps get synced more frequently because they have their own dedicated pool; on-demand queues exist so user page views are never stuck behind a cron backlog.
 
 ### Other Queues
 
@@ -53,7 +54,7 @@ Both pools use the same `SyncAppJob` and `AppSyncer` service. A tracked app gets
 |-------|---------|
 | `default` | General jobs |
 | `discover` | App discovery |
-| `charts` | Trending chart fetching |
+| `charts-ios` / `charts-android` | Trending chart fetching |
 
 ## Sync Pipeline
 
@@ -61,10 +62,13 @@ Both pools use the same `SyncAppJob` and `AppSyncer` service. A tracked app gets
 
 1. `syncIdentity()` — publisher, category, locales, version
 2. `saveVersion()` — create/find AppVersion record
-3. `syncListing()` — store listing + change detection + keyword analysis
+3. `syncListing()` — store listing + change detection
 4. `syncMetrics()` — rating, installs, rating breakdown
-5. `updateVersionDetails()` — copy whats_new, file_size to version
-6. Set `last_synced_at = now()`
+5. `syncReviews()` — user reviews
+6. `updateVersionDetails()` — copy whats_new, file_size to version
+7. Set `last_synced_at = now()`
+
+Keyword density is **not** part of the sync pipeline — `KeywordAnalyzer` is invoked on demand from the keyword endpoints and reads directly from the current `StoreListing`.
 
 ### Duplicate Protection
 
@@ -72,15 +76,17 @@ Both pools use the same `SyncAppJob` and `AppSyncer` service. A tracked app gets
 
 ### Scheduling
 
-Both commands run every minute via Laravel Scheduler:
+Both commands run every 20 minutes via Laravel Scheduler, per platform:
 
 ```php
-Schedule::command('appstorecat:apps:sync-discovery')->everyMinute();
-Schedule::command('appstorecat:apps:sync-tracked')->everyMinute();
+Schedule::command('appstorecat:apps:sync-discovery --platform=ios')->cron('*/20 * * * *');
+Schedule::command('appstorecat:apps:sync-discovery --platform=android')->cron('*/20 * * * *');
+Schedule::command('appstorecat:apps:sync-tracked --platform=ios')->cron('*/20 * * * *');
+Schedule::command('appstorecat:apps:sync-tracked --platform=android')->cron('*/20 * * * *');
 ```
 
-Each picks one app per run → ~2880 total syncs/day (1440 per pool).
+Each run fans out up to 100 stale apps to the matching queue. At the default 5 syncs/min per platform throttle, the 20-minute cadence is sized to drain one batch before the next one fires.
 
 ### On-Demand Sync (UI)
 
-When a user visits an app detail page for the first time (`last_synced_at` is null), `AppController::show()` calls `AppSyncer::syncAll()` synchronously so the user sees data immediately.
+When a user visits an app detail page (`AppController::show()`) or listing page (`::listing()`) whose `last_synced_at` is stale (older than the tracked / discovery threshold), the controller dispatches a `SyncAppJob` to `sync-on-demand-{platform}` instead of running inline. This keeps the HTTP response fast while ensuring user-triggered refreshes don't queue behind the cron backlog.

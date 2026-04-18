@@ -10,11 +10,13 @@ AppStoreCat extracts keywords from store listings and calculates their frequency
 
 ## How It Works
 
-1. During app sync, `KeywordAnalyzer` processes the listing text
+Keyword density is computed on-the-fly from the current `StoreListing` whenever the API is called — nothing is persisted between requests. This means analysis always reflects the latest listing text without needing a reindex step.
+
+1. The keyword endpoint loads the matching `StoreListing` for the requested platform + external ID + language
 2. Text from title + subtitle + description + what's new is combined
 3. Content is tokenized with language-aware stop word filtering
 4. N-grams (1-word, 2-word, 3-word combinations) are extracted
-5. Frequency and density percentage are calculated and stored
+5. Frequency and density percentage are calculated and returned in the response
 
 ## Stop Word Filtering
 
@@ -35,10 +37,10 @@ Stop word files are stored in `server/resources/data/stopwords/{lang}.json`.
 ### Keyword Density
 
 ```
-GET /api/v1/apps/{platform}/{externalId}/keywords?language=en-US&ngram=2&version_id=123
+GET /api/v1/apps/{platform}/{externalId}/keywords?language=en-US&ngram=2
 ```
 
-Returns keywords with their count and density percentage for the specified listing.
+Returns keywords with their count and density percentage for the specified listing. The analyzer runs on every request against the current stored listing, so results automatically pick up any new sync data.
 
 ### Keyword Comparison
 
@@ -58,9 +60,7 @@ The **Keywords** tab on the app detail page shows:
 
 ## Technical Details
 
-- **Service:** `KeywordAnalyzer`
-- **Model:** `AppKeywordDensity`
-- **Table:** `app_keyword_densities`
-- **Index:** `(app_id, version_id, language, ngram_size)`
-- **Sync step:** `AppSyncer::updateVersionDetails()`
+- **Service:** `KeywordAnalyzer` (`analyzeListing()` / `analyzeText()` return arrays — no DB writes)
+- **Source:** Current `StoreListing` row for the requested `(app_id, language)` tuple
+- **Controllers:** `KeywordController@index` and `KeywordController@compare` compute fresh on every request
 - **Minimum word length:** 2 characters

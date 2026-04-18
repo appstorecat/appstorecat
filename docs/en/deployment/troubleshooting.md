@@ -138,14 +138,14 @@ GPLAY_TIMEOUT=60
 
 Check throttle rates in `config/appstorecat.php`. Default rates are conservative:
 
-- iOS sync: 3 jobs/minute
-- Android sync: 2 jobs/minute
+- iOS sync: 5 jobs/minute
+- Android sync: 5 jobs/minute
 
 These can be increased if your IP is not getting rate-limited.
 
 ### Database growing large
 
-The `app_keyword_densities` and `app_reviews` tables grow the fastest. Consider:
+The `app_reviews` and `trending_chart_entries` tables grow the fastest. Consider:
 
 - Disabling review sync for platforms you don't need
 - Adjusting discovery sync frequency (`SYNC_{PLATFORM}_DISCOVERY_REFRESH_HOURS`)

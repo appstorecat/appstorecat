@@ -56,8 +56,8 @@ Controls how the server communicates with scraper microservices:
 |----------|---------|-------------|
 | `APPSTORE_TIMEOUT` | `30` | App Store scraper request timeout (seconds) |
 | `GPLAY_TIMEOUT` | `30` | Google Play scraper request timeout (seconds) |
-| `APPSTORE_THROTTLE_SYNC_JOBS` | `3` | Max iOS sync jobs per minute |
-| `GPLAY_THROTTLE_SYNC_JOBS` | `2` | Max Android sync jobs per minute |
+| `APPSTORE_THROTTLE_SYNC_JOBS` | `5` | Max iOS sync jobs per minute |
+| `GPLAY_THROTTLE_SYNC_JOBS` | `5` | Max Android sync jobs per minute |
 | `APPSTORE_THROTTLE_CHART_JOBS` | `24` | Max iOS chart jobs per minute |
 | `GPLAY_THROTTLE_CHART_JOBS` | `37` | Max Android chart jobs per minute |
 
@@ -70,12 +70,12 @@ Controls automatic app synchronization per platform:
 | `SYNC_IOS_TRACKED_ENABLED` | `true` | Enable sync for tracked iOS apps |
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Hours between tracked iOS app syncs |
 | `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Enable sync for discovered iOS apps |
-| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `72` | Hours between discovered iOS app syncs |
+| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Hours between discovered iOS app syncs |
 | `SYNC_IOS_REVIEWS_ENABLED` | `true` | Enable iOS review syncing |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Enable sync for tracked Android apps |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Hours between tracked Android app syncs |
 | `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Enable sync for discovered Android apps |
-| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `72` | Hours between discovered Android app syncs |
+| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Hours between discovered Android app syncs |
 | `SYNC_ANDROID_REVIEWS_ENABLED` | `true` | Enable Android review syncing |
 
 ### Chart Settings

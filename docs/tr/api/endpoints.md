@@ -63,7 +63,7 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
-| GET | `/apps/{platform}/{externalId}/keywords` | Anahtar kelime yogunlugu (`?language=en-US&ngram=2&version_id=X`) |
+| GET | `/apps/{platform}/{externalId}/keywords` | Anahtar kelime yogunlugu (`?language=en-US&ngram=2`) — mevcut liste uzerinden talep uzerine hesaplanir |
 | GET | `/apps/{platform}/{externalId}/keywords/compare` | Anahtar kelimeleri karsilastir (`?app_ids=1,2,3&language=en`) |
 
 ## Yorumlar

@@ -56,8 +56,8 @@ Backend'in scraper mikroservisleriyle nasıl iletişim kurduğunu kontrol eder:
 |----------|------------|----------|
 | `APPSTORE_TIMEOUT` | `30` | App Store scraper istek zaman aşımı (saniye) |
 | `GPLAY_TIMEOUT` | `30` | Google Play scraper istek zaman aşımı (saniye) |
-| `APPSTORE_THROTTLE_SYNC_JOBS` | `3` | Dakikada maksimum iOS sync job sayısı |
-| `GPLAY_THROTTLE_SYNC_JOBS` | `2` | Dakikada maksimum Android sync job sayısı |
+| `APPSTORE_THROTTLE_SYNC_JOBS` | `5` | Dakikada maksimum iOS sync job sayısı |
+| `GPLAY_THROTTLE_SYNC_JOBS` | `5` | Dakikada maksimum Android sync job sayısı |
 | `APPSTORE_THROTTLE_CHART_JOBS` | `24` | Dakikada maksimum iOS chart job sayısı |
 | `GPLAY_THROTTLE_CHART_JOBS` | `37` | Dakikada maksimum Android chart job sayısı |
 
@@ -70,12 +70,12 @@ Platform bazında otomatik uygulama senkronizasyonunu kontrol eder:
 | `SYNC_IOS_TRACKED_ENABLED` | `true` | Takip edilen iOS uygulamaları için sync'i etkinleştir |
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Takip edilen iOS uygulamaları sync aralığı (saat) |
 | `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Keşfedilen iOS uygulamaları için sync'i etkinleştir |
-| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `72` | Keşfedilen iOS uygulamaları sync aralığı (saat) |
+| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Keşfedilen iOS uygulamaları sync aralığı (saat) |
 | `SYNC_IOS_REVIEWS_ENABLED` | `true` | iOS yorum senkronizasyonunu etkinleştir |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Takip edilen Android uygulamaları için sync'i etkinleştir |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Takip edilen Android uygulamaları sync aralığı (saat) |
 | `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Keşfedilen Android uygulamaları için sync'i etkinleştir |
-| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `72` | Keşfedilen Android uygulamaları sync aralığı (saat) |
+| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Keşfedilen Android uygulamaları sync aralığı (saat) |
 | `SYNC_ANDROID_REVIEWS_ENABLED` | `true` | Android yorum senkronizasyonunu etkinleştir |
 
 ### Chart Ayarları

@@ -31,11 +31,15 @@ Apps explicitly tracked by users. Synced every **24 hours** by default.
 
 ### Discovery Apps (Background Tier)
 
-Apps discovered but not tracked. Synced every **72 hours** by default.
+Apps discovered but not tracked. Synced every **24 hours** by default.
 
 - Same full sync as tracked, but lower priority
 - Queue: `sync-discovery-ios` / `sync-discovery-android`
 - Controlled by: `SYNC_{PLATFORM}_DISCOVERY_REFRESH_HOURS`
+
+### On-Demand UI Refresh
+
+When a user opens an app detail or listing page whose `last_synced_at` is older than the applicable refresh threshold, the API enqueues a `SyncAppJob` on `sync-on-demand-ios` / `sync-on-demand-android`. This dedicated pool means user-triggered refreshes are processed ahead of (and never stuck behind) the cron-driven discovery backlog.
 
 ## What Gets Synced
 
@@ -48,8 +52,9 @@ Each sync cycle (managed by `AppSyncer`) performs these steps in order:
 4. Changes     → Detect differences from previous listing (checksum-based)
 5. Metrics     → Rating, rating count, breakdown, file size
 6. Reviews     → User reviews (paginated, up to 200 per page)
-7. Keywords    → Keyword density analysis from listing text
 ```
+
+Keyword density is **not** a sync step — it's computed on demand from the stored listing whenever the API is called, so no separate persistence or reindex pass is needed.
 
 ## Throttle Rates
 
@@ -57,10 +62,12 @@ Each platform has independent Redis-based throttle rates to respect store rate l
 
 | Platform | Sync Jobs | Chart Jobs |
 |----------|-----------|------------|
-| iOS (App Store) | 3/minute | 24/minute |
-| Android (Google Play) | 2/minute | 37/minute |
+| iOS (App Store) | 5/minute | 24/minute |
+| Android (Google Play) | 5/minute | 37/minute |
 
 Jobs that exceed the throttle block (up to 300s) until a slot opens. This ensures steady, sustainable data collection without triggering rate limits.
+
+The Laravel scheduler dispatches `sync-discovery` and `sync-tracked` commands every **20 minutes** on each platform — at 5 apps/minute this drains up to ~100 apps per cycle, keeping the sync pool in lockstep with the schedule cadence.
 
 ## Chart Collection
 

@@ -31,11 +31,15 @@ Kullanicilar tarafindan acikca takip edilen uygulamalar. Varsayilan olarak her *
 
 ### Kesif Uygulamalari (Arka Plan Katmani)
 
-Kesfedilmis ancak takip edilmeyen uygulamalar. Varsayilan olarak her **72 saatte** bir senkronize edilir.
+Kesfedilmis ancak takip edilmeyen uygulamalar. Varsayilan olarak her **24 saatte** bir senkronize edilir.
 
 - Takip edilen uygulamalarla ayni tam senkronizasyon, ancak daha dusuk oncelik
 - Kuyruk: `sync-discovery-ios` / `sync-discovery-android`
 - Kontrol: `SYNC_{PLATFORM}_DISCOVERY_REFRESH_HOURS`
+
+### Arayuzden Talep Uzerine Yenileme
+
+Bir kullanici `last_synced_at` degeri yenileme esiginden eski olan bir uygulama detay veya liste sayfasini actiginda, API ilgili platform icin `sync-on-demand-ios` / `sync-on-demand-android` kuyruguna bir `SyncAppJob` gonderir. Bu ozel havuz, kullanici tetikli yenilemelerin cron tabanli kesif birikiminin arkasinda beklememesini saglar.
 
 ## Neler Senkronize Edilir
 
@@ -48,8 +52,9 @@ Her senkronizasyon dongusu (`AppSyncer` tarafindan yonetilir) bu adimlari sirasi
 4. Changes     → Onceki listeyle farklari tespit et (checksum tabanli)
 5. Metrics     → Puan, puan sayisi, dagilim, dosya boyutu
 6. Reviews     → Kullanici incelemeleri (sayfalanmis, sayfa basina 200'e kadar)
-7. Keywords    → Liste metninden anahtar kelime yogunlugu analizi
 ```
+
+Anahtar kelime yogunlugu artik bir senkronizasyon adimi **degildir**; API cagrildiginda saklanan liste uzerinde aninda hesaplanir. Ayri bir kalici saklama veya yeniden indeksleme gecisi gerekmez.
 
 ## Throttle Oranlari
 
@@ -57,10 +62,12 @@ Her platformun magaza hiz sinirlarini asmayi onlemek icin bagimsiz Redis tabanli
 
 | Platform | Senkronizasyon Job'lari | Chart Job'lari |
 |----------|------------------------|----------------|
-| iOS (App Store) | 3/dakika | 24/dakika |
-| Android (Google Play) | 2/dakika | 37/dakika |
+| iOS (App Store) | 5/dakika | 24/dakika |
+| Android (Google Play) | 5/dakika | 37/dakika |
 
 Throttle'i asan job'lar bir slot acilana kadar bekler (en fazla 300 saniye). Bu, hiz sinirlarini tetiklemeden istikrarli ve surdurulebilir veri toplama saglar.
+
+Laravel zamanlayicisi her platformda `sync-discovery` ve `sync-tracked` komutlarini her **20 dakikada** bir gonderir — dakikada 5 uygulama ile bu, dongu basina ~100 uygulama siralanmasini saglar ve senkronizasyon havuzunu takvim ile eslesik tutar.
 
 ## Chart Toplama
 

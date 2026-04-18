@@ -40,7 +40,7 @@ Once an app is synced, you can explore:
 AppStoreCat automatically syncs data in the background using queue workers:
 
 - **Tracked apps** sync every 24 hours
-- **Discovered apps** sync every 72 hours
+- **Discovered apps** sync every 24 hours
 - **Charts** sync daily
 - **Reviews** sync with each app sync
 

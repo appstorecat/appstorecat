@@ -38,8 +38,8 @@ AppStoreCat tarafindan kullanilan tum ortam degiskenlerinin tam referansi.
 
 | Degisken | Varsayilan | Aciklama |
 |----------|------------|----------|
-| `APPSTORE_THROTTLE_SYNC_JOBS` | `3` | Dakika basina maksimum iOS senkronizasyon gorev sayisi |
-| `GPLAY_THROTTLE_SYNC_JOBS` | `2` | Dakika basina maksimum Android senkronizasyon gorev sayisi |
+| `APPSTORE_THROTTLE_SYNC_JOBS` | `5` | Dakika basina maksimum iOS senkronizasyon gorev sayisi |
+| `GPLAY_THROTTLE_SYNC_JOBS` | `5` | Dakika basina maksimum Android senkronizasyon gorev sayisi |
 | `APPSTORE_THROTTLE_CHART_JOBS` | `24` | Dakika basina maksimum iOS grafik cekme gorev sayisi |
 | `GPLAY_THROTTLE_CHART_JOBS` | `37` | Dakika basina maksimum Android grafik cekme gorev sayisi |
 
@@ -50,12 +50,12 @@ AppStoreCat tarafindan kullanilan tum ortam degiskenlerinin tam referansi.
 | `SYNC_IOS_TRACKED_ENABLED` | `true` | Takip edilen iOS uygulama senkronizasyonunu etkinlestir |
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Takip edilen iOS senkronizasyonlari arasindaki saat |
 | `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Kesfedilen iOS uygulama senkronizasyonunu etkinlestir |
-| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `72` | Kesfedilen iOS senkronizasyonlari arasindaki saat |
+| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Kesfedilen iOS senkronizasyonlari arasindaki saat |
 | `SYNC_IOS_REVIEWS_ENABLED` | `true` | iOS yorum senkronizasyonunu etkinlestir |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Takip edilen Android uygulama senkronizasyonunu etkinlestir |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Takip edilen Android senkronizasyonlari arasindaki saat |
 | `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Kesfedilen Android uygulama senkronizasyonunu etkinlestir |
-| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `72` | Kesfedilen Android senkronizasyonlari arasindaki saat |
+| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Kesfedilen Android senkronizasyonlari arasindaki saat |
 | `SYNC_ANDROID_REVIEWS_ENABLED` | `true` | Android yorum senkronizasyonunu etkinlestir |
 
 ## Grafikler

@@ -138,14 +138,14 @@ GPLAY_TIMEOUT=60
 
 `config/appstorecat.php` dosyasındaki hız sınırlama oranlarını kontrol edin. Varsayılan oranlar ihtiyatlıdır:
 
-- iOS senkronizasyonu: dakikada 3 iş
-- Android senkronizasyonu: dakikada 2 iş
+- iOS senkronizasyonu: dakikada 5 iş
+- Android senkronizasyonu: dakikada 5 iş
 
 IP adresiniz hız sınırlamasına takılmıyorsa bu değerler artırılabilir.
 
 ### Veritabanı büyümesi
 
-`app_keyword_densities` ve `app_reviews` tabloları en hızlı büyüyen tablolardır. Şunları değerlendirin:
+`app_reviews` ve `trending_chart_entries` tabloları en hızlı büyüyen tablolardır. Şunları değerlendirin:
 
 - İhtiyacınız olmayan platformlar için yorum senkronizasyonunu devre dışı bırakma
 - Keşif senkronizasyon sıklığını ayarlama (`SYNC_{PLATFORM}_DISCOVERY_REFRESH_HOURS`)
