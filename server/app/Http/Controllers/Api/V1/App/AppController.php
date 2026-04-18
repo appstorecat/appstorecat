@@ -10,6 +10,8 @@ use App\Http\Requests\Api\App\StoreAppRequest;
 use App\Http\Resources\Api\App\AppDetailResource;
 use App\Http\Resources\Api\App\AppResource;
 use App\Http\Resources\Api\App\ListingResource;
+use App\Jobs\Sync\SyncAppJob;
+use App\Models\App;
 use App\Models\AppCompetitor;
 use App\Models\StoreListing;
 use App\Services\AppRegistrar;
@@ -100,6 +102,8 @@ class AppController extends BaseController
 
         if (! $app->last_synced_at) {
             $this->syncer->syncAll($app);
+        } elseif ($this->isStale($app)) {
+            $this->dispatchBackgroundRefresh($app);
         }
 
         $app->refresh()->load(['storeListings', 'versions', 'storeListingChanges']);
@@ -147,6 +151,8 @@ class AppController extends BaseController
         if (! $app->last_synced_at) {
             $this->syncer->syncAll($app);
             $app->refresh();
+        } elseif ($this->isStale($app)) {
+            $this->dispatchBackgroundRefresh($app);
         }
 
         $country = $request->input('country');
@@ -220,5 +226,21 @@ class AppController extends BaseController
             ->delete();
 
         return response()->noContent();
+    }
+
+    private function isStale(App $app): bool
+    {
+        $hours = $app->users()->exists()
+            ? config("appstorecat.sync.{$app->platform->slug()}.tracked_app_refresh_hours", 24)
+            : config("appstorecat.sync.{$app->platform->slug()}.discovery_app_refresh_hours", 72);
+
+        return $app->last_synced_at->lt(now()->subHours((int) $hours));
+    }
+
+    private function dispatchBackgroundRefresh(App $app): void
+    {
+        // UI-triggered refreshes go to a dedicated on-demand queue so they do not
+        // wait behind the nightly cron backlog on the tracked/discovery queues.
+        SyncAppJob::dispatch($app->id)->onQueue("sync-on-demand-{$app->platform->slug()}");
     }
 }

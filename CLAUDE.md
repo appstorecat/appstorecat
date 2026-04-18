@@ -149,6 +149,8 @@ All queues are **platform-separated** (iOS and Android run independently):
 | `sync-discovery-android` | Sync untracked Android apps |
 | `sync-tracked-ios` | Sync tracked iOS apps |
 | `sync-tracked-android` | Sync tracked Android apps |
+| `sync-on-demand-ios` | UI-triggered refresh for stale iOS apps |
+| `sync-on-demand-android` | UI-triggered refresh for stale Android apps |
 | `charts-ios` | iOS trending chart snapshots |
 | `charts-android` | Android trending chart snapshots |
 
