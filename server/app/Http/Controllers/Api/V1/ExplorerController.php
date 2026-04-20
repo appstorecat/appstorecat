@@ -38,14 +38,20 @@ class ExplorerController extends BaseController
             'per_page' => 'sometimes|integer|min:1|max:50',
         ]);
 
+        // Explorer feeds use the English storefront content as the canonical
+        // preview. Prefer `en-US`, then any other `en*` locale, to keep the
+        // grid visually consistent regardless of the user's browser locale.
+        $englishListing = fn ($q) => $q
+            ->where('locale', 'like', 'en%')
+            ->whereNotNull('screenshots')
+            ->where('screenshots', '!=', '[]')
+            ->orderByRaw("CASE WHEN locale = 'en-US' THEN 0 ELSE 1 END")
+            ->orderByDesc('version_id')
+            ->limit(1);
+
         $query = App::query()
-            ->whereHas('storeListings', function ($q) {
-                $q->whereNotNull('screenshots')
-                    ->where('screenshots', '!=', '[]');
-            })
-            ->with(['publisher', 'category', 'storeListings' => function ($q) {
-                $q->orderByDesc('version_id')->limit(1);
-            }]);
+            ->whereHas('storeListings', $englishListing)
+            ->with(['publisher', 'category', 'storeListings' => $englishListing]);
 
         if ($request->filled('platform')) {
             $query->platform($request->input('platform'));
@@ -56,7 +62,9 @@ class ExplorerController extends BaseController
         }
 
         if ($request->filled('search')) {
-            $query->whereHas('storeListings', fn ($q) => $q->where('title', 'like', '%'.$request->input('search').'%'));
+            $query->whereHas('storeListings', fn ($q) => $q
+                ->where('locale', 'like', 'en%')
+                ->where('title', 'like', '%'.$request->input('search').'%'));
         }
 
         $query->orderByDesc('last_synced_at');
@@ -71,7 +79,7 @@ class ExplorerController extends BaseController
                 'external_id' => $app->external_id,
                 'platform' => $app->platform->slug(),
                 'name' => $app->displayName(),
-                'icon_url' => $app->displayIcon(),
+                'icon_url' => $listing?->icon_url ?? $app->displayIcon(),
                 'publisher_name' => $app->publisher?->name,
                 'category_name' => $app->category?->name,
                 'screenshots' => $listing?->screenshotUrls() ?? [],
@@ -115,9 +123,18 @@ class ExplorerController extends BaseController
             'per_page' => 'sometimes|integer|min:1|max:200',
         ]);
 
-        $query = App::query()
+        // Icons gallery mirrors the English storefront. Only include apps
+        // with a captured en* listing so the grid stays visually consistent.
+        $englishListing = fn ($q) => $q
+            ->where('locale', 'like', 'en%')
             ->whereNotNull('icon_url')
-            ->with(['publisher', 'category']);
+            ->orderByRaw("CASE WHEN locale = 'en-US' THEN 0 ELSE 1 END")
+            ->orderByDesc('version_id')
+            ->limit(1);
+
+        $query = App::query()
+            ->whereHas('storeListings', $englishListing)
+            ->with(['publisher', 'category', 'storeListings' => $englishListing]);
 
         if ($request->filled('platform')) {
             $query->platform($request->input('platform'));
@@ -136,12 +153,14 @@ class ExplorerController extends BaseController
         $paginated = $query->paginate($request->integer('per_page', 48));
 
         $data = collect($paginated->items())->map(function (App $app) {
+            $listing = $app->storeListings->first();
+
             return [
                 'app_id' => $app->id,
                 'external_id' => $app->external_id,
                 'platform' => $app->platform->slug(),
                 'name' => $app->displayName(),
-                'icon_url' => $app->displayIcon(),
+                'icon_url' => $listing?->icon_url ?? $app->displayIcon(),
                 'publisher_name' => $app->publisher?->name,
                 'category_name' => $app->category?->name,
             ];
