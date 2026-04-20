@@ -376,6 +376,7 @@ export default function AppsShow() {
                   <ChangesTab
                     listings={app.listings ?? []}
                     versions={app.versions ?? []}
+                    platform={app.platform}
                   />
                 )}
                 {activeTab === 'versions' && (
