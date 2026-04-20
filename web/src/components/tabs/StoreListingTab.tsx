@@ -39,11 +39,11 @@ interface StoreListingTabProps {
   platform: string
   externalId: string
   selectedLocale: string
-  selectedCountry: string
+  selectedCountry?: string
   selectedVersion: string
 }
 
-export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedCountry, selectedVersion }: StoreListingTabProps) {
+export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedCountry = 'us', selectedVersion }: StoreListingTabProps) {
   const sortedVersions = useMemo(
     () => [...versions].sort((a, b) => b.id - a.id),
     [versions],
@@ -81,10 +81,10 @@ export default function StoreListingTab({ listings, versions, platform, external
       {isUnavailable && (
         <Alert variant="destructive">
           <Ban className="h-4 w-4" />
-          <AlertTitle>Not available in {selectedCountry.toUpperCase()}</AlertTitle>
+          <AlertTitle>Not available in {(selectedCountry ?? 'this storefront').toUpperCase()}</AlertTitle>
           <AlertDescription>
             This app is not listed on the App Store for{' '}
-            <strong>{selectedCountry.toUpperCase()}</strong>. You are viewing the
+            <strong>{(selectedCountry ?? 'this storefront').toUpperCase()}</strong>. You are viewing the
             reference content from the app's origin storefront.
           </AlertDescription>
         </Alert>
