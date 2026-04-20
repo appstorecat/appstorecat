@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\BaseController;
+use App\Models\AppMetric;
 use App\Models\Country;
 use Illuminate\Http\JsonResponse;
 use OpenApi\Attributes as OA;
@@ -27,8 +28,9 @@ class CountryController extends BaseController
     )]
     public function __invoke(): JsonResponse
     {
-        $countries = Country::where('is_active_ios', true)
-            ->orWhere('is_active_android', true)
+        $countries = Country::query()
+            ->where('code', '!=', AppMetric::GLOBAL_COUNTRY)
+            ->where(fn ($q) => $q->where('is_active_ios', true)->orWhere('is_active_android', true))
             ->orderBy('name')
             ->get(['code', 'name', 'emoji', 'ios_languages', 'android_languages']);
 
