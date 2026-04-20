@@ -334,6 +334,7 @@ export default function AppsShow() {
                     platform={app.platform}
                     externalId={app.external_id}
                     selectedLocale={effectiveLocale}
+                    selectedCountry={selectedCountry}
                     selectedVersion={selectedVersion}
                   />
                 )}

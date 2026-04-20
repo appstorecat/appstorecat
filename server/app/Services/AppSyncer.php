@@ -289,8 +289,13 @@ class AppSyncer
         );
         $locale = $data['locale'];
 
+        // Only compare against real, previously-available listings.
+        // Unavailable placeholder rows (cloned from origin) must not trigger
+        // spurious change-detection entries when the locale later starts
+        // returning real data.
         $existing = StoreListing::where('app_id', $app->id)
             ->where('locale', $locale)
+            ->where('is_available', true)
             ->orderByDesc('id')
             ->first();
 

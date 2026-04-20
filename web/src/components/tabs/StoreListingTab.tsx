@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Smartphone } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Smartphone, Ban } from 'lucide-react'
 
 interface Screenshot {
   url: string
@@ -20,6 +21,7 @@ interface StoreListingData {
   screenshots: Screenshot[]
   video_url: string | null
   fetched_at: string
+  is_available?: boolean
 }
 
 interface AppVersionData {
@@ -37,10 +39,11 @@ interface StoreListingTabProps {
   platform: string
   externalId: string
   selectedLocale: string
+  selectedCountry: string
   selectedVersion: string
 }
 
-export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedVersion }: StoreListingTabProps) {
+export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedCountry, selectedVersion }: StoreListingTabProps) {
   const sortedVersions = useMemo(
     () => [...versions].sort((a, b) => b.id - a.id),
     [versions],
@@ -55,10 +58,14 @@ export default function StoreListingTab({ listings, versions, platform, external
     return listings.filter((l) => l.version_id === vid)
   }, [selectedVersionId, latestVersionId, listings])
 
-  const currentListing = useMemo(
-    () => filteredListings.find((l) => l.locale === selectedLocale) ?? filteredListings[0],
+  const requestedListing = useMemo(
+    () => filteredListings.find((l) => l.locale === selectedLocale),
     [filteredListings, selectedLocale],
   )
+
+  const currentListing = requestedListing ?? filteredListings[0]
+  const isUnavailable = !!requestedListing && requestedListing.is_available === false
+  const isFallback = !requestedListing && !!currentListing
 
   if (listings.length === 0) {
     return (
@@ -71,6 +78,27 @@ export default function StoreListingTab({ listings, versions, platform, external
 
   return (
     <div className="space-y-3">
+      {isUnavailable && (
+        <Alert variant="destructive">
+          <Ban className="h-4 w-4" />
+          <AlertTitle>Not available in {selectedCountry.toUpperCase()}</AlertTitle>
+          <AlertDescription>
+            This app is not listed on the App Store for{' '}
+            <strong>{selectedCountry.toUpperCase()}</strong>. You are viewing the
+            reference content from the app's origin storefront.
+          </AlertDescription>
+        </Alert>
+      )}
+      {isFallback && (
+        <Alert>
+          <Smartphone className="h-4 w-4" />
+          <AlertTitle>No listing for this locale yet</AlertTitle>
+          <AlertDescription>
+            No store listing has been captured for <strong>{selectedLocale}</strong> yet.
+            Showing the closest available locale instead.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {currentListing && (
         <div className="space-y-5">
