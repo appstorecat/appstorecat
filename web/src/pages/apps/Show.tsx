@@ -250,37 +250,51 @@ export default function AppsShow() {
             </DropdownMenu>
           </div>
 
-          {(app.listings?.length > 0 || app.versions?.length > 0) && (
-            <div className="flex items-center gap-2">
-              <CountrySelect value={selectedCountry} onChange={setSelectedCountry} className="w-[160px]" />
-              {localesForCountry.length > 1 && (
-                <LanguageSelect
-                  languages={localesForCountry}
-                  value={effectiveLocale}
-                  onChange={setSelectedLocale}
-                  className="w-[150px]"
-                />
-              )}
-              {app.versions?.length > 0 && (
-                <Select value={selectedVersion} onValueChange={setSelectedVersion}>
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue>
-                      {selectedVersion === 'latest'
-                        ? `v${[...app.versions].sort((a: { id: number }, b: { id: number }) => b.id - a.id)[0]?.version}`
-                        : `v${app.versions.find((v: { id: number }) => String(v.id) === selectedVersion)?.version ?? ''}`}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[...app.versions].sort((a: { id: number }, b: { id: number }) => b.id - a.id).map((v: { id: number; version: string }, i: number) => (
-                      <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
-                        {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          )}
+          {(app.listings?.length > 0 || app.versions?.length > 0) && (() => {
+            const currentListing = (app.listings ?? []).find((l: { locale: string }) => l.locale === effectiveLocale) as
+              | { locale: string; is_available?: boolean }
+              | undefined
+            const isLocaleUnavailable = !!currentListing && currentListing.is_available === false
+
+            return (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <CountrySelect value={selectedCountry} onChange={setSelectedCountry} className="w-[160px]" />
+                  {localesForCountry.length > 1 && (
+                    <LanguageSelect
+                      languages={localesForCountry}
+                      value={effectiveLocale}
+                      onChange={setSelectedLocale}
+                      className="w-[150px]"
+                    />
+                  )}
+                  {app.versions?.length > 0 && (
+                    <Select value={selectedVersion} onValueChange={setSelectedVersion}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue>
+                          {selectedVersion === 'latest'
+                            ? `v${[...app.versions].sort((a: { id: number }, b: { id: number }) => b.id - a.id)[0]?.version}`
+                            : `v${app.versions.find((v: { id: number }) => String(v.id) === selectedVersion)?.version ?? ''}`}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[...app.versions].sort((a: { id: number }, b: { id: number }) => b.id - a.id).map((v: { id: number; version: string }, i: number) => (
+                          <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
+                            {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {isLocaleUnavailable && activeTab === 'store_listing' && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
+                      Not localized
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </div>
 

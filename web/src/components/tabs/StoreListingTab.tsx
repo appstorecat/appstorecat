@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Smartphone, Ban } from 'lucide-react'
+import { Smartphone, Info } from 'lucide-react'
 
 interface Screenshot {
   url: string
@@ -76,32 +75,22 @@ export default function StoreListingTab({ listings, versions, platform, external
     )
   }
 
+  const localeLabel = selectedLocale || 'this locale'
+  const dim = isUnavailable ? 'opacity-60 pointer-events-none select-none' : ''
+
   return (
     <div className="space-y-3">
-      {isUnavailable && (
-        <Alert variant="destructive">
-          <Ban className="h-4 w-4" />
-          <AlertTitle>Not available in {(selectedCountry ?? 'this storefront').toUpperCase()}</AlertTitle>
-          <AlertDescription>
-            This app is not listed on the App Store for{' '}
-            <strong>{(selectedCountry ?? 'this storefront').toUpperCase()}</strong>. You are viewing the
-            reference content from the app's origin storefront.
-          </AlertDescription>
-        </Alert>
-      )}
       {isFallback && (
-        <Alert>
-          <Smartphone className="h-4 w-4" />
-          <AlertTitle>No listing for this locale yet</AlertTitle>
-          <AlertDescription>
-            No store listing has been captured for <strong>{selectedLocale}</strong> yet.
-            Showing the closest available locale instead.
-          </AlertDescription>
-        </Alert>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Info className="h-3.5 w-3.5" />
+          <span>
+            No listing captured for <span className="font-medium text-foreground">{selectedLocale}</span> yet — showing the closest available locale.
+          </span>
+        </div>
       )}
 
       {currentListing && (
-        <div className="space-y-5">
+        <div className={`space-y-5 ${dim}`}>
           {/* Title + Subtitle */}
           <div className="flex items-start gap-3">
             {currentListing.icon_url && (
@@ -111,10 +100,22 @@ export default function StoreListingTab({ listings, versions, platform, external
                 className="h-12 w-12 shrink-0 rounded-xl"
               />
             )}
-            <div>
-              <h3 className="text-lg font-semibold leading-tight">{currentListing.title}</h3>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-lg font-semibold leading-tight">{currentListing.title}</h3>
+                {isUnavailable && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+                    Not localized for {localeLabel}
+                  </span>
+                )}
+              </div>
               {currentListing.subtitle && (
                 <p className="mt-0.5 text-sm text-muted-foreground">{currentListing.subtitle}</p>
+              )}
+              {isUnavailable && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The publisher hasn't localized this listing. Values below are cloned from the origin storefront for reference.
+                </p>
               )}
             </div>
           </div>
