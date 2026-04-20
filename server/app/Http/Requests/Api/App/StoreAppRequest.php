@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\App;
 
+use App\Enums\Platform;
+use App\Models\App;
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use OpenApi\Attributes as OA;
 
@@ -18,7 +22,7 @@ use OpenApi\Attributes as OA;
 class StoreAppRequest extends FormRequest
 {
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|string>>
+     * @return array<string, array<int, Rule|string>>
      */
     public function rules(): array
     {
@@ -26,5 +30,33 @@ class StoreAppRequest extends FormRequest
             'external_id' => ['required', 'string', 'max:255'],
             'platform' => ['required', 'in:ios,android'],
         ];
+    }
+
+    /**
+     * Ensure the app has been discovered (search, chart, publisher, etc.)
+     * before it can be registered. Direct creation of unknown apps is
+     * blocked to keep the database free of unverified rows.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $platform = $this->input('platform');
+            $externalId = $this->input('external_id');
+
+            if (! $platform || ! $externalId) {
+                return; // primary rules already surfaced the error
+            }
+
+            $exists = App::platform(Platform::fromSlug($platform))
+                ->where('external_id', $externalId)
+                ->exists();
+
+            if (! $exists) {
+                $validator->errors()->add(
+                    'external_id',
+                    'App not found. Search the store first to discover it.',
+                );
+            }
+        });
     }
 }
