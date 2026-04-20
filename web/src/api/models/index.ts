@@ -95,6 +95,7 @@ export * from './storeCompetitorRequest';
 export * from './storeCompetitorRequestRelationship';
 export * from './storeListing';
 export * from './storeListingChange';
+export * from './storeListingScreenshotsItem';
 export * from './syncStatusResource';
 export * from './syncStatusResourceFailedItemsItem';
 export * from './syncStatusResourceProgress';

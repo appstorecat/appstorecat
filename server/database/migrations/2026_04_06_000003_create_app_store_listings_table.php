@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('subtitle')->nullable();
             $table->text('description');
+            $table->text('promotional_text')->nullable();
             $table->text('whats_new')->nullable();
             $table->json('screenshots')->nullable();
             $table->text('icon_url')->nullable();

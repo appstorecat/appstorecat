@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('rating_delta')->nullable();
 
             // Pricing (country-specific on iOS)
-            $table->decimal('price', 10, 2)->default(0);
+            $table->decimal('price', 10, 2)->nullable();
             $table->string('currency', 3)->nullable();
 
             // Store metadata

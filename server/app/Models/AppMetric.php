@@ -17,7 +17,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'rating_count', type: 'integer', example: 31),
         new OA\Property(property: 'rating_breakdown', type: 'object', nullable: true),
         new OA\Property(property: 'rating_delta', type: 'integer', nullable: true),
-        new OA\Property(property: 'price', type: 'number', format: 'float', example: 0),
+        new OA\Property(property: 'price', type: 'number', format: 'float', nullable: true, example: 0),
         new OA\Property(property: 'currency', type: 'string', nullable: true, example: 'USD'),
         new OA\Property(property: 'installs_range', type: 'string', nullable: true, example: '1,000,000+'),
         new OA\Property(property: 'file_size_bytes', type: 'integer', nullable: true, example: 73822208),

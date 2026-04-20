@@ -17,7 +17,8 @@ export interface AppMetric {
   rating_breakdown?: AppMetricRatingBreakdown;
   /** @nullable */
   rating_delta?: number | null;
-  price?: number;
+  /** @nullable */
+  price?: number | null;
   /** @nullable */
   currency?: string | null;
   /** @nullable */

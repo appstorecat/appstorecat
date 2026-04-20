@@ -59,8 +59,8 @@ def fetch_identity(app_id: str, country: str = "us") -> AppIdentity:
     """Fetch app identity/details from Google Play."""
     info = scraper.app_get_fields(app_id, [
         "appId", "title", "developer", "developerId", "developerWebsite",
-        "genre", "genreId", "contentRating", "released", "lastUpdated", "free",
-        "appUrl", "version", "price", "currency",
+        "genre", "genreId", "released", "lastUpdated", "free",
+        "version", "price", "currency",
     ], country=country)
 
     version = info.get("version")
@@ -75,13 +75,11 @@ def fetch_identity(app_id: str, country: str = "us") -> AppIdentity:
         publisher_url=info.get("developerWebsite"),
         category=info.get("genre", ""),
         category_id=info.get("genreId"),
-        content_rating=info.get("contentRating"),
         supported_locales=None,
         original_release_date=info.get("released"),
-        price_model="free" if info.get("free", True) else "paid",
+        is_free=info.get("free", True),
         price=info.get("price", 0) or 0,
         currency=info.get("currency"),
-        store_url=info.get("appUrl"),
         version=version,
         current_version_release_date=info.get("lastUpdated") or date.today().isoformat(),
     )
@@ -104,15 +102,15 @@ def fetch_listing(app_id: str, locale: str = "en", country: str = "us") -> Store
     if isinstance(whats_new, list):
         whats_new = "\n".join(whats_new)
     if not whats_new:
-        whats_new = "Bug fixes and performance improvements."
+        whats_new = None
 
     return StoreListing(
         platform="android",
         locale=locale,
         title=info.get("title", ""),
         subtitle=info.get("summary"),
-        short_description=info.get("summary"),
         description=description,
+        promotional_text=None,
         whats_new=whats_new,
         icon_url=info.get("icon"),
         screenshots=screenshots,

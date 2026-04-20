@@ -25,6 +25,7 @@ class ListingResource extends BaseResource
             'title' => $this->resource->title,
             'subtitle' => $this->resource->subtitle,
             'description' => $this->resource->description,
+            'promotional_text' => $this->resource->promotional_text,
             'whats_new' => $this->resource->whats_new,
             'icon_url' => $this->resource->icon_url,
             'screenshots' => $this->resource->screenshotUrls(),

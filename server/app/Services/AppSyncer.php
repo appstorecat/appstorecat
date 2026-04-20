@@ -231,8 +231,7 @@ class AppSyncer
             ($data['title'] ?? '').
             ($data['subtitle'] ?? '').
             ($data['description'] ?? '').
-            ($data['whats_new'] ?? '').
-            json_encode($data['screenshots'] ?? [])
+            ($data['whats_new'] ?? '')
         );
         $locale = $data['locale'];
 
@@ -255,6 +254,7 @@ class AppSyncer
                 'title' => $data['title'] ?? '',
                 'subtitle' => $data['subtitle'] ?? null,
                 'description' => $data['description'] ?? '',
+                'promotional_text' => $data['promotional_text'] ?? null,
                 'whats_new' => $data['whats_new'] ?? null,
                 'icon_url' => $data['icon_url'] ?? null,
                 'screenshots' => $data['screenshots'] ?? [],
@@ -360,7 +360,7 @@ class AppSyncer
                     ? ($data['rating_count'] ?? 0) - $previousMetric->rating_count
                     : null,
                 'rating_breakdown' => ! empty($data['rating_breakdown']) ? $data['rating_breakdown'] : null,
-                'price' => $data['price'] ?? 0,
+                'price' => $data['price'] ?? null,
                 'currency' => $data['currency'] ?? null,
                 'installs_range' => $data['installs_range'] ?? null,
                 'file_size_bytes' => $data['file_size_bytes'] ?? null,

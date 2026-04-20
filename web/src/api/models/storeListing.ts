@@ -5,6 +5,7 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { StoreListingScreenshotsItem } from './storeListingScreenshotsItem';
 
 export interface StoreListing {
   id: number;
@@ -16,11 +17,13 @@ export interface StoreListing {
   subtitle?: string | null;
   description?: string;
   /** @nullable */
+  promotional_text?: string | null;
+  /** @nullable */
   whats_new?: string | null;
   /** @nullable */
   icon_url?: string | null;
   /** @nullable */
-  screenshots?: string[] | null;
+  screenshots?: StoreListingScreenshotsItem[] | null;
   price?: number;
   /** @nullable */
   currency?: string | null;

@@ -17,13 +17,11 @@ class AppIdentity(BaseModel):
     publisher_url: str | None = None
     category: str = ""
     category_id: str | None = None
-    content_rating: str | None = None
     supported_locales: list[str] | None = None
     original_release_date: str | None = None
-    price_model: str = "free"
+    is_free: bool = True
     price: float = 0
     currency: str | None = None
-    store_url: str | None = None
     version: str | None = None
     current_version_release_date: str | None = None
 
@@ -33,8 +31,8 @@ class StoreListing(BaseModel):
     locale: str
     title: str
     subtitle: str | None = None
-    short_description: str | None = None
     description: str = ""
+    promotional_text: str | None = None
     whats_new: str | None = None
     icon_url: str | None = None
     screenshots: list[Screenshot] = []
@@ -49,7 +47,7 @@ class AppMetrics(BaseModel):
     rating_count: int = 0
     rating_breakdown: dict[str, int] | None = None
     installs_range: str | None = None
-    file_size_bytes: int = 0
+    file_size_bytes: int | None = None
 
 
 class DeveloperApp(BaseModel):

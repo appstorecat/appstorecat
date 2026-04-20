@@ -23,17 +23,15 @@ export const AppIdentitySchema = {
     publisher_url: { type: "string" as const, nullable: true },
     category: { type: "string" as const },
     category_id: { type: "string" as const, nullable: true },
-    content_rating: { type: "string" as const, nullable: true },
     supported_locales: {
       type: "array" as const,
       items: { type: "string" as const },
       nullable: true,
     },
     original_release_date: { type: "string" as const, nullable: true },
-    price_model: { type: "string" as const },
+    is_free: { type: "boolean" as const },
     price: { type: "number" as const, nullable: true },
     currency: { type: "string" as const, nullable: true },
-    store_url: { type: "string" as const, nullable: true },
     version: { type: "string" as const, nullable: true },
     current_version_release_date: { type: "string" as const, nullable: true },
   },
@@ -47,7 +45,6 @@ export const StoreListingSchema = {
     locale: { type: "string" as const },
     title: { type: "string" as const },
     subtitle: { type: "string" as const, nullable: true },
-    short_description: { type: "string" as const, nullable: true },
     description: { type: "string" as const },
     promotional_text: { type: "string" as const, nullable: true },
     whats_new: { type: "string" as const, nullable: true },
@@ -190,13 +187,11 @@ export interface AppIdentity {
   publisher_url: string | null;
   category: string;
   category_id: string | null;
-  content_rating: string | null;
   supported_locales: string[] | null;
   original_release_date: string | null;
-  price_model: string;
+  is_free: boolean;
   price: number | null;
   currency: string | null;
-  store_url: string | null;
   version: string | null;
   current_version_release_date: string | null;
 }
@@ -206,7 +201,6 @@ export interface StoreListing {
   locale: string;
   title: string;
   subtitle: string | null;
-  short_description: string | null;
   description: string;
   promotional_text: string | null;
   whats_new: string | null;

@@ -51,7 +51,7 @@ use OpenApi\Attributes as OA;
     ],
 )]
 #[Fillable([
-    'platform', 'external_id', 'bundle_id',
+    'platform', 'external_id',
     'publisher_id', 'category_id',
     'display_name', 'icon_url', 'origin_country_code',
     'supported_locales', 'original_release_date', 'is_free',

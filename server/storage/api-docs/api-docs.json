@@ -3110,7 +3110,8 @@
                     "price": {
                         "type": "number",
                         "format": "float",
-                        "example": 0
+                        "example": 0,
+                        "nullable": true
                     },
                     "currency": {
                         "type": "string",
@@ -3279,6 +3280,10 @@
                     "description": {
                         "type": "string"
                     },
+                    "promotional_text": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "whats_new": {
                         "type": "string",
                         "nullable": true
@@ -3290,7 +3295,19 @@
                     "screenshots": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "device_type": {
+                                    "type": "string",
+                                    "example": "iphone"
+                                },
+                                "order": {
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
                         },
                         "nullable": true
                     },

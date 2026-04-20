@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->unsignedTinyInteger('platform');
             $table->string('external_id');
-            $table->string('bundle_id', 191)->nullable();
             $table->foreignId('publisher_id')->nullable()->constrained('publishers')->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained('store_categories')->nullOnDelete();
             $table->string('display_name')->nullable();
@@ -28,7 +27,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['platform', 'external_id']);
-            $table->index(['platform', 'bundle_id']);
             $table->index('last_synced_at');
             $table->index('discovered_from');
             $table->index(['platform', 'is_available', 'last_synced_at']);

@@ -142,6 +142,7 @@ class ITunesLookupConnector implements ConnectorInterface
             'title' => $data['title'] ?? '',
             'subtitle' => $data['subtitle'] ?? null,
             'description' => $description,
+            'promotional_text' => $data['promotional_text'] ?? null,
             'whats_new' => $data['whats_new'] ?? null,
             'icon_url' => $data['icon_url'] ?? null,
             'screenshots' => $screenshots,
