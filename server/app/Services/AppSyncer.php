@@ -16,6 +16,7 @@ use App\Models\Review;
 use App\Models\StoreListing;
 use App\Models\StoreListingChange;
 use App\Services\StoreCategoryResolver;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class AppSyncer
@@ -134,6 +135,12 @@ class AppSyncer
 
     public function syncListing(App $app, ?AppVersion $version = null): void
     {
+        if ($app->isIos()) {
+            $this->syncListingMultiLocale($app, $version);
+
+            return;
+        }
+
         $connector = $this->connector($app);
         $country = 'us';
         $language = $this->defaultLanguageForCountry($app, $country);
@@ -157,6 +164,68 @@ class AppSyncer
         }
     }
 
+    /**
+     * iOS multi-locale listing sync. For each unique language in active iOS
+     * countries, pick the most native country and fetch the localized listing.
+     */
+    private function syncListingMultiLocale(App $app, ?AppVersion $version): void
+    {
+        $connector = $this->connector($app);
+
+        foreach ($this->iosLocaleMap() as $language => $country) {
+            try {
+                $result = $connector->fetchListings($app, $country, $language);
+                if (! $result->success) {
+                    continue;
+                }
+                $this->saveListing($app, $result->data, $version);
+            } catch (\Throwable $e) {
+                Log::warning('Sync listing failed', [
+                    'app' => $app->external_id,
+                    'country' => $country,
+                    'language' => $language,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Build a [language => preferred_country] map from the countries table.
+     * Preferred country = the one where this language is the *primary* (first)
+     * entry in ios_languages; falls back to the highest-priority country that
+     * supports the language.
+     *
+     * @return array<string, string>
+     */
+    private function iosLocaleMap(): array
+    {
+        return Cache::remember('ios_locale_map', 3600, function () {
+            $countries = Country::where('is_active_ios', true)
+                ->whereNotNull('ios_languages')
+                ->orderByDesc('priority')
+                ->get(['code', 'ios_languages']);
+
+            $map = [];
+            foreach ($countries as $c) {
+                $langs = $c->ios_languages ?? [];
+                $primary = $langs[0] ?? null;
+                if ($primary && ! isset($map[$primary])) {
+                    $map[$primary] = $c->code;
+                }
+            }
+            foreach ($countries as $c) {
+                foreach (($c->ios_languages ?? []) as $lang) {
+                    if (! isset($map[$lang])) {
+                        $map[$lang] = $c->code;
+                    }
+                }
+            }
+
+            return $map;
+        });
+    }
+
     public function saveListing(App $app, array $data, ?AppVersion $version): StoreListing
     {
         $checksum = md5(($data['title'] ?? '').($data['description'] ?? ''));
@@ -174,10 +243,10 @@ class AppSyncer
         $listing = StoreListing::updateOrCreate(
             [
                 'app_id' => $app->id,
+                'version_id' => $version?->id,
                 'language' => $language,
             ],
             [
-                'version_id' => $version?->id,
                 'title' => $data['title'],
                 'subtitle' => $data['subtitle'] ?? null,
                 'description' => $data['description'],
@@ -341,15 +410,19 @@ class AppSyncer
                 ->where('language', $language)
                 ->first();
 
-            StoreListingChange::create([
-                'app_id' => $app->id,
-                'version_id' => $currentVersion->id,
-                'language' => $language,
-                'field_changed' => 'language_added',
-                'old_value' => null,
-                'new_value' => $listing?->title,
-                'detected_at' => now(),
-            ]);
+            StoreListingChange::firstOrCreate(
+                [
+                    'app_id' => $app->id,
+                    'version_id' => $currentVersion->id,
+                    'language' => $language,
+                    'field_changed' => 'language_added',
+                ],
+                [
+                    'old_value' => null,
+                    'new_value' => $listing?->title,
+                    'detected_at' => now(),
+                ],
+            );
         }
 
         foreach ($removed as $language) {
@@ -358,15 +431,19 @@ class AppSyncer
                 ->where('language', $language)
                 ->first();
 
-            StoreListingChange::create([
-                'app_id' => $app->id,
-                'version_id' => $currentVersion->id,
-                'language' => $language,
-                'field_changed' => 'language_removed',
-                'old_value' => $listing?->title,
-                'new_value' => null,
-                'detected_at' => now(),
-            ]);
+            StoreListingChange::firstOrCreate(
+                [
+                    'app_id' => $app->id,
+                    'version_id' => $currentVersion->id,
+                    'language' => $language,
+                    'field_changed' => 'language_removed',
+                ],
+                [
+                    'old_value' => $listing?->title,
+                    'new_value' => null,
+                    'detected_at' => now(),
+                ],
+            );
         }
     }
 

@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('checksum');
             $table->timestamps();
 
-            $table->unique(['app_id', 'language']);
+            $table->unique(['app_id', 'version_id', 'language'], 'app_store_listings_app_version_lang_unique');
             $table->index('version_id');
         });
     }
