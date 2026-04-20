@@ -83,36 +83,6 @@ def test_get_app_metrics(mock_scraper):
 
 
 @patch("src.scraper.scraper")
-def test_get_app_reviews(mock_scraper):
-    mock_scraper.reviews_get_fields.return_value = [
-        {
-            "reviewId": "r1",
-            "userName": "John",
-            "content": "Great app!",
-            "score": 5,
-            "at": "2024-06-01T10:00:00",
-            "reviewCreatedVersion": "1.0.0",
-        },
-        {
-            "reviewId": "r2",
-            "userName": "Jane",
-            "content": "Needs work",
-            "score": 2,
-            "at": "2024-06-02T12:00:00",
-            "reviewCreatedVersion": "1.0.0",
-        },
-    ]
-
-    response = client.get("/apps/com.example.app/reviews?country=us&limit=10")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data["reviews"]) == 2
-    assert data["reviews"][0]["external_id"] == "r1"
-    assert data["reviews"][0]["rating"] == 5
-    assert data["reviews"][1]["author"] == "Jane"
-
-
-@patch("src.scraper.scraper")
 def test_get_developer_apps(mock_scraper):
     mock_scraper.developer_get_fields.return_value = [
         {

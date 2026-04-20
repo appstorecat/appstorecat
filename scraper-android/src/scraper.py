@@ -10,13 +10,11 @@ from gplay_scraper import GPlayScraper
 from .schemas import (
     AppIdentity,
     AppMetrics,
-    AppReview,
     ChartEntry,
     ChartResponse,
     DeveloperApp,
     DeveloperAppsResponse,
     LocalizedListingsResponse,
-    ReviewsResponse,
     Screenshot,
     SearchResponse,
     SearchResult,
@@ -31,8 +29,6 @@ ALL_APP_FIELDS = [
     "developer", "developerId", "developerEmail", "developerWebsite",
     "permissions", "dataSafety", "appUrl", "whatsNew",
 ]
-
-REVIEW_FIELDS = ["reviewId", "userName", "content", "score", "at", "reviewCreatedVersion"]
 
 SEARCH_FIELDS = ["appId", "title", "developer", "developerId", "icon", "score", "free", "price", "currency", "version"]
 
@@ -167,34 +163,6 @@ def fetch_metrics(app_id: str, country: str = "us") -> AppMetrics:
         rating_breakdown=rating_breakdown,
         installs_range=installs_range,
     )
-
-
-def fetch_reviews(
-    app_id: str, country: str = "us", count: int = 200
-) -> ReviewsResponse:
-    """Fetch app reviews."""
-    review_list = scraper.reviews_get_fields(app_id, REVIEW_FIELDS)
-
-    mapped = []
-    for r in (review_list or [])[:count]:
-        review_date = r.get("at", "")
-        if review_date and "T" in str(review_date):
-            review_date = str(review_date)[:10]
-
-        mapped.append(
-            AppReview(
-                external_id=r.get("reviewId", ""),
-                author=r.get("userName"),
-                title=None,
-                body=r.get("content"),
-                rating=r.get("score", 0),
-                review_date=review_date,
-                app_version=r.get("reviewCreatedVersion"),
-                country_code=country.upper(),
-            )
-        )
-
-    return ReviewsResponse(reviews=mapped)
 
 
 def _scrape_developer_page(developer_id: str) -> list[str]:

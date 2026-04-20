@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use OpenApi\Attributes as OA;
 use App\Models\Concerns\HasPlatform;
 
@@ -124,11 +125,11 @@ class App extends Model
     }
 
     /**
-     * @return HasMany<Review, $this>
+     * @return HasOne<SyncStatus, $this>
      */
-    public function reviews(): HasMany
+    public function syncStatus(): HasOne
     {
-        return $this->hasMany(Review::class);
+        return $this->hasOne(SyncStatus::class);
     }
 
     /**

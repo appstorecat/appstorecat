@@ -76,33 +76,6 @@ export const AppMetricsSchema = {
   },
 };
 
-export const AppReviewSchema = {
-  type: "object" as const,
-  properties: {
-    external_id: { type: "string" as const },
-    author: { type: "string" as const, nullable: true },
-    title: { type: "string" as const, nullable: true },
-    body: { type: "string" as const, nullable: true },
-    rating: { type: "integer" as const },
-    review_date: { type: "string" as const, nullable: true },
-    app_version: { type: "string" as const, nullable: true },
-    country_code: { type: "string" as const },
-  },
-  required: ["external_id"],
-};
-
-export const ReviewsResponseSchema = {
-  type: "object" as const,
-  properties: {
-    reviews: { type: "array" as const, items: AppReviewSchema },
-    rating_breakdown: {
-      type: "object" as const,
-      nullable: true,
-      additionalProperties: { type: "integer" as const },
-    },
-  },
-};
-
 export const DeveloperAppSchema = {
   type: "object" as const,
   properties: {
@@ -251,17 +224,6 @@ export interface AppMetrics {
   rating_breakdown: Record<string, number> | null;
   installs_range: string | null;
   file_size_bytes: number | null;
-}
-
-export interface AppReview {
-  external_id: string;
-  author: string | null;
-  title: string | null;
-  body: string | null;
-  rating: number;
-  review_date: string | null;
-  app_version: string | null;
-  country_code: string;
 }
 
 export interface DeveloperApp {

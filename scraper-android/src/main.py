@@ -13,7 +13,6 @@ from .schemas import (
     ErrorResponse,
     HealthResponse,
     LocalizedListingsResponse,
-    ReviewsResponse,
     SearchResponse,
     StoreListing,
 )
@@ -150,24 +149,6 @@ def get_app_localized_listings(
 def get_app_metrics(app_id: str, country: str = Query("us", min_length=2, max_length=2, description="Country code")):
     try:
         return scraper.fetch_metrics(app_id, country=country)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get(
-    "/apps/{app_id:path}/reviews",
-    response_model=ReviewsResponse,
-    responses={500: {"model": ErrorResponse}},
-    tags=["apps"],
-    summary="Get app reviews",
-)
-def get_app_reviews(
-    app_id: str,
-    country: str = Query("us", description="Country code"),
-    limit: int = Query(200, ge=1, le=500, description="Max reviews"),
-):
-    try:
-        return scraper.fetch_reviews(app_id, country, limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

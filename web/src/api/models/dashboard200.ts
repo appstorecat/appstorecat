@@ -6,13 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { Dashboard200RecentChangesItem } from './dashboard200RecentChangesItem';
-import type { Dashboard200RecentReviewsItem } from './dashboard200RecentReviewsItem';
 
 export type Dashboard200 = {
   total_apps?: number;
-  total_reviews?: number;
   total_versions?: number;
   total_changes?: number;
-  recent_reviews?: Dashboard200RecentReviewsItem[];
   recent_changes?: Dashboard200RecentChangesItem[];
 };

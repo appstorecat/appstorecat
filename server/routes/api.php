@@ -49,9 +49,9 @@ Route::prefix('v1')->group(function () {
             Route::delete('competitors/{competitor}', [V1\App\CompetitorController::class, 'destroy']);
             Route::get('keywords', [V1\App\KeywordController::class, 'index']);
             Route::get('keywords/compare', [V1\App\KeywordController::class, 'compare']);
-            Route::get('reviews', [V1\App\ReviewController::class, 'index']);
-            Route::get('reviews/summary', [V1\App\ReviewController::class, 'summary']);
             Route::get('rankings', [V1\App\AppRankingController::class, 'index']);
+            Route::post('sync', [V1\App\AppController::class, 'sync']);
+            Route::get('sync-status', [V1\App\AppController::class, 'syncStatus']);
         });
 
         // Competitors (all)

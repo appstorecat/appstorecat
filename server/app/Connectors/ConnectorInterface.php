@@ -14,8 +14,6 @@ interface ConnectorInterface
 
     public function fetchMetrics(App $app, string $country = 'us'): ConnectorResult;
 
-    public function fetchReviews(App $app, string $country = 'us', int $page = 1): ConnectorResult;
-
     public function fetchDeveloperApps(string $developerExternalId): ConnectorResult;
 
     public function fetchSearch(string $term, int $limit = 10, string $country = 'us'): array;

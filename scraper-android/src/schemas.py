@@ -52,22 +52,6 @@ class AppMetrics(BaseModel):
     file_size_bytes: int = 0
 
 
-class AppReview(BaseModel):
-    external_id: str
-    author: str | None = None
-    title: str | None = None
-    body: str | None = None
-    rating: int = 0
-    review_date: str | None = None
-    app_version: str | None = None
-    country_code: str = "US"
-
-
-class ReviewsResponse(BaseModel):
-    reviews: list[AppReview] = []
-    rating_breakdown: dict[str, int] | None = None
-
-
 class DeveloperApp(BaseModel):
     external_id: str
     name: str

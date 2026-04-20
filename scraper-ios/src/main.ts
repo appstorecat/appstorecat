@@ -14,7 +14,6 @@ import {
   ErrorResponseSchema,
   HealthResponseSchema,
   LocalizedListingsResponseSchema,
-  ReviewsResponseSchema,
   SearchResponseSchema,
   StoreListingSchema,
 } from "./schemas.js";
@@ -287,45 +286,6 @@ app.get(
     const { country, lang } = request.query as { country?: string; lang?: string };
     try {
       return await scraper.fetchMetrics(appId, country || "us", lang || undefined);
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
-    }
-  }
-);
-
-// Reviews
-app.get(
-  "/apps/:appId/reviews",
-  {
-    schema: {
-      tags: ["apps"],
-      summary: "Get app reviews",
-      params: {
-        type: "object",
-        properties: { appId: { type: "string" } },
-        required: ["appId"],
-      },
-      querystring: {
-        type: "object",
-        properties: {
-          country: { type: "string", default: "us" },
-          page: { type: "integer", minimum: 1, default: 1 },
-        },
-      },
-      response: {
-        200: ReviewsResponseSchema,
-        500: ErrorResponseSchema,
-      },
-    },
-  },
-  async (request, reply) => {
-    const { appId } = request.params as { appId: string };
-    const { country, page } = request.query as {
-      country?: string;
-      page?: number;
-    };
-    try {
-      return await scraper.fetchReviews(appId, country || "us", page || 1);
     } catch (e: any) {
       return reply.status(500).send({ error: e.message });
     }

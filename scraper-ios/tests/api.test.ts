@@ -8,10 +8,8 @@ import { describe, it, expect, vi, beforeAll } from "vitest";
 vi.mock("app-store-scraper", () => ({
   default: {
     app: vi.fn(),
-    reviews: vi.fn(),
     search: vi.fn(),
     developer: vi.fn(),
-    sort: { RECENT: 1 },
   },
 }));
 
@@ -51,15 +49,6 @@ const buildApp = async (): Promise<FastifyInstance> => {
   app.get("/apps/:appId/metrics", async (request) => {
     const { appId } = request.params as { appId: string };
     return scraper.fetchMetrics(appId);
-  });
-
-  app.get("/apps/:appId/reviews", async (request) => {
-    const { appId } = request.params as { appId: string };
-    const { country, page } = request.query as {
-      country?: string;
-      page?: number;
-    };
-    return scraper.fetchReviews(appId, country || "us", page || 1);
   });
 
   app.get("/developers/:developerId/apps", async (request) => {
@@ -161,32 +150,6 @@ describe("App Store API", () => {
     expect(body.rating_count).toBe(50000);
     expect(body.rating_breakdown["5"]).toBe(35000);
     expect(body.file_size_bytes).toBe(104857600);
-  });
-
-  it("GET /apps/:appId/reviews returns reviews", async () => {
-    const mockStore = store as any;
-    mockStore.reviews.mockResolvedValueOnce([
-      {
-        id: "r1",
-        userName: "John",
-        title: "Great!",
-        text: "Love this app",
-        score: 5,
-        date: "2024-06-01",
-        version: "2.0.0",
-      },
-    ]);
-
-    const response = await app.inject({
-      method: "GET",
-      url: "/apps/123456/reviews?country=us&page=1",
-    });
-    expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body);
-    expect(body.reviews.length).toBe(1);
-    expect(body.reviews[0].external_id).toBe("r1");
-    expect(body.reviews[0].rating).toBe(5);
-    expect(body.reviews[0].country_code).toBe("US");
   });
 
   it("GET /developers/:developerId/apps returns developer apps", async () => {

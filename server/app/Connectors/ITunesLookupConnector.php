@@ -69,37 +69,6 @@ class ITunesLookupConnector implements ConnectorInterface
         ]);
     }
 
-    public function fetchReviews(App $app, string $country = 'us', int $page = 1): ConnectorResult
-    {
-        try {
-            $data = $this->get("/apps/{$app->external_id}/reviews", [
-                'country' => $country,
-                'page' => $page,
-            ]);
-        } catch (Throwable $e) {
-            return ConnectorResult::failure('App Store review fetch failed: '.$e->getMessage());
-        }
-
-        $mapped = [];
-        foreach ($data['reviews'] ?? [] as $review) {
-            $mapped[] = [
-                'external_id' => $review['external_id'] ?? '',
-                'author' => $review['author'] ?? null,
-                'title' => $review['title'] ?? null,
-                'body' => $review['body'] ?? null,
-                'rating' => $review['rating'] ?? 0,
-                'review_date' => $review['review_date'] ?? null,
-                'app_version' => $review['app_version'] ?? null,
-                'country_code' => $country,
-            ];
-        }
-
-        return ConnectorResult::success([
-            'reviews' => $mapped,
-            'rating_breakdown' => $data['rating_breakdown'] ?? null,
-        ]);
-    }
-
     public function fetchDeveloperApps(string $developerExternalId): ConnectorResult
     {
         try {

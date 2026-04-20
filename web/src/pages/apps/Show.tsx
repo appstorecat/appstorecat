@@ -27,9 +27,11 @@ import ChangesTab from '@/components/tabs/ChangesTab'
 import VersionsTab from '@/components/tabs/VersionsTab'
 import CompetitorsTab from '@/components/tabs/CompetitorsTab'
 import KeywordsTab from '@/components/tabs/KeywordsTab'
-import ReviewsTab from '@/components/tabs/ReviewsTab'
 import RankingsTab from '@/components/tabs/RankingsTab'
 import QueryError from '@/components/QueryError'
+import SyncingOverlay from '@/components/SyncingOverlay'
+import PartialSyncBanner from '@/components/PartialSyncBanner'
+import { useSyncStatus } from '@/hooks/useSyncStatus'
 
 function formatBytes(bytes: number | null): string {
   if (!bytes) return ''
@@ -110,24 +112,8 @@ export default function AppsShow() {
     queryFn: () => axios.get(`/apps/${platform}/${externalId}`).then((r) => r.data),
   })
 
-  // On-the-fly country+language listing fetch
-  const hasLanguageListing = app?.listings?.some((l: { language: string }) =>
-    l.language === effectiveLanguage
-  )
-  const { isFetching: fetchingListing, isError: listingError } = useQuery({
-    queryKey: ['listing', platform, externalId, selectedCountry, effectiveLanguage],
-    queryFn: () =>
-      axios.get(`/apps/${platform}/${externalId}/listing`, {
-        params: { country: selectedCountry, language: effectiveLanguage || undefined },
-      }).then((r) => {
-        queryClient.invalidateQueries({ queryKey: ['apps', platform, externalId] })
-        queryClient.invalidateQueries({ queryKey: ['keywords'] })
-        queryClient.invalidateQueries({ queryKey: ['reviews'] })
-        return r.data
-      }),
-    enabled: !!app && !hasLanguageListing && selectedCountry !== '' && effectiveLanguage !== '',
-    retry: 1,
-  })
+  const { data: syncStatus } = useSyncStatus(platform, externalId, { enabled: !!app })
+  const isSyncing = syncStatus?.status === 'queued' || syncStatus?.status === 'processing'
 
   const { data: competitorAppsForCompare } = useQuery({
     queryKey: ['competitor-apps', platform, externalId],
@@ -298,8 +284,13 @@ export default function AppsShow() {
         </div>
       </div>
 
-      {/* Tabs — only show when app has data */}
-      {(app.listings?.length > 0 || app.versions?.length > 0) && (
+      {/* Sync overlay: blocks tabs while queued/processing */}
+      {isSyncing && syncStatus && (
+        <SyncingOverlay status={syncStatus} />
+      )}
+
+      {/* Tabs — only show when app has data AND no active sync */}
+      {!isSyncing && (app.listings?.length > 0 || app.versions?.length > 0) && (
         <>
           {/* Tab bar */}
           <div className="-mx-4 overflow-x-auto px-4">
@@ -308,7 +299,6 @@ export default function AppsShow() {
                 ['store_listing', 'Store Listing'],
                 ['competitors', 'Competitors'],
                 ['keywords', 'Keyword Density'],
-                ['reviews', 'Ratings & Reviews'],
                 ['rankings', 'Rankings'],
                 ['changes', 'Changes'],
                 ['versions', 'Versions'],
@@ -330,16 +320,12 @@ export default function AppsShow() {
           </div>
 
           <div className="mt-1">
-            {fetchingListing ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                <span className="ml-2 text-sm text-muted-foreground">Loading listing...</span>
+            {syncStatus && syncStatus.failed_items_count > 0 && (
+              <div className="mb-3">
+                <PartialSyncBanner status={syncStatus} />
               </div>
-            ) : (!hasLanguageListing && listingError) ? (
-              <div className="py-12 text-center">
-                <p className="text-sm text-muted-foreground">This app is not available in the selected country's store.</p>
-              </div>
-            ) : (
+            )}
+            {(
               <>
                 {activeTab === 'store_listing' && (
                   <StoreListingTab
@@ -369,15 +355,6 @@ export default function AppsShow() {
                     selectedLanguage={effectiveLanguage}
                     selectedVersion={selectedVersion}
                     allApps={competitorAppsForCompare ?? []}
-                  />
-                )}
-                {activeTab === 'reviews' && (
-                  <ReviewsTab
-                    platform={app.platform}
-                    externalId={app.external_id}
-                    currentRating={app.rating ?? null}
-                    currentRatingCount={app.rating_count ?? null}
-                    selectedCountry={selectedCountry}
                   />
                 )}
                 {activeTab === 'rankings' && (

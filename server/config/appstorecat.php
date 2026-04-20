@@ -47,17 +47,35 @@ return [
             'tracked_app_refresh_hours' => env('SYNC_IOS_TRACKED_REFRESH_HOURS', 24),
             'discovery_app_sync_enabled' => env('SYNC_IOS_DISCOVERY_ENABLED', true),
             'discovery_app_refresh_hours' => env('SYNC_IOS_DISCOVERY_REFRESH_HOURS', 24),
-            'reviews_enabled' => env('SYNC_IOS_REVIEWS_ENABLED', true),
         ],
         'android' => [
             'tracked_app_sync_enabled' => env('SYNC_ANDROID_TRACKED_ENABLED', true),
             'tracked_app_refresh_hours' => env('SYNC_ANDROID_TRACKED_REFRESH_HOURS', 24),
             'discovery_app_sync_enabled' => env('SYNC_ANDROID_DISCOVERY_ENABLED', true),
             'discovery_app_refresh_hours' => env('SYNC_ANDROID_DISCOVERY_REFRESH_HOURS', 24),
-            'reviews_enabled' => env('SYNC_ANDROID_REVIEWS_ENABLED', true),
         ],
         'retry_attempts' => 3,
         'retry_delay' => [30, 60, 120],
+
+        // Per-item retry policy used by AppSyncer + reconciliation.
+        'item_retry' => [
+            'max_attempts' => [
+                'http_500' => 10,
+                'http_429' => 15,
+                'timeout' => 10,
+                'empty_response' => 3,
+                'network_error' => 10,
+            ],
+            // Backoff schedule in seconds, indexed by retry_count (1-based).
+            'backoff_seconds' => [300, 900, 1800, 3600, 7200, 21600, 43200],
+            // Attempts during the initial sync before pushing the item to failed_items.
+            'initial_attempts' => 3,
+        ],
+
+        'reconcile' => [
+            'batch_size' => env('SYNC_RECONCILE_BATCH_SIZE', 50),
+            'cadence_minutes' => env('SYNC_RECONCILE_CADENCE_MINUTES', 15),
+        ],
     ],
 
     /*

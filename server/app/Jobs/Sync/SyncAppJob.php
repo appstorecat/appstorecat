@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs\Sync;
 
 use App\Models\App;
+use App\Models\SyncStatus;
 use App\Services\AppSyncer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -13,7 +14,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
+use Throwable;
 
 class SyncAppJob implements ShouldBeUnique, ShouldQueue
 {
@@ -25,6 +27,8 @@ class SyncAppJob implements ShouldBeUnique, ShouldQueue
     public array $backoff = [30, 60, 120];
 
     public int $uniqueFor = 3600;
+
+    public int $timeout = 600;
 
     public function __construct(
         private readonly int $appId,
@@ -43,24 +47,39 @@ class SyncAppJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $platform = $app->isIos() ? 'appstore' : 'gplay';
-        $jobsPerMin = (int) config("appstorecat.connectors.{$platform}.throttle.sync_jobs", 3);
+        $syncStatus = SyncStatus::firstOrCreate(
+            ['app_id' => $app->id],
+            ['status' => SyncStatus::STATUS_QUEUED],
+        );
 
-        Redis::throttle("sync-job:{$app->platform->slug()}")
-            ->allow($jobsPerMin)
-            ->every(60)
-            ->block(300)
-            ->then(function () use ($syncer, $app) {
-                $start = microtime(true);
-                $syncer->syncAll($app);
-                $totalMs = round((microtime(true) - $start) * 1000);
+        // Duplicate guard — another worker already processing.
+        if ($syncStatus->status === SyncStatus::STATUS_PROCESSING && $syncStatus->job_id !== null) {
+            return;
+        }
 
-                Log::info('App sync completed', [
-                    'app_id' => $app->id,
-                    'external_id' => $app->external_id,
-                    'platform' => $app->platform->slug(),
-                    'total_ms' => $totalMs,
-                ]);
-            });
+        $syncStatus->forceFill([
+            'job_id' => $this->job?->getJobId() ?? (string) Str::uuid(),
+        ])->save();
+
+        $start = microtime(true);
+        try {
+            $syncer->syncAll($app, $syncStatus);
+        } catch (Throwable $e) {
+            $syncStatus->forceFill([
+                'status' => SyncStatus::STATUS_FAILED,
+                'error_message' => $e->getMessage(),
+                'completed_at' => now(),
+            ])->save();
+            throw $e;
+        }
+        $totalMs = round((microtime(true) - $start) * 1000);
+
+        Log::info('App sync completed', [
+            'app_id' => $app->id,
+            'external_id' => $app->external_id,
+            'platform' => $app->platform->slug(),
+            'total_ms' => $totalMs,
+            'failed_items_count' => count($syncStatus->fresh()->failed_items ?? []),
+        ]);
     }
 }

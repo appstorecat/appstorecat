@@ -7,7 +7,6 @@ import store from "app-store-scraper";
 import type {
   AppIdentity,
   AppMetrics,
-  AppReview,
   ChartEntry,
   DeveloperApp,
   Screenshot,
@@ -253,35 +252,6 @@ export async function fetchMetrics(appId: string, country: string = "us", lang?:
     installs_range: null,
     file_size_bytes: info.size ? Number(info.size) : null,
   };
-}
-
-export async function fetchReviews(
-  appId: string,
-  country: string = "us",
-  page: number = 1
-): Promise<{
-  reviews: AppReview[];
-  rating_breakdown: Record<string, number> | null;
-}> {
-  const reviewData = await store.reviews({
-    id: Number(appId),
-    country,
-    page,
-    sort: store.sort.RECENT,
-  });
-
-  const reviews: AppReview[] = reviewData.map((r: any) => ({
-    external_id: String(r.id),
-    author: r.userName || null,
-    title: r.title || null,
-    body: r.text || null,
-    rating: r.score || 0,
-    review_date: r.date ? new Date(r.date).toISOString().slice(0, 10) : null,
-    app_version: r.version || null,
-    country_code: country.toUpperCase(),
-  }));
-
-  return { reviews, rating_breakdown: null };
 }
 
 export async function fetchDeveloperApps(

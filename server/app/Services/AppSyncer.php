@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Connectors\ConnectorInterface;
+use App\Connectors\ConnectorResult;
 use App\Connectors\GooglePlayConnector;
 use App\Connectors\ITunesLookupConnector;
 use App\Models\App;
@@ -12,12 +13,12 @@ use App\Models\AppMetric;
 use App\Models\AppVersion;
 use App\Models\Country;
 use App\Models\Publisher;
-use App\Models\Review;
 use App\Models\StoreListing;
 use App\Models\StoreListingChange;
-use App\Services\StoreCategoryResolver;
+use App\Models\SyncStatus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class AppSyncer
 {
@@ -28,92 +29,128 @@ class AppSyncer
     ) {}
 
     /**
-     * Run all sync steps. Called by SyncAppJob.
+     * Run the full sync pipeline. Called by SyncAppJob.
+     *
+     * The pipeline is broken into phases so each phase can update sync_status
+     * and accumulate failed_items without aborting the whole job on a single
+     * locale/country error.
      */
-    public function syncAll(App $app): void
+    public function syncAll(App $app, ?SyncStatus $syncStatus = null): void
     {
-        $identityData = $this->syncIdentity($app);
-        $version = $this->saveVersion($app, $identityData);
-        $this->syncListing($app, $version);
-        $this->detectLocaleChanges($app, $version);
-        $this->syncMetrics($app, $version);
-        $platform = $app->platform->slug();
-        if (config("appstorecat.sync.{$platform}.reviews_enabled")) {
-            $this->syncReviews($app);
-        }
+        $syncStatus = $syncStatus ?? $this->ensureSyncStatus($app);
+        $syncStatus->forceFill([
+            'status' => SyncStatus::STATUS_PROCESSING,
+            'current_step' => SyncStatus::STEP_IDENTITY,
+            'progress_done' => 0,
+            'progress_total' => 0,
+            'failed_items' => [],
+            'error_message' => null,
+            'started_at' => $syncStatus->started_at ?? now(),
+            'completed_at' => null,
+        ])->save();
 
+        // Phase 1 — Identity (critical)
+        $identityData = $this->syncIdentity($app, $syncStatus);
+        $version = $this->saveVersion($app, $identityData);
+
+        // Phase 2 — Listings (multi-locale on iOS, single on Android fallback-to-locale loop)
+        $syncStatus->update(['current_step' => SyncStatus::STEP_LISTINGS]);
+        $this->syncListingsPhase($app, $version, $syncStatus);
+
+        // Phase 3 — Metrics (multi-country)
+        $syncStatus->update(['current_step' => SyncStatus::STEP_METRICS]);
+        $this->syncMetricsPhase($app, $version, $syncStatus);
+
+        // Phase 4 — Finalize (DB only)
+        $syncStatus->update(['current_step' => SyncStatus::STEP_FINALIZE]);
+        $this->detectLocaleChanges($app, $version);
         if ($version) {
             $this->updateVersionDetails($app, $version);
         }
 
         $app->update(['last_synced_at' => now()]);
+
+        $syncStatus->forceFill([
+            'status' => SyncStatus::STATUS_COMPLETED,
+            'current_step' => null,
+            'completed_at' => now(),
+        ])->save();
     }
 
-    // ─── Identity ────────────────────────────────────────────────
+    private function ensureSyncStatus(App $app): SyncStatus
+    {
+        return SyncStatus::firstOrCreate(
+            ['app_id' => $app->id],
+            ['status' => SyncStatus::STATUS_PROCESSING],
+        );
+    }
 
-    public function syncIdentity(App $app): array
+    // ─── Phase 1: Identity ───────────────────────────────────────
+
+    public function syncIdentity(App $app, ?SyncStatus $syncStatus = null): array
     {
         $connector = $this->connector($app);
+        $attempts = (int) config('appstorecat.sync.item_retry.initial_attempts', 3);
 
-        try {
-            $result = $connector->fetchIdentity($app, 'us');
+        $result = $this->attempt($attempts, fn () => $connector->fetchIdentity($app, 'us'));
 
-            if (! $result->success && $app->origin_country !== 'us') {
-                $result = $connector->fetchIdentity($app, $app->origin_country);
+        if (! $result->success && $app->origin_country !== 'us') {
+            $result = $this->attempt($attempts, fn () => $connector->fetchIdentity($app, $app->origin_country));
+        }
+
+        if (! $result->success) {
+            $isNotFound = str_contains(strtolower($result->error ?? ''), '404')
+                || str_contains(strtolower($result->error ?? ''), 'not found');
+
+            if ($isNotFound) {
+                $app->update(['is_available' => false]);
             }
 
-            if (! $result->success) {
-                $isNotFound = str_contains(strtolower($result->error ?? ''), '404')
-                    || str_contains(strtolower($result->error ?? ''), 'not found');
-
-                if ($isNotFound) {
-                    $app->update(['is_available' => false]);
-                }
-
-                return [];
+            if ($syncStatus) {
+                $syncStatus->update([
+                    'status' => SyncStatus::STATUS_FAILED,
+                    'error_message' => 'Identity fetch failed: '.($result->error ?? 'unknown'),
+                    'completed_at' => now(),
+                ]);
             }
-
-            if (! $app->is_available) {
-                $app->update(['is_available' => true]);
-            }
-
-            $data = $result->data;
-            $platform = $app->platform->slug();
-
-            $appData = collect($data)->only([
-                'supported_locales', 'original_release_date', 'is_free',
-                'content_rating', 'store_url', 'price_model',
-            ])->toArray();
-
-            $appData['display_name'] = $data['name'] ?? $app->display_name;
-            $appData['display_icon'] = $data['icon_url'] ?? $app->display_icon;
-
-            if (! empty($data['publisher_name']) && ! empty($data['publisher_external_id'])) {
-                $publisher = Publisher::firstOrCreate(
-                    ['platform' => Publisher::normalizePlatform($platform), 'external_id' => $data['publisher_external_id']],
-                    ['name' => $data['publisher_name'], 'url' => $data['publisher_url'] ?? null],
-                );
-                $appData['publisher_id'] = $publisher->id;
-            }
-
-            $appData['category_id'] = $this->categoryResolver->resolveId(
-                $platform,
-                $data['category_external_id'] ?? null,
-                $data['category_primary'] ?? null,
-                ['source' => 'AppSyncer', 'external_id' => $app->external_id],
-            );
-
-            $app->update($appData);
-
-            return $data;
-        } catch (\Throwable $e) {
-            Log::warning('Sync identity failed', ['app' => $app->external_id, 'error' => $e->getMessage()]);
 
             return [];
         }
-    }
 
-    // ─── Version ─────────────────────────────────────────────────
+        if (! $app->is_available) {
+            $app->update(['is_available' => true]);
+        }
+
+        $data = $result->data;
+        $platform = $app->platform->slug();
+
+        $appData = collect($data)->only([
+            'supported_locales', 'original_release_date', 'is_free',
+            'content_rating', 'store_url', 'price_model',
+        ])->toArray();
+
+        $appData['display_name'] = $data['name'] ?? $app->display_name;
+        $appData['display_icon'] = $data['icon_url'] ?? $app->display_icon;
+
+        if (! empty($data['publisher_name']) && ! empty($data['publisher_external_id'])) {
+            $publisher = Publisher::firstOrCreate(
+                ['platform' => Publisher::normalizePlatform($platform), 'external_id' => $data['publisher_external_id']],
+                ['name' => $data['publisher_name'], 'url' => $data['publisher_url'] ?? null],
+            );
+            $appData['publisher_id'] = $publisher->id;
+        }
+
+        $appData['category_id'] = $this->categoryResolver->resolveId(
+            $platform,
+            $data['category_external_id'] ?? null,
+            $data['category_primary'] ?? null,
+            ['source' => 'AppSyncer', 'external_id' => $app->external_id],
+        );
+
+        $app->update($appData);
+
+        return $data;
+    }
 
     public function saveVersion(App $app, array $identityData): ?AppVersion
     {
@@ -131,104 +168,71 @@ class AppSyncer
         );
     }
 
-    // ─── Listing ─────────────────────────────────────────────────
+    // ─── Phase 2: Listings ───────────────────────────────────────
 
-    public function syncListing(App $app, ?AppVersion $version = null): void
+    private function syncListingsPhase(App $app, ?AppVersion $version, SyncStatus $syncStatus): void
     {
-        if ($app->isIos()) {
-            $this->syncListingMultiLocale($app, $version);
+        $map = $app->isIos() ? $this->iosLocaleMap() : $this->androidLocaleMap();
 
-            return;
+        $syncStatus->update([
+            'progress_done' => 0,
+            'progress_total' => count($map),
+        ]);
+
+        $done = 0;
+        foreach ($map as $language => $country) {
+            $this->fetchAndSaveListing($app, $version, $country, $language, $syncStatus);
+            $done++;
+            if ($done % 5 === 0 || $done === count($map)) {
+                $syncStatus->update(['progress_done' => $done]);
+            }
         }
 
-        $connector = $this->connector($app);
-        $country = 'us';
-        $language = $this->defaultLanguageForCountry($app, $country);
-
-        try {
-            $result = $connector->fetchListings($app, $country, $language);
-
-            if (! $result->success && $app->origin_country !== 'us') {
-                $country = $app->origin_country;
-                $language = $this->defaultLanguageForCountry($app, $country);
-                $result = $connector->fetchListings($app, $country, $language);
-            }
-
-            if (! $result->success) {
-                return;
-            }
-
-            $this->saveListing($app, $result->data, $version);
-        } catch (\Throwable $e) {
-            Log::warning('Sync listing failed', ['app' => $app->external_id, 'error' => $e->getMessage()]);
-        }
+        $syncStatus->update(['progress_done' => $done]);
     }
 
-    /**
-     * iOS multi-locale listing sync. For each unique language in active iOS
-     * countries, pick the most native country and fetch the localized listing.
-     */
-    private function syncListingMultiLocale(App $app, ?AppVersion $version): void
+    private function fetchAndSaveListing(App $app, ?AppVersion $version, string $country, string $language, SyncStatus $syncStatus): void
     {
         $connector = $this->connector($app);
+        $attempts = (int) config('appstorecat.sync.item_retry.initial_attempts', 3);
+        $lastError = null;
 
-        foreach ($this->iosLocaleMap() as $language => $country) {
+        for ($i = 1; $i <= $attempts; $i++) {
             try {
                 $result = $connector->fetchListings($app, $country, $language);
-                if (! $result->success) {
-                    continue;
+                if ($result->success) {
+                    $this->saveListing($app, $result->data, $version);
+
+                    return;
                 }
-                $this->saveListing($app, $result->data, $version);
-            } catch (\Throwable $e) {
-                Log::warning('Sync listing failed', [
-                    'app' => $app->external_id,
-                    'country' => $country,
-                    'language' => $language,
-                    'error' => $e->getMessage(),
-                ]);
+                $lastError = $result->error;
+            } catch (Throwable $e) {
+                $lastError = $e->getMessage();
             }
         }
-    }
 
-    /**
-     * Build a [language => preferred_country] map from the countries table.
-     * Preferred country = the one where this language is the *primary* (first)
-     * entry in ios_languages; falls back to the highest-priority country that
-     * supports the language.
-     *
-     * @return array<string, string>
-     */
-    private function iosLocaleMap(): array
-    {
-        return Cache::remember('ios_locale_map', 3600, function () {
-            $countries = Country::where('is_active_ios', true)
-                ->whereNotNull('ios_languages')
-                ->orderByDesc('priority')
-                ->get(['code', 'ios_languages']);
-
-            $map = [];
-            foreach ($countries as $c) {
-                $langs = $c->ios_languages ?? [];
-                $primary = $langs[0] ?? null;
-                if ($primary && ! isset($map[$primary])) {
-                    $map[$primary] = $c->code;
-                }
-            }
-            foreach ($countries as $c) {
-                foreach (($c->ios_languages ?? []) as $lang) {
-                    if (! isset($map[$lang])) {
-                        $map[$lang] = $c->code;
-                    }
-                }
-            }
-
-            return $map;
-        });
+        $this->pushFailedItem($syncStatus, [
+            'type' => 'listing',
+            'language' => $language,
+            'country' => $country,
+            'reason' => $this->classifyError($lastError),
+            'retry_count' => 0,
+            'last_attempted_at' => now()->toIso8601String(),
+            'next_retry_at' => $this->nextRetryAt(1)->toIso8601String(),
+            'permanent_failure' => false,
+            'last_error' => $lastError,
+        ]);
     }
 
     public function saveListing(App $app, array $data, ?AppVersion $version): StoreListing
     {
-        $checksum = md5(($data['title'] ?? '').($data['description'] ?? ''));
+        $checksum = md5(
+            ($data['title'] ?? '').
+            ($data['subtitle'] ?? '').
+            ($data['description'] ?? '').
+            ($data['whats_new'] ?? '').
+            json_encode($data['screenshots'] ?? [])
+        );
         $language = $data['language'];
 
         $existing = StoreListing::where('app_id', $app->id)
@@ -247,9 +251,9 @@ class AppSyncer
                 'language' => $language,
             ],
             [
-                'title' => $data['title'],
+                'title' => $data['title'] ?? '',
                 'subtitle' => $data['subtitle'] ?? null,
-                'description' => $data['description'],
+                'description' => $data['description'] ?? '',
                 'whats_new' => $data['whats_new'] ?? null,
                 'icon_url' => $data['icon_url'] ?? null,
                 'screenshots' => $data['screenshots'] ?? [],
@@ -268,40 +272,85 @@ class AppSyncer
         return $listing;
     }
 
-    // ─── Metrics ─────────────────────────────────────────────────
+    // ─── Phase 3: Metrics ────────────────────────────────────────
 
-    public function syncMetrics(App $app, ?AppVersion $version = null): void
+    private function syncMetricsPhase(App $app, ?AppVersion $version, SyncStatus $syncStatus): void
     {
-        $connector = $this->connector($app);
+        $countries = $app->isIos() ? $this->iosActiveCountries() : [AppMetric::GLOBAL_COUNTRY];
 
-        try {
-            $result = $connector->fetchMetrics($app, 'us');
+        $syncStatus->update([
+            'progress_done' => 0,
+            'progress_total' => count($countries),
+        ]);
 
-            if (! $result->success && $app->origin_country !== 'us') {
-                $result = $connector->fetchMetrics($app, $app->origin_country);
+        $done = 0;
+        foreach ($countries as $country) {
+            $this->fetchAndSaveMetric($app, $version, $country, $syncStatus);
+            $done++;
+            if ($done % 10 === 0 || $done === count($countries)) {
+                $syncStatus->update(['progress_done' => $done]);
             }
-
-            if (! $result->success) {
-                return;
-            }
-
-            $this->saveMetrics($app, $result->data, $version);
-        } catch (\Throwable $e) {
-            Log::warning('Sync metrics failed', ['app' => $app->external_id, 'error' => $e->getMessage()]);
         }
+
+        $syncStatus->update(['progress_done' => $done]);
     }
 
-    public function saveMetrics(App $app, array $data, ?AppVersion $version): void
+    private function fetchAndSaveMetric(App $app, ?AppVersion $version, string $country, SyncStatus $syncStatus): void
+    {
+        $connector = $this->connector($app);
+        $attempts = (int) config('appstorecat.sync.item_retry.initial_attempts', 3);
+        $fetchCountry = $country === AppMetric::GLOBAL_COUNTRY ? 'us' : $country;
+        $lastError = null;
+
+        for ($i = 1; $i <= $attempts; $i++) {
+            try {
+                $result = $connector->fetchMetrics($app, $fetchCountry);
+                if ($result->success) {
+                    $this->saveMetric($app, $version, $country, $result->data);
+
+                    return;
+                }
+                $lastError = $result->error;
+
+                // Empty response usually means app is not available in this storefront.
+                if ($this->classifyError($lastError) === SyncStatus::REASON_EMPTY_RESPONSE) {
+                    $this->saveMetric($app, $version, $country, [], isAvailable: false);
+
+                    return;
+                }
+            } catch (Throwable $e) {
+                $lastError = $e->getMessage();
+            }
+        }
+
+        $this->pushFailedItem($syncStatus, [
+            'type' => 'metric',
+            'country' => $country,
+            'reason' => $this->classifyError($lastError),
+            'retry_count' => 0,
+            'last_attempted_at' => now()->toIso8601String(),
+            'next_retry_at' => $this->nextRetryAt(1)->toIso8601String(),
+            'permanent_failure' => false,
+            'last_error' => $lastError,
+        ]);
+    }
+
+    public function saveMetric(App $app, ?AppVersion $version, string $countryCode, array $data, bool $isAvailable = true): void
     {
         $today = now()->format('Y-m-d');
 
         $previousMetric = AppMetric::where('app_id', $app->id)
+            ->where('country_code', $countryCode)
             ->whereDate('date', '<', $today)
             ->orderByDesc('date')
             ->first();
 
         AppMetric::updateOrCreate(
-            ['app_id' => $app->id, 'date' => $today],
+            [
+                'app_id' => $app->id,
+                'country_code' => $countryCode,
+                'date' => $today,
+            ],
             [
                 'version_id' => $version?->id,
                 'rating' => $data['rating'] ?? 0,
@@ -309,72 +358,63 @@ class AppSyncer
                 'rating_delta' => $previousMetric
                     ? ($data['rating_count'] ?? 0) - $previousMetric->rating_count
                     : null,
+                'rating_breakdown' => ! empty($data['rating_breakdown']) ? $data['rating_breakdown'] : null,
+                'price' => $data['price'] ?? 0,
+                'currency' => $data['currency'] ?? null,
                 'installs_range' => $data['installs_range'] ?? null,
                 'file_size_bytes' => $data['file_size_bytes'] ?? null,
-                'rating_breakdown' => ! empty($data['rating_breakdown'])
-                    ? $data['rating_breakdown']
-                    : null,
+                'is_available' => $isAvailable,
             ],
         );
     }
 
-    // ─── Reviews ─────────────────────────────────────────────────
+    // ─── Reconciliation helpers (called by ReconcileFailedItemsJob) ──
 
-    public function syncReviews(App $app): void
+    /**
+     * Retry a single failed item. Returns true on success, false on fail.
+     */
+    public function retryFailedItem(App $app, array $item, ?AppVersion $version = null): bool
     {
-        $connector = $this->connector($app);
-        $country = $app->origin_country ?? 'us';
-        $maxPages = $app->isIos() ? 10 : 1;
+        $version = $version ?? AppVersion::where('app_id', $app->id)->orderByDesc('id')->first();
 
         try {
-            for ($page = 1; $page <= $maxPages; $page++) {
-                $result = $connector->fetchReviews($app, $country, $page);
+            if ($item['type'] === 'listing') {
+                $connector = $this->connector($app);
+                $result = $connector->fetchListings($app, $item['country'], $item['language']);
+                if ($result->success) {
+                    $this->saveListing($app, $result->data, $version);
 
-                if (! $result->success || empty($result->data['reviews'])) {
-                    break;
+                    return true;
                 }
 
-                $newCount = $this->saveReviews($app, $result->data);
+                return false;
+            }
 
-                if ($newCount === 0) {
-                    break;
+            if ($item['type'] === 'metric') {
+                $connector = $this->connector($app);
+                $country = $item['country'];
+                $fetchCountry = $country === AppMetric::GLOBAL_COUNTRY ? 'us' : $country;
+                $result = $connector->fetchMetrics($app, $fetchCountry);
+                if ($result->success) {
+                    $this->saveMetric($app, $version, $country, $result->data);
+
+                    return true;
                 }
+
+                return false;
             }
-        } catch (\Throwable $e) {
-            Log::warning('Sync reviews failed', ['app' => $app->external_id, 'error' => $e->getMessage()]);
-        }
-    }
-
-    public function saveReviews(App $app, array $data): int
-    {
-        $newCount = 0;
-
-        foreach ($data['reviews'] ?? [] as $review) {
-            $record = Review::updateOrCreate(
-                [
-                    'app_id' => $app->id,
-                    'external_id' => $review['external_id'],
-                ],
-                [
-                    'country_code' => $app->isIos() ? strtolower($review['country_code'] ?? 'us') : null,
-                    'author' => $review['author'] ?? null,
-                    'title' => $review['title'] ?? null,
-                    'body' => $review['body'] ?? null,
-                    'rating' => $review['rating'] ?? 0,
-                    'review_date' => $review['review_date'] ?? null,
-                    'app_version' => $review['app_version'] ?? null,
-                ],
-            );
-
-            if ($record->wasRecentlyCreated) {
-                $newCount++;
-            }
+        } catch (Throwable $e) {
+            Log::warning('Reconcile item failed', [
+                'app' => $app->external_id,
+                'item' => $item,
+                'error' => $e->getMessage(),
+            ]);
         }
 
-        return $newCount;
+        return false;
     }
 
-    // ─── Locale Change Detection ────────────────────────────────
+    // ─── Locale / Field Change Detection ─────────────────────────
 
     public function detectLocaleChanges(App $app, ?AppVersion $currentVersion): void
     {
@@ -447,8 +487,6 @@ class AppSyncer
         }
     }
 
-    // ─── Field Change Detection ──────────────────────────────────
-
     public function detectChanges(App $app, StoreListing $existing, array $newData, ?AppVersion $version): void
     {
         $fields = [
@@ -461,21 +499,22 @@ class AppSyncer
         foreach ($fields as $field => $newValue) {
             $oldValue = $existing->{$field};
             if ($oldValue !== $newValue) {
-                StoreListingChange::create([
-                    'app_id' => $app->id,
-                    'version_id' => $version?->id,
-                    'language' => $existing->language,
-                    'field_changed' => $field,
-                    'old_value' => $oldValue,
-                    'new_value' => $newValue,
-                    'detected_at' => now(),
-                ]);
+                StoreListingChange::firstOrCreate(
+                    [
+                        'app_id' => $app->id,
+                        'version_id' => $version?->id,
+                        'language' => $existing->language,
+                        'field_changed' => $field,
+                    ],
+                    [
+                        'old_value' => $oldValue,
+                        'new_value' => $newValue,
+                        'detected_at' => now(),
+                    ],
+                );
             }
         }
-
     }
-
-    // ─── Version Details ─────────────────────────────────────────
 
     public function updateVersionDetails(App $app, AppVersion $version): void
     {
@@ -509,30 +548,6 @@ class AppSyncer
         return $this->saveListing($app, $result->data, $version);
     }
 
-    public function syncReviewsForCountry(App $app, string $countryCode): void
-    {
-        $connector = $this->connector($app);
-        $maxPages = $app->isIos() ? 10 : 1;
-
-        try {
-            for ($page = 1; $page <= $maxPages; $page++) {
-                $result = $connector->fetchReviews($app, $countryCode, $page);
-
-                if (! $result->success || empty($result->data['reviews'])) {
-                    break;
-                }
-
-                $newCount = $this->saveReviews($app, $result->data);
-
-                if ($newCount === 0) {
-                    break;
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Sync reviews for country failed', ['app' => $app->external_id, 'country' => $countryCode]);
-        }
-    }
-
     private function defaultLanguageForCountry(App $app, string $countryCode): ?string
     {
         $country = Country::find($countryCode);
@@ -548,5 +563,140 @@ class AppSyncer
     private function connector(App $app): ConnectorInterface
     {
         return $app->isIos() ? $this->ios : $this->android;
+    }
+
+    /**
+     * Attempt a callable up to $attempts times. Returns the last ConnectorResult.
+     */
+    private function attempt(int $attempts, callable $fn): ConnectorResult
+    {
+        $last = null;
+        for ($i = 1; $i <= $attempts; $i++) {
+            try {
+                $result = $fn();
+                if ($result->success) {
+                    return $result;
+                }
+                $last = $result;
+            } catch (Throwable $e) {
+                $last = ConnectorResult::failure($e->getMessage());
+            }
+        }
+
+        return $last ?? ConnectorResult::failure('no attempts made');
+    }
+
+    private function classifyError(?string $error): string
+    {
+        if (! $error) {
+            return SyncStatus::REASON_NETWORK_ERROR;
+        }
+
+        $lower = strtolower($error);
+
+        if (str_contains($lower, '429') || str_contains($lower, 'rate limit')) {
+            return SyncStatus::REASON_HTTP_429;
+        }
+        if (str_contains($lower, '500') || str_contains($lower, 'server error')) {
+            return SyncStatus::REASON_HTTP_500;
+        }
+        if (str_contains($lower, 'timeout') || str_contains($lower, 'timed out')) {
+            return SyncStatus::REASON_TIMEOUT;
+        }
+        if (str_contains($lower, 'empty') || str_contains($lower, 'not found') || str_contains($lower, '404')) {
+            return SyncStatus::REASON_EMPTY_RESPONSE;
+        }
+
+        return SyncStatus::REASON_NETWORK_ERROR;
+    }
+
+    private function nextRetryAt(int $retryCount): \Carbon\CarbonInterface
+    {
+        $schedule = config('appstorecat.sync.item_retry.backoff_seconds', [300, 900, 1800, 3600, 7200, 21600, 43200]);
+        $index = min($retryCount - 1, count($schedule) - 1);
+
+        return now()->addSeconds($schedule[max(0, $index)]);
+    }
+
+    private function pushFailedItem(SyncStatus $syncStatus, array $item): void
+    {
+        $syncStatus->refresh();
+        $syncStatus->pushFailedItem($item);
+        $syncStatus->save();
+    }
+
+    /**
+     * Build a [language => preferred_country] map from the countries table.
+     *
+     * @return array<string, string>
+     */
+    public function iosLocaleMap(): array
+    {
+        return Cache::remember('ios_locale_map', 3600, function () {
+            $countries = Country::where('is_active_ios', true)
+                ->whereNotNull('ios_languages')
+                ->orderByDesc('priority')
+                ->get(['code', 'ios_languages']);
+
+            $map = [];
+            foreach ($countries as $c) {
+                $langs = $c->ios_languages ?? [];
+                $primary = $langs[0] ?? null;
+                if ($primary && ! isset($map[$primary])) {
+                    $map[$primary] = $c->code;
+                }
+            }
+            foreach ($countries as $c) {
+                foreach (($c->ios_languages ?? []) as $lang) {
+                    if (! isset($map[$lang])) {
+                        $map[$lang] = $c->code;
+                    }
+                }
+            }
+
+            return $map;
+        });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function androidLocaleMap(): array
+    {
+        return Cache::remember('android_locale_map', 3600, function () {
+            $countries = Country::where('is_active_android', true)
+                ->whereNotNull('android_languages')
+                ->orderByDesc('priority')
+                ->get(['code', 'android_languages']);
+
+            $map = [];
+            foreach ($countries as $c) {
+                $langs = $c->android_languages ?? [];
+                $primary = $langs[0] ?? null;
+                if ($primary && ! isset($map[$primary])) {
+                    $map[$primary] = $c->code;
+                }
+            }
+            foreach ($countries as $c) {
+                foreach (($c->android_languages ?? []) as $lang) {
+                    if (! isset($map[$lang])) {
+                        $map[$lang] = $c->code;
+                    }
+                }
+            }
+
+            return $map;
+        });
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function iosActiveCountries(): array
+    {
+        return Cache::remember('ios_active_countries', 3600, fn () => Country::where('is_active_ios', true)
+            ->orderByDesc('priority')
+            ->pluck('code')
+            ->all());
     }
 }

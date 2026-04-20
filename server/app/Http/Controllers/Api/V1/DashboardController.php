@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Resources\Api\DashboardResource;
 use App\Models\AppVersion;
-use App\Models\Review;
 use App\Models\StoreListingChange;
 use OpenApi\Attributes as OA;
 
@@ -26,23 +25,8 @@ class DashboardController extends BaseController
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'total_apps', type: 'integer', example: 5),
-                        new OA\Property(property: 'total_reviews', type: 'integer', example: 143),
                         new OA\Property(property: 'total_versions', type: 'integer', example: 12),
                         new OA\Property(property: 'total_changes', type: 'integer', example: 8),
-                        new OA\Property(
-                            property: 'recent_reviews',
-                            type: 'array',
-                            items: new OA\Items(
-                                properties: [
-                                    new OA\Property(property: 'id', type: 'integer'),
-                                    new OA\Property(property: 'app_name', type: 'string'),
-                                    new OA\Property(property: 'author', type: 'string', nullable: true),
-                                    new OA\Property(property: 'title', type: 'string', nullable: true),
-                                    new OA\Property(property: 'rating', type: 'integer'),
-                                    new OA\Property(property: 'review_date', type: 'string', format: 'date', nullable: true),
-                                ],
-                            ),
-                        ),
                         new OA\Property(
                             property: 'recent_changes',
                             type: 'array',
@@ -68,19 +52,6 @@ class DashboardController extends BaseController
 
         $apps = $user->apps;
 
-        $recentReviews = Review::whereIn('app_id', $appIds)
-            ->orderByDesc('review_date')
-            ->limit(5)
-            ->get()
-            ->map(fn ($r) => [
-                'id' => $r->id,
-                'app_name' => $r->app->name,
-                'author' => $r->author,
-                'title' => $r->title,
-                'rating' => $r->rating,
-                'review_date' => $r->review_date?->toDateString(),
-            ]);
-
         $recentChanges = StoreListingChange::whereIn('app_id', $appIds)
             ->orderByDesc('detected_at')
             ->limit(5)
@@ -95,10 +66,8 @@ class DashboardController extends BaseController
 
         return DashboardResource::make([
             'total_apps' => $apps->count(),
-            'total_reviews' => Review::whereIn('app_id', $appIds)->count(),
             'total_versions' => AppVersion::whereIn('app_id', $appIds)->count(),
             'total_changes' => StoreListingChange::whereIn('app_id', $appIds)->count(),
-            'recent_reviews' => $recentReviews,
             'recent_changes' => $recentChanges,
         ]);
     }
