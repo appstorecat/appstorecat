@@ -99,7 +99,7 @@ return [
             'on_import' => env('DISCOVER_IOS_ON_IMPORT', true),
             'on_similar' => env('DISCOVER_IOS_ON_SIMILAR', true),
             'on_category' => env('DISCOVER_IOS_ON_CATEGORY', true),
-            'on_direct_visit' => env('DISCOVER_IOS_ON_DIRECT_VISIT', true),
+            'on_direct_visit' => env('DISCOVER_IOS_ON_DIRECT_VISIT', false),
         ],
         'android' => [
             'on_unknown' => env('DISCOVER_ANDROID_ON_UNKNOWN', true),
@@ -110,7 +110,7 @@ return [
             'on_import' => env('DISCOVER_ANDROID_ON_IMPORT', true),
             'on_similar' => env('DISCOVER_ANDROID_ON_SIMILAR', true),
             'on_category' => env('DISCOVER_ANDROID_ON_CATEGORY', true),
-            'on_direct_visit' => env('DISCOVER_ANDROID_ON_DIRECT_VISIT', true),
+            'on_direct_visit' => env('DISCOVER_ANDROID_ON_DIRECT_VISIT', false),
         ],
     ],
 
