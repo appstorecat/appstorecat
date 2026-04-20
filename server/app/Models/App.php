@@ -176,6 +176,30 @@ class App extends Model
             if (! empty($data['icon_url']) && $app->icon_url !== $data['icon_url']) {
                 $updates['icon_url'] = $data['icon_url'];
             }
+
+            // Backfill publisher/category from richer payloads (chart, identity
+            // sync) if they weren't captured on an earlier discovery pass.
+            if ($app->publisher_id === null && ! empty($data['developer'])) {
+                $publisher = Publisher::findOrCreateByName(
+                    $data['developer'],
+                    $platform,
+                    $data['developer_id'] ?? null,
+                );
+                $updates['publisher_id'] = $publisher->id;
+            }
+
+            if ($app->category_id === null && (! empty($data['genre_id']) || ! empty($data['genre']))) {
+                $categoryId = app(StoreCategoryResolver::class)->resolveId(
+                    $platform,
+                    $data['genre_id'] ?? null,
+                    $data['genre'] ?? null,
+                    ['source' => 'App::discover(backfill)', 'external_id' => $externalId, 'country' => $country],
+                );
+                if ($categoryId !== null) {
+                    $updates['category_id'] = $categoryId;
+                }
+            }
+
             if ($updates !== []) {
                 $app->update($updates);
             }
