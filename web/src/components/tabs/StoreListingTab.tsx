@@ -38,12 +38,9 @@ interface StoreListingTabProps {
   externalId: string
   selectedLocale: string
   selectedCountry?: string
+  selectedCountryName?: string
   selectedVersion: string
   unavailableCountries?: string[]
-}
-
-function flagUrl(code: string): string {
-  return `https://flagcdn.com/w40/${code.toLowerCase()}.png`
 }
 
 export default function StoreListingTab({
@@ -53,6 +50,7 @@ export default function StoreListingTab({
   externalId,
   selectedLocale,
   selectedCountry = 'us',
+  selectedCountryName,
   selectedVersion,
   unavailableCountries = [],
 }: StoreListingTabProps) {
@@ -92,7 +90,7 @@ export default function StoreListingTab({
     )
   }
 
-  const countryLabel = selectedCountry.toUpperCase()
+  const countryLabel = selectedCountryName || selectedCountry.toUpperCase()
   const storeName = platform === 'ios' ? 'App Store' : 'Play Store'
 
   return (
@@ -106,7 +104,7 @@ export default function StoreListingTab({
             <div className="flex-1 space-y-1">
               <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
                 {isCountryUnavailable
-                  ? <>App not available in <span className="inline-flex items-center gap-1"><img src={flagUrl(selectedCountry)} alt="" className="inline h-3 w-4 rounded-[1px] object-cover" /> {countryLabel}</span></>
+                  ? <>App not available in {countryLabel}</>
                   : <>No listing for <span className="rounded bg-amber-200/60 px-1 py-0.5 font-mono text-xs dark:bg-amber-500/20">{selectedLocale || 'this locale'}</span></>}
               </p>
               <p className="text-xs text-amber-800/80 dark:text-amber-300/80">
