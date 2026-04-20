@@ -2,7 +2,7 @@
 
 View and monitor app store listings in multiple languages.
 
-![Store Listing](../../screenshots/store-listing.jpeg)
+![Store Listing](../../../screenshots/store-listing.jpeg)
 
 ## Overview
 

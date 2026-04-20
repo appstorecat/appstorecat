@@ -2,7 +2,7 @@
 
 Discover new apps via search, trending charts, publisher pages, and more.
 
-![App Discovery](../../screenshots/app-discovery.jpeg)
+![App Discovery](../../../screenshots/app-discovery.jpeg)
 
 ## Overview
 

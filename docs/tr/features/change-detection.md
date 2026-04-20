@@ -2,7 +2,7 @@
 
 Takip edilen ve rakip uygulamalar icin magaza listesi degisikliklerini zaman icinde izleyin.
 
-![Degisiklik Algilama](../../screenshots/change-detection.jpeg)
+![Degisiklik Algilama](../../../screenshots/change-detection.jpeg)
 
 ## Genel Bakis
 

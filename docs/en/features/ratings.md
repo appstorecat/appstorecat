@@ -2,7 +2,7 @@
 
 Track app ratings as daily per-country snapshots.
 
-![Ratings](../../screenshots/ratings-reviews.jpeg)
+![Ratings](../../../screenshots/ratings-reviews.jpeg)
 
 ## Overview
 

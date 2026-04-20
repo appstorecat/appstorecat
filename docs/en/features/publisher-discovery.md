@@ -2,7 +2,7 @@
 
 Search publishers, view their app catalogs, and bulk import all of their apps.
 
-![Publisher Discovery](../../screenshots/publisher-discovery.jpeg)
+![Publisher Discovery](../../../screenshots/publisher-discovery.jpeg)
 
 ## Overview
 

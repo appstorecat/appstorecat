@@ -2,7 +2,7 @@
 
 App Store ve Google Play genelinde en populer uygulamalari gunluk liste anlik goruntuleriyle takip edin.
 
-![Trend Listeler](../../screenshots/trending-charts.jpeg)
+![Trend Listeler](../../../screenshots/trending-charts.jpeg)
 
 ## Genel Bakis
 

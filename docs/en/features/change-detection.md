@@ -2,7 +2,7 @@
 
 Track store listing changes over time for both tracked and competitor apps.
 
-![Change Detection](../../screenshots/change-detection.jpeg)
+![Change Detection](../../../screenshots/change-detection.jpeg)
 
 ## Overview
 

@@ -2,7 +2,7 @@
 
 Uygulama magaza listelerini birden fazla dilde goruntuleyin ve takip edin.
 
-![Magaza Listesi](../../screenshots/store-listing.jpeg)
+![Magaza Listesi](../../../screenshots/store-listing.jpeg)
 
 ## Genel Bakis
 

@@ -2,7 +2,7 @@
 
 Define competitor relationships between apps and monitor their store presence side by side.
 
-![Competitor Tracking](../../screenshots/competitor-tracking.jpeg)
+![Competitor Tracking](../../../screenshots/competitor-tracking.jpeg)
 
 ## Overview
 

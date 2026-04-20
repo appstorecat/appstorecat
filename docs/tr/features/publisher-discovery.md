@@ -2,7 +2,7 @@
 
 Yayincilari arayin, uygulama kataloglarini goruntuleyin ve tum uygulamalarini toplu olarak iceri aktarin.
 
-![Yayinci Kesfi](../../screenshots/publisher-discovery.jpeg)
+![Yayinci Kesfi](../../../screenshots/publisher-discovery.jpeg)
 
 ## Genel Bakis
 

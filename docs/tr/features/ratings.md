@@ -2,7 +2,7 @@
 
 Uygulama puanlarini ulke bazinda gunluk anlik goruntuler halinde izleyin.
 
-![Puanlar](../../screenshots/ratings-reviews.jpeg)
+![Puanlar](../../../screenshots/ratings-reviews.jpeg)
 
 ## Genel Bakis
 

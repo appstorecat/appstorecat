@@ -2,7 +2,7 @@
 
 Uygulamalar arasinda rakip iliskileri tanimlayin ve magaza varliklarini yan yana izleyin.
 
-![Rakip Takibi](../../screenshots/competitor-tracking.jpeg)
+![Rakip Takibi](../../../screenshots/competitor-tracking.jpeg)
 
 ## Genel Bakis
 

@@ -2,7 +2,7 @@
 
 Arama, trend listeler, yayinci sayfalari ve daha fazlasi araciligiyla yeni uygulamalar kesfet.
 
-![Uygulama Kesfi](../../screenshots/app-discovery.jpeg)
+![Uygulama Kesfi](../../../screenshots/app-discovery.jpeg)
 
 ## Genel Bakis
 

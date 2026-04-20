@@ -2,7 +2,7 @@
 
 Tutarli ve hizli yukleme icin uygulama ikonlarini ve ekran goruntularini yerel bir proxy uzerinden sunun.
 
-![Medya Proxy](../../screenshots/media-proxy.jpeg)
+![Medya Proxy](../../../screenshots/media-proxy.jpeg)
 
 ## Genel Bakis
 

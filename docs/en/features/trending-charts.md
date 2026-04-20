@@ -2,7 +2,7 @@
 
 Track the top apps across the App Store and Google Play with daily chart snapshots.
 
-![Trending Charts](../../screenshots/trending-charts.jpeg)
+![Trending Charts](../../../screenshots/trending-charts.jpeg)
 
 ## Overview
 

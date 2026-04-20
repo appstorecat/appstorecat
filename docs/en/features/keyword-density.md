@@ -2,7 +2,7 @@
 
 Analyze keyword usage in app store listings with n-gram extraction and cross-app comparison.
 
-![Keyword Density](../../screenshots/keyword-density.jpeg)
+![Keyword Density](../../../screenshots/keyword-density.jpeg)
 
 ## Overview
 

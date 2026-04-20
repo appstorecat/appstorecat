@@ -2,7 +2,7 @@
 
 Serve app icons and screenshots through a local proxy for consistent, fast loading.
 
-![Media Proxy](../../screenshots/media-proxy.jpeg)
+![Media Proxy](../../../screenshots/media-proxy.jpeg)
 
 ## Overview
 

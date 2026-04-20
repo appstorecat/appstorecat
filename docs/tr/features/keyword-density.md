@@ -2,7 +2,7 @@
 
 Uygulama magaza listelerindeki anahtar kelime kullanimini n-gram cikarma ve uygulamalar arasi karsilastirma ile analiz edin.
 
-![Anahtar Kelime Yogunlugu](../../screenshots/keyword-density.jpeg)
+![Anahtar Kelime Yogunlugu](../../../screenshots/keyword-density.jpeg)
 
 ## Genel Bakis
 
