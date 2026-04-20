@@ -24,6 +24,9 @@ use OpenApi\Attributes as OA;
  * @property string $external_id
  * @property int|null $publisher_id
  * @property int|null $category_id
+ * @property string|null $display_name
+ * @property string|null $icon_url
+ * @property string $origin_country_code
  * @property array|null $supported_locales
  * @property Carbon|null $original_release_date
  * @property bool $is_free
@@ -41,9 +44,13 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'platform', ref: '#/components/schemas/Platform'),
         new OA\Property(property: 'external_id', type: 'string', example: '389801252'),
+        new OA\Property(property: 'display_name', type: 'string', nullable: true, example: 'Instagram'),
+        new OA\Property(property: 'icon_url', type: 'string', nullable: true),
+        new OA\Property(property: 'origin_country_code', type: 'string', example: 'us'),
         new OA\Property(property: 'supported_locales', type: 'array', items: new OA\Items(type: 'string'), nullable: true),
         new OA\Property(property: 'original_release_date', type: 'string', format: 'date', nullable: true),
         new OA\Property(property: 'is_free', type: 'boolean', example: true),
+        new OA\Property(property: 'is_available', type: 'boolean', example: true),
         new OA\Property(property: 'publisher', ref: '#/components/schemas/Publisher', nullable: true),
         new OA\Property(property: 'category', ref: '#/components/schemas/StoreCategory', nullable: true),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
