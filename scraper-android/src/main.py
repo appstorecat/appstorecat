@@ -2,8 +2,8 @@
 
 import os
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from .schemas import (
     AppIdentity,
@@ -17,6 +17,7 @@ from .schemas import (
     StoreListing,
 )
 from . import scraper
+from .scraper import AppNotFoundError
 
 PORT = int(os.environ["PORT"]) if os.environ.get("PORT") else None
 PUBLIC_URL = os.environ.get("PUBLIC_URL", f"http://localhost:{PORT}" if PORT else "")
@@ -29,6 +30,11 @@ app = FastAPI(
     redoc_url="/redoc",
     servers=[{"url": PUBLIC_URL}],
 )
+
+
+@app.exception_handler(AppNotFoundError)
+async def app_not_found_handler(_request: Request, exc: AppNotFoundError):
+    return JSONResponse(status_code=404, content={"error": str(exc)})
 
 
 @app.get("/", include_in_schema=False)
@@ -99,6 +105,8 @@ def search_apps(
 def get_app_identity(app_id: str, country: str = Query("us", min_length=2, max_length=2, description="Country code")):
     try:
         return scraper.fetch_identity(app_id, country=country)
+    except AppNotFoundError:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -106,7 +114,7 @@ def get_app_identity(app_id: str, country: str = Query("us", min_length=2, max_l
 @app.get(
     "/apps/{app_id:path}/listings",
     response_model=StoreListing,
-    responses={500: {"model": ErrorResponse}},
+    responses={404: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
     tags=["apps"],
     summary="Get store listing for a locale",
 )
@@ -117,6 +125,8 @@ def get_app_listing(
 ):
     try:
         return scraper.fetch_listing(app_id, locale, country)
+    except AppNotFoundError:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -142,13 +152,15 @@ def get_app_localized_listings(
 @app.get(
     "/apps/{app_id:path}/metrics",
     response_model=AppMetrics,
-    responses={500: {"model": ErrorResponse}},
+    responses={404: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
     tags=["apps"],
     summary="Get app metrics (rating, installs, etc.)",
 )
 def get_app_metrics(app_id: str, country: str = Query("us", min_length=2, max_length=2, description="Country code")):
     try:
         return scraper.fetch_metrics(app_id, country=country)
+    except AppNotFoundError:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

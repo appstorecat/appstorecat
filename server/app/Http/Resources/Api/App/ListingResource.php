@@ -34,6 +34,7 @@ class ListingResource extends BaseResource
             'currency' => $this->resource->currency,
             'description_length' => $this->resource->description_length,
             'fetched_at' => $this->formatTimestamp($this->resource->fetched_at),
+            'is_available' => $this->resource->is_available,
         ];
     }
 

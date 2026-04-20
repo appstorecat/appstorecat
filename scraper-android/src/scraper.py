@@ -9,6 +9,10 @@ from gplay_scraper import GPlayScraper
 
 logger = logging.getLogger(__name__)
 
+
+class AppNotFoundError(Exception):
+    """Raised when gplay-scraper cannot find the requested app in this storefront."""
+
 from .schemas import (
     AppIdentity,
     AppMetrics,
@@ -63,6 +67,9 @@ def fetch_identity(app_id: str, country: str = "us") -> AppIdentity:
         "version", "price", "currency",
     ], country=country)
 
+    if not info:
+        raise AppNotFoundError(f"App not found: {app_id} in {country}")
+
     version = info.get("version")
     if not version or version == "Varies with device":
         version = f"ag.{date.today().strftime('%Y%m%d')}"
@@ -91,6 +98,9 @@ def fetch_listing(app_id: str, locale: str = "en", country: str = "us") -> Store
         "title", "summary", "description", "whatsNew", "icon",
         "screenshots", "video", "price", "free", "currency",
     ], lang=locale, country=country)
+
+    if not info:
+        raise AppNotFoundError(f"App not found: {app_id} in {country}/{locale}")
 
     screenshots = []
     for i, url in enumerate(info.get("screenshots", []) or []):
@@ -146,6 +156,9 @@ def fetch_metrics(app_id: str, country: str = "us") -> AppMetrics:
     info = scraper.app_get_fields(app_id, [
         "score", "ratings", "histogram", "realInstalls", "minInstalls",
     ], country=country)
+
+    if not info:
+        raise AppNotFoundError(f"App not found: {app_id} in {country}")
 
     installs = info.get("realInstalls") or info.get("minInstalls")
     installs_range = f"{installs:,}+" if installs else None

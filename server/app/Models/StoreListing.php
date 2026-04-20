@@ -25,6 +25,7 @@ use OpenApi\Attributes as OA;
  * @property string|null $currency
  * @property Carbon|null $fetched_at
  * @property string|null $checksum
+ * @property bool $is_available
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
@@ -58,6 +59,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'currency', type: 'string', nullable: true, example: 'USD'),
         new OA\Property(property: 'video_url', type: 'string', nullable: true),
         new OA\Property(property: 'fetched_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'is_available', type: 'boolean', example: true),
     ],
 )]
 #[Fillable([
@@ -65,7 +67,7 @@ use OpenApi\Attributes as OA;
     'description', 'promotional_text', 'whats_new',
     'screenshots', 'icon_url', 'video_url',
     'price', 'currency',
-    'fetched_at', 'checksum',
+    'fetched_at', 'checksum', 'is_available',
 ])]
 class StoreListing extends Model
 {
@@ -109,6 +111,7 @@ class StoreListing extends Model
         return [
             'screenshots' => 'array',
             'fetched_at' => 'datetime',
+            'is_available' => 'boolean',
         ];
     }
 }

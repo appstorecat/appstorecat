@@ -3242,6 +3242,10 @@
                     "fetched_at": {
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "is_available": {
+                        "type": "boolean",
+                        "example": true
                     }
                 },
                 "type": "object"

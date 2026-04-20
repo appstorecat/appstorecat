@@ -207,6 +207,15 @@ class AppSyncer
                     return;
                 }
                 $lastError = $result->error;
+
+                // App missing in this storefront (404/empty) is permanent —
+                // clone the origin listing with is_available=false so downstream
+                // code can still render something but flag it as unavailable.
+                if ($this->classifyError($lastError) === SyncStatus::REASON_EMPTY_RESPONSE) {
+                    $this->saveUnavailableListing($app, $version, $locale);
+
+                    return;
+                }
             } catch (Throwable $e) {
                 $lastError = $e->getMessage();
             }
@@ -223,6 +232,51 @@ class AppSyncer
             'permanent_failure' => false,
             'last_error' => $lastError,
         ]);
+    }
+
+    /**
+     * Clone the app's origin-country listing as an unavailable placeholder.
+     * Used when a specific storefront returns 404 for the app — we still want
+     * a row in app_store_listings (for cross-locale comparison, keyword analysis)
+     * but marked is_available=false so it doesn't pollute availability metrics.
+     */
+    public function saveUnavailableListing(App $app, ?AppVersion $version, string $locale): ?StoreListing
+    {
+        $originLocale = $this->defaultLocaleForCountry($app, $app->origin_country_code ?? 'us')
+            ?? 'en-US';
+
+        $origin = StoreListing::where('app_id', $app->id)
+            ->where('locale', $originLocale)
+            ->where('is_available', true)
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $origin) {
+            return null;
+        }
+
+        return StoreListing::updateOrCreate(
+            [
+                'app_id' => $app->id,
+                'version_id' => $version?->id,
+                'locale' => $locale,
+            ],
+            [
+                'title' => $origin->title,
+                'subtitle' => $origin->subtitle,
+                'description' => $origin->description,
+                'promotional_text' => $origin->promotional_text,
+                'whats_new' => $origin->whats_new,
+                'icon_url' => $origin->icon_url,
+                'screenshots' => $origin->screenshots,
+                'video_url' => $origin->video_url,
+                'price' => $origin->price,
+                'currency' => $origin->currency,
+                'fetched_at' => now(),
+                'checksum' => $origin->checksum,
+                'is_available' => false,
+            ],
+        );
     }
 
     public function saveListing(App $app, array $data, ?AppVersion $version): StoreListing
@@ -263,6 +317,7 @@ class AppSyncer
                 'currency' => $data['currency'] ?? null,
                 'fetched_at' => now(),
                 'checksum' => $checksum,
+                'is_available' => true,
             ],
         );
 
@@ -595,17 +650,19 @@ class AppSyncer
 
         $lower = strtolower($error);
 
+        // Order matters: check "not available" cases before generic HTTP 5xx
+        // because scraper errors can mention both "500" (wrapper) and "404" (cause).
+        if (str_contains($lower, '404') || str_contains($lower, 'not found') || str_contains($lower, 'empty')) {
+            return SyncStatus::REASON_EMPTY_RESPONSE;
+        }
         if (str_contains($lower, '429') || str_contains($lower, 'rate limit')) {
             return SyncStatus::REASON_HTTP_429;
-        }
-        if (str_contains($lower, '500') || str_contains($lower, 'server error')) {
-            return SyncStatus::REASON_HTTP_500;
         }
         if (str_contains($lower, 'timeout') || str_contains($lower, 'timed out')) {
             return SyncStatus::REASON_TIMEOUT;
         }
-        if (str_contains($lower, 'empty') || str_contains($lower, 'not found') || str_contains($lower, '404')) {
-            return SyncStatus::REASON_EMPTY_RESPONSE;
+        if (str_contains($lower, '500') || str_contains($lower, 'server error')) {
+            return SyncStatus::REASON_HTTP_500;
         }
 
         return SyncStatus::REASON_NETWORK_ERROR;

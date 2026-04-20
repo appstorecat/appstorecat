@@ -2,10 +2,39 @@
  * App Store API — Fastify application.
  */
 
-import Fastify from "fastify";
+import Fastify, { type FastifyReply } from "fastify";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import * as scraper from "./scraper.js";
+
+/**
+ * Map a scraper exception to an appropriate HTTP response.
+ * app-store-scraper throws three shapes:
+ *  - Error("App not found (404)") for storefronts where Apple returns 404
+ *  - plain object `{ response }` for storefronts Apple blocks upstream (cn, hk)
+ *  - anything else (fetch failure, rate limit, parse error) — treat as 500
+ */
+function sendScraperError(reply: FastifyReply, e: unknown) {
+  const rawMessage =
+    e instanceof Error
+      ? e.message
+      : typeof e === "string"
+        ? e
+        : ((e as { message?: unknown })?.message ?? "");
+  const message = typeof rawMessage === "string" ? rawMessage : String(rawMessage);
+  const lower = message.toLowerCase();
+  const looksLikeNotFound =
+    lower.includes("not found") ||
+    lower.includes("404") ||
+    (!message && e !== null && typeof e === "object");
+
+  if (looksLikeNotFound) {
+    return reply
+      .status(404)
+      .send({ error: message || "App not found in this storefront" });
+  }
+  return reply.status(500).send({ error: message || "Unknown scraper error" });
+}
 import {
   AppIdentitySchema,
   AppMetricsSchema,
@@ -101,8 +130,8 @@ app.get(
     try {
       const results = await scraper.fetchChart(collection, category, country || "us", num || 200);
       return { results };
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
@@ -134,8 +163,8 @@ app.get(
     try {
       const results = await scraper.searchApps(term, limit || 10, country || "us");
       return { results };
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
@@ -161,6 +190,7 @@ app.get(
       },
       response: {
         200: AppIdentitySchema,
+        404: ErrorResponseSchema,
         500: ErrorResponseSchema,
       },
     },
@@ -170,8 +200,8 @@ app.get(
     const { country, lang } = request.query as { country?: string; lang?: string };
     try {
       return await scraper.fetchIdentity(appId, country || "us", lang || undefined);
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
@@ -197,6 +227,7 @@ app.get(
       },
       response: {
         200: StoreListingSchema,
+        404: ErrorResponseSchema,
         500: ErrorResponseSchema,
       },
     },
@@ -206,8 +237,8 @@ app.get(
     const { country, lang } = request.query as { country?: string; lang?: string };
     try {
       return await scraper.fetchListing(appId, country || "us", lang || undefined);
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
@@ -250,8 +281,8 @@ app.get(
         .filter(Boolean);
       const listings = await scraper.fetchLocalizedListings(appId, countryList);
       return { listings };
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
@@ -277,6 +308,7 @@ app.get(
       },
       response: {
         200: AppMetricsSchema,
+        404: ErrorResponseSchema,
         500: ErrorResponseSchema,
       },
     },
@@ -286,8 +318,8 @@ app.get(
     const { country, lang } = request.query as { country?: string; lang?: string };
     try {
       return await scraper.fetchMetrics(appId, country || "us", lang || undefined);
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
@@ -315,8 +347,8 @@ app.get(
     try {
       const apps = await scraper.fetchDeveloperApps(developerId);
       return { apps };
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
@@ -348,8 +380,8 @@ app.get(
     try {
       const results = await scraper.searchApps(term, limit || 10, country || "us");
       return { results };
-    } catch (e: any) {
-      return reply.status(500).send({ error: e.message });
+    } catch (e: unknown) {
+      return sendScraperError(reply, e);
     }
   }
 );
