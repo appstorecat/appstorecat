@@ -36,10 +36,12 @@ appstorecat/
 ├── web/               # React SPA
 ├── scraper-ios/       # App Store scraper microservice
 ├── scraper-android/   # Google Play scraper microservice
+├── mcp/               # MCP server package (@appstorecat)
 ├── .arc/              # Architecture rules (all services)
+├── plans/             # Active work plans
+├── docs/              # Full documentation (docs/en, docs/tr)
 ├── docker-compose.yml # Root orchestrator
-├── Makefile           # Dev commands — single entry point
-└── docs/              # Full documentation
+└── Makefile           # Dev commands — single entry point
 ```
 
 ## Commands
@@ -102,10 +104,6 @@ make api                # Both: swagger + api-generate
 make lint               # All linters (pint + eslint)
 make pint               # PHP code style
 make lint-web           # ESLint
-make test               # All tests (server + scrapers)
-make test-server        # Pest (PHPUnit)
-make test-android       # pytest
-make test-ios           # vitest
 ```
 
 ### Database
@@ -120,7 +118,7 @@ make redis-cli          # Open Redis CLI
 ```bash
 make version            # Show current version
 make build-prod         # Build + push multi-platform images
-make release v=0.0.3    # Version bump + build + push + git tag
+make release v=1.0.2    # Version bump + build + push + git tag
 ```
 
 ## Architecture Rules
@@ -161,11 +159,9 @@ All queues are **platform-separated** (iOS and Android run independently):
 Run before committing or when explicitly asked:
 
 ```bash
-make lint               # All linters
-make test               # All tests
-make test-server        # Pest only
-make test-android       # pytest only
-make test-ios           # vitest only
+make lint               # All linters (pint + eslint)
+make pint               # PHP code style only
+make lint-web           # ESLint only
 ```
 
 ## Makefile-First Rule

@@ -40,14 +40,14 @@ Search for apps across App Store and Google Play, discover through trending char
 ![App Discovery](screenshots/app-discovery.jpeg)
 
 ### Store Listings
-Multi-language store listing tracking with title, description, screenshots, and metadata for each supported locale.
+Multi-locale store listing tracking with title, description, screenshots, and metadata for each supported locale, plus per-country availability tracking.
 
 ![Store Listing](screenshots/store-listing.jpeg)
 
-### Ratings & Reviews
-Monitor rating trends and sync user reviews with filtering by country, rating, and date.
+### Ratings
+Monitor rating trends per country with historical snapshots.
 
-![Ratings & Reviews](screenshots/ratings-reviews.jpeg)
+![Ratings](screenshots/ratings-reviews.jpeg)
 
 ### Keyword Density
 ASO-focused keyword analysis with n-gram extraction (1/2/3-word), stop word filtering for 50 languages, and cross-app comparison.
@@ -118,7 +118,7 @@ See the [Installation Guide](docs/en/getting-started/installation.md) for detail
 - [App Rankings](docs/en/features/app-rankings.md)
 - [App Discovery](docs/en/features/app-discovery.md)
 - [Store Listings](docs/en/features/store-listings.md)
-- [Ratings & Reviews](docs/en/features/ratings-reviews.md)
+- [Ratings](docs/en/features/ratings.md)
 - [Keyword Density](docs/en/features/keyword-density.md)
 - [Competitor Tracking](docs/en/features/competitor-tracking.md)
 - [Change Detection](docs/en/features/change-detection.md)

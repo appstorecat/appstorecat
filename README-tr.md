@@ -1,8 +1,18 @@
-# AppStoreCat
+<p align="center">
+  <img src="web/public/appstorecat-icon.svg" width="80" height="80" alt="AppStoreCat" />
+</p>
 
-> **Dokümantasyon:** [English](README.md) | [Türkçe](README-tr.md)
+<h1 align="center">AppStoreCat</h1>
 
-iOS ve Android için açık kaynak uygulama istihbarat araç seti. Mağaza listelemelerini takip edin, değişiklikleri izleyin, anahtar kelimeleri analiz edin ve trend uygulamaları keşfedin.
+<p align="center">
+  iOS ve Android için açık kaynak uygulama istihbarat araç seti.
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> · <a href="docs/tr/">Türkçe Dokümantasyon</a> · <a href="https://appstore.cat">Canlı Demo</a>
+</p>
+
+Mağaza listelemelerini takip edin, değişiklikleri izleyin, anahtar kelimeleri analiz edin ve trend uygulamaları keşfedin.
 
 ![AppStoreCat Dashboard](screenshots/hero-dashboard.jpeg)
 
@@ -22,14 +32,14 @@ App Store ve Google Play'de uygulama arayın, trend listelerden keşfedin veya t
 ![Uygulama Keşfi](screenshots/app-discovery.jpeg)
 
 ### Mağaza Listeleri
-Desteklenen her dil için başlık, açıklama, ekran görüntüleri ve meta verilerle çok dilli mağaza listesi takibi.
+Desteklenen her yerel ayar için başlık, açıklama, ekran görüntüleri ve meta verilerle çok yerel ayarlı mağaza listesi takibi ve ülke bazında erişilebilirlik izleme.
 
 ![Mağaza Listesi](screenshots/store-listing.jpeg)
 
-### Puanlar ve Yorumlar
-Puan trendlerini izleyin ve ülke, puan ve tarihe göre filtreleme ile kullanıcı yorumlarını senkronize edin.
+### Puanlar
+Ülke bazında puan trendlerini geçmiş anlık görüntülerle izleyin.
 
-![Puanlar ve Yorumlar](screenshots/ratings-reviews.jpeg)
+![Puanlar](screenshots/ratings-reviews.jpeg)
 
 ### Anahtar Kelime Yoğunluğu
 ASO odaklı anahtar kelime analizi: n-gram çıkarma (1/2/3 kelime), 50 dil için durak kelime filtreleme ve uygulamalar arası karşılaştırma.
@@ -100,7 +110,7 @@ Detaylı kurulum talimatları için [Kurulum Kılavuzu](docs/tr/getting-started/
 - [Uygulama Sıralamaları](docs/tr/features/app-rankings.md)
 - [Uygulama Keşfi](docs/tr/features/app-discovery.md)
 - [Mağaza Listeleri](docs/tr/features/store-listings.md)
-- [Puanlar ve Yorumlar](docs/tr/features/ratings-reviews.md)
+- [Puanlar](docs/tr/features/ratings.md)
 - [Anahtar Kelime Yoğunluğu](docs/tr/features/keyword-density.md)
 - [Rakip Takibi](docs/tr/features/competitor-tracking.md)
 - [Değişiklik Algılama](docs/tr/features/change-detection.md)

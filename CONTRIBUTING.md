@@ -11,12 +11,12 @@ Thank you for your interest in contributing to AppStoreCat! This guide will help
 
 ## Development Setup
 
-See the [Installation guide](docs/getting-started/installation.md) for detailed setup instructions.
+See the [Installation guide](docs/en/getting-started/installation.md) for detailed setup instructions.
 
 ```bash
 make setup    # Build containers, install deps, migrate
 make dev      # Start all services
-make test     # Run all tests
+make lint     # Run all linters
 ```
 
 ## Project Structure
@@ -40,15 +40,14 @@ Architecture rules are documented in `.arc/` — please read `.arc/README.md` be
 - **TypeScript/React:** Follow existing patterns in the web codebase.
 - **Python:** Follow PEP 8 conventions.
 
-### Tests
+### Linting
 
-Run tests before submitting a PR:
+Run linters before submitting a PR:
 
 ```bash
-make test             # All tests
-make test-server      # PHPUnit (server)
-make test-ios         # Vitest (App Store scraper)
-make test-android     # pytest (Google Play scraper)
+make lint       # All linters (Pint + ESLint)
+make pint       # Laravel Pint (server PHP)
+make lint-web   # ESLint (web)
 ```
 
 ### Queue Jobs
@@ -58,7 +57,7 @@ When creating new scraper-related jobs, follow the platform-separation rule:
 - Use separate queues for iOS and Android (`{queue}-ios`, `{queue}-android`)
 - Apply Redis throttle with appropriate rates
 - Implement retry with exponential backoff
-- See [Queue System](docs/architecture/queue-system.md) for details
+- See [Queue System](docs/en/architecture/queue-system.md) for details
 
 ### Commits
 
@@ -76,7 +75,7 @@ config: enable trending discovery by default
 ## Pull Requests
 
 1. Fill out the [PR template](.github/PULL_REQUEST_TEMPLATE.md)
-2. Ensure all tests pass
+2. Run `make lint` and ensure it passes
 3. Run `make pint` for PHP changes
 4. Keep PRs focused — one feature or fix per PR
 5. Reference related issues in the description
