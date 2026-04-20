@@ -5,12 +5,6 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { User } from './user';
 
-export interface UserResource {
-  id?: number;
-  name?: string;
-  email?: string;
-  /** @nullable */
-  email_verified_at?: string | null;
-  created_at?: string;
-}
+export type UserResource = User;

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * @nullable
+ */
 export type ChangeResourceApp = {
   id?: number;
   name?: string;
@@ -13,4 +16,4 @@ export type ChangeResourceApp = {
   external_id?: string;
   /** @nullable */
   icon_url?: string | null;
-};
+} | null;

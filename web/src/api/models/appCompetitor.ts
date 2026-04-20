@@ -8,8 +8,10 @@
 import type { CompetitorRelationship } from './competitorRelationship';
 
 export interface AppCompetitor {
-  id?: number;
-  app_id?: number;
-  competitor_app_id?: number;
-  relationship?: CompetitorRelationship;
+  id: number;
+  app_id: number;
+  competitor_app_id: number;
+  relationship: CompetitorRelationship;
+  created_at?: string;
+  updated_at?: string;
 }

@@ -5,15 +5,13 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
-import type { App } from './app';
 
-export type AppResource = App & ({
-  name: string;
-  /** @nullable */
-  rating?: number | null;
-  /** @nullable */
-  rating_count?: number | null;
-  /** @nullable */
-  version?: string | null;
-  is_tracked?: boolean;
-});
+export type SyncStatusStatus = typeof SyncStatusStatus[keyof typeof SyncStatusStatus];
+
+
+export const SyncStatusStatus = {
+  queued: 'queued',
+  processing: 'processing',
+  completed: 'completed',
+  failed: 'failed',
+} as const;

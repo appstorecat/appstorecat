@@ -5,28 +5,14 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { App } from './app';
 import type { CompetitorResource } from './competitorResource';
 import type { ListingResource } from './listingResource';
-import type { Platform } from './platform';
-import type { Publisher } from './publisher';
-import type { StoreCategory } from './storeCategory';
 import type { StoreListingChange } from './storeListingChange';
 import type { VersionResource } from './versionResource';
 
-export interface AppDetailResource {
-  id: number;
+export type AppDetailResource = App & ({
   name: string;
-  platform: Platform;
-  external_id: string;
-  publisher?: Publisher | null;
-  category?: StoreCategory | null;
-  /** @nullable */
-  supported_locales?: string[] | null;
-  /** @nullable */
-  original_release_date?: string | null;
-  is_free?: boolean;
-  /** @nullable */
-  icon_url?: string | null;
   /** @nullable */
   rating?: number | null;
   /** @nullable */
@@ -35,9 +21,9 @@ export interface AppDetailResource {
   version?: string | null;
   /** @nullable */
   file_size_bytes?: number | null;
-  created_at: string;
+  is_tracked?: boolean;
   listings?: ListingResource[];
   versions?: VersionResource[];
   changes?: StoreListingChange[];
   competitors?: CompetitorResource[];
-}
+});

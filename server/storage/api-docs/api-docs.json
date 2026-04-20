@@ -2326,149 +2326,80 @@
                 "type": "object"
             },
             "UserResource": {
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "John Doe"
-                    },
-                    "email": {
-                        "type": "string",
-                        "format": "email",
-                        "example": "user@example.com"
-                    },
-                    "email_verified_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/User"
                     }
-                },
-                "type": "object"
+                ]
             },
             "AppDetailResource": {
                 "required": [
-                    "id",
-                    "name",
-                    "platform",
-                    "external_id",
-                    "created_at"
+                    "name"
                 ],
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/App"
                     },
-                    "name": {
-                        "type": "string",
-                        "example": "Instagram"
-                    },
-                    "platform": {
-                        "$ref": "#/components/schemas/Platform"
-                    },
-                    "external_id": {
-                        "type": "string",
-                        "example": "389801252"
-                    },
-                    "publisher": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/Publisher"
+                    {
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "example": "Instagram"
+                            },
+                            "rating": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 4.68,
+                                "nullable": true
+                            },
+                            "rating_count": {
+                                "type": "integer",
+                                "example": 31,
+                                "nullable": true
+                            },
+                            "version": {
+                                "type": "string",
+                                "example": "1.2.4",
+                                "nullable": true
+                            },
+                            "file_size_bytes": {
+                                "type": "integer",
+                                "example": 73822208,
+                                "nullable": true
+                            },
+                            "is_tracked": {
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "listings": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ListingResource"
+                                }
+                            },
+                            "versions": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/VersionResource"
+                                }
+                            },
+                            "changes": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/StoreListingChange"
+                                }
+                            },
+                            "competitors": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/CompetitorResource"
+                                }
                             }
-                        ],
-                        "nullable": true
-                    },
-                    "category": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/StoreCategory"
-                            }
-                        ],
-                        "nullable": true
-                    },
-                    "supported_locales": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
                         },
-                        "example": [
-                            "EN",
-                            "DE",
-                            "FR"
-                        ],
-                        "nullable": true
-                    },
-                    "original_release_date": {
-                        "type": "string",
-                        "format": "date",
-                        "example": "2010-10-06",
-                        "nullable": true
-                    },
-                    "is_free": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "icon_url": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "rating": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 4.68,
-                        "nullable": true
-                    },
-                    "rating_count": {
-                        "type": "integer",
-                        "example": 31,
-                        "nullable": true
-                    },
-                    "version": {
-                        "type": "string",
-                        "example": "1.2.4",
-                        "nullable": true
-                    },
-                    "file_size_bytes": {
-                        "type": "integer",
-                        "example": 73822208,
-                        "nullable": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "listings": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ListingResource"
-                        }
-                    },
-                    "versions": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/VersionResource"
-                        }
-                    },
-                    "changes": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/StoreListingChange"
-                        }
-                    },
-                    "competitors": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/CompetitorResource"
-                        }
+                        "type": "object"
                     }
-                },
-                "type": "object"
+                ]
             },
             "AppRankingResource": {
                 "properties": {
@@ -2520,98 +2451,66 @@
             },
             "AppResource": {
                 "required": [
-                    "id",
-                    "name",
-                    "platform",
-                    "external_id",
-                    "created_at"
+                    "name"
                 ],
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/App"
                     },
-                    "name": {
-                        "type": "string",
-                        "example": "Instagram"
-                    },
-                    "platform": {
-                        "$ref": "#/components/schemas/Platform"
-                    },
-                    "external_id": {
-                        "type": "string",
-                        "example": "389801252"
-                    },
-                    "publisher": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/Publisher"
+                    {
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "example": "Instagram"
+                            },
+                            "rating": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 4.68,
+                                "nullable": true
+                            },
+                            "rating_count": {
+                                "type": "integer",
+                                "example": 31,
+                                "nullable": true
+                            },
+                            "version": {
+                                "type": "string",
+                                "example": "1.2.4",
+                                "nullable": true
+                            },
+                            "is_tracked": {
+                                "type": "boolean",
+                                "example": false
                             }
-                        ],
-                        "nullable": true
-                    },
-                    "category": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/StoreCategory"
-                            }
-                        ],
-                        "nullable": true
-                    },
-                    "icon_url": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "rating": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 4.68,
-                        "nullable": true
-                    },
-                    "rating_count": {
-                        "type": "integer",
-                        "example": 31,
-                        "nullable": true
-                    },
-                    "version": {
-                        "type": "string",
-                        "example": "1.2.4",
-                        "nullable": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
+                        },
+                        "type": "object"
                     }
-                },
-                "type": "object"
+                ]
             },
             "CompetitorResource": {
                 "required": [
-                    "id",
-                    "relationship",
                     "app"
                 ],
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/AppCompetitor"
                     },
-                    "relationship": {
-                        "$ref": "#/components/schemas/CompetitorRelationship"
-                    },
-                    "notes": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "app": {
-                        "$ref": "#/components/schemas/AppResource"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
+                    {
+                        "properties": {
+                            "notes": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "app": {
+                                "$ref": "#/components/schemas/AppResource"
+                            }
+                        },
+                        "type": "object"
                     }
-                },
-                "type": "object"
+                ]
             },
             "KeywordCompareResource": {
                 "required": [
@@ -2786,63 +2685,47 @@
                 ]
             },
             "ChangeResource": {
-                "required": [
-                    "id",
-                    "field_changed",
-                    "detected_at"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/StoreListingChange"
                     },
-                    "app": {
+                    {
                         "properties": {
-                            "id": {
-                                "type": "integer"
+                            "app": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "platform": {
+                                        "type": "string"
+                                    },
+                                    "external_id": {
+                                        "type": "string"
+                                    },
+                                    "icon_url": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
                             },
-                            "name": {
-                                "type": "string"
+                            "version": {
+                                "type": "string",
+                                "nullable": true
                             },
-                            "platform": {
-                                "type": "string"
-                            },
-                            "external_id": {
-                                "type": "string"
-                            },
-                            "icon_url": {
+                            "previous_version": {
                                 "type": "string",
                                 "nullable": true
                             }
                         },
                         "type": "object"
-                    },
-                    "version_id": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "locale": {
-                        "type": "string",
-                        "example": "en-US"
-                    },
-                    "field_changed": {
-                        "type": "string",
-                        "example": "description"
-                    },
-                    "old_value": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "new_value": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "detected_at": {
-                        "type": "string",
-                        "format": "date-time"
                     }
-                },
-                "type": "object"
+                ]
             },
             "DashboardResource": {
                 "properties": {
@@ -3014,6 +2897,19 @@
                         "type": "string",
                         "example": "389801252"
                     },
+                    "display_name": {
+                        "type": "string",
+                        "example": "Instagram",
+                        "nullable": true
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "origin_country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
                     "supported_locales": {
                         "type": "array",
                         "items": {
@@ -3027,6 +2923,10 @@
                         "nullable": true
                     },
                     "is_free": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "is_available": {
                         "type": "boolean",
                         "example": true
                     },
@@ -3058,6 +2958,12 @@
                 "type": "object"
             },
             "AppCompetitor": {
+                "required": [
+                    "id",
+                    "app_id",
+                    "competitor_app_id",
+                    "relationship"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -3071,6 +2977,14 @@
                     },
                     "relationship": {
                         "$ref": "#/components/schemas/CompetitorRelationship"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -3359,6 +3273,89 @@
                         "nullable": true
                     },
                     "detected_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "SyncStatus": {
+                "required": [
+                    "id",
+                    "app_id",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "app_id": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "queued",
+                            "processing",
+                            "completed",
+                            "failed"
+                        ]
+                    },
+                    "current_step": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "identity",
+                            "listings",
+                            "metrics",
+                            "finalize",
+                            "reconciling"
+                        ]
+                    },
+                    "progress_done": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "progress_total": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "failed_items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        },
+                        "nullable": true
+                    },
+                    "error_message": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "job_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "started_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "completed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "next_retry_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
                         "type": "string",
                         "format": "date-time"
                     }

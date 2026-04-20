@@ -5,7 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(
+    schema: 'SyncStatus',
+    required: ['id', 'app_id', 'status'],
+    properties: [
+        new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'app_id', type: 'integer'),
+        new OA\Property(property: 'status', type: 'string', enum: ['queued', 'processing', 'completed', 'failed']),
+        new OA\Property(property: 'current_step', type: 'string', enum: ['identity', 'listings', 'metrics', 'finalize', 'reconciling'], nullable: true),
+        new OA\Property(property: 'progress_done', type: 'integer', example: 0),
+        new OA\Property(property: 'progress_total', type: 'integer', example: 0),
+        new OA\Property(property: 'failed_items', type: 'array', nullable: true, items: new OA\Items(type: 'object')),
+        new OA\Property(property: 'error_message', type: 'string', nullable: true),
+        new OA\Property(property: 'job_id', type: 'string', nullable: true),
+        new OA\Property(property: 'started_at', type: 'string', format: 'date-time', nullable: true),
+        new OA\Property(property: 'completed_at', type: 'string', format: 'date-time', nullable: true),
+        new OA\Property(property: 'next_retry_at', type: 'string', format: 'date-time', nullable: true),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'updated_at', type: 'string', format: 'date-time'),
+    ],
+)]
 #[Fillable([
     'app_id',
     'status', 'current_step',

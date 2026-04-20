@@ -11,22 +11,17 @@ use OpenApi\Attributes as OA;
 /** @mixin StoreListingChange */
 #[OA\Schema(
     schema: 'ChangeResource',
-    required: ['id', 'field_changed', 'detected_at'],
+    allOf: [new OA\Schema(ref: '#/components/schemas/StoreListingChange')],
     properties: [
-        new OA\Property(property: 'id', type: 'integer', example: 1),
-        new OA\Property(property: 'app', properties: [
+        new OA\Property(property: 'app', type: 'object', nullable: true, properties: [
             new OA\Property(property: 'id', type: 'integer'),
             new OA\Property(property: 'name', type: 'string'),
             new OA\Property(property: 'platform', type: 'string'),
             new OA\Property(property: 'external_id', type: 'string'),
             new OA\Property(property: 'icon_url', type: 'string', nullable: true),
-        ], type: 'object'),
-        new OA\Property(property: 'version_id', type: 'integer', nullable: true),
-        new OA\Property(property: 'locale', type: 'string', example: 'en-US'),
-        new OA\Property(property: 'field_changed', type: 'string', example: 'description'),
-        new OA\Property(property: 'old_value', type: 'string', nullable: true),
-        new OA\Property(property: 'new_value', type: 'string', nullable: true),
-        new OA\Property(property: 'detected_at', type: 'string', format: 'date-time'),
+        ]),
+        new OA\Property(property: 'version', type: 'string', nullable: true),
+        new OA\Property(property: 'previous_version', type: 'string', nullable: true),
     ],
 )]
 class ChangeResource extends BaseResource
