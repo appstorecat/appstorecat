@@ -34,6 +34,19 @@ async function scrapeAppStorePage(
     rating_breakdown: null as Record<string, number> | null,
   };
 
+  const warn = (reason: string, extra: Record<string, unknown> = {}) => {
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        source: "scrapeAppStorePage",
+        track_id: trackId,
+        country,
+        reason,
+        ...extra,
+      })
+    );
+  };
+
   try {
     const url = `https://apps.apple.com/${country}/app/id${trackId}`;
     const response = await fetch(url, {
@@ -44,20 +57,32 @@ async function scrapeAppStorePage(
       },
     });
 
-    if (!response.ok) return result;
+    if (!response.ok) {
+      warn("http_not_ok", { status: response.status });
+      return result;
+    }
 
     const html = await response.text();
     const match = html.match(
       /<script[^>]*id="serialized-server-data"[^>]*>(.+?)<\/script>/s
     );
-    if (!match) return result;
+    if (!match) {
+      warn("serialized_server_data_missing");
+      return result;
+    }
 
     const serverData = JSON.parse(match[1].trim());
-    if (!serverData) return result;
+    if (!serverData) {
+      warn("serialized_server_data_empty");
+      return result;
+    }
 
     const appData =
       serverData?.data?.[0]?.data ?? serverData?.[0]?.data ?? {};
-    if (!appData || Object.keys(appData).length === 0) return result;
+    if (!appData || Object.keys(appData).length === 0) {
+      warn("app_data_empty");
+      return result;
+    }
 
     // Subtitle
     result.subtitle = appData?.lockup?.subtitle ?? null;
@@ -102,9 +127,13 @@ async function scrapeAppStorePage(
 
     // Rating breakdown
     const ratingsItems = mapping?.productRatings?.items ?? [];
-    if (ratingsItems.length > 0) {
+    if (ratingsItems.length === 0) {
+      warn("product_ratings_missing");
+    } else {
       const counts = ratingsItems[0]?.ratingCounts;
-      if (counts && counts.length === 5) {
+      if (!counts || counts.length !== 5) {
+        warn("rating_counts_malformed", { length: counts?.length ?? null });
+      } else {
         result.rating_breakdown = {
           "5": counts[0],
           "4": counts[1],
@@ -114,8 +143,11 @@ async function scrapeAppStorePage(
         };
       }
     }
-  } catch {
-    // Silently fail — web scraping is a best-effort fallback
+  } catch (err) {
+    // Web scraping is a best-effort fallback; log and return whatever we got.
+    warn("exception", {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 
   return result;
@@ -243,6 +275,21 @@ export async function fetchMetrics(appId: string, country: string = "us", lang?:
   // Use web-scraped breakdown if package didn't provide one
   if (!ratingBreakdown && webData.rating_breakdown) {
     ratingBreakdown = webData.rating_breakdown;
+  }
+
+  if (!ratingBreakdown && (info.reviews ?? 0) > 0) {
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        source: "fetchMetrics",
+        track_id: appId,
+        country,
+        reason: "rating_breakdown_missing_both_sources",
+        rating_count: info.reviews ?? 0,
+        has_histogram: Boolean(info.histogram),
+        has_web_breakdown: Boolean(webData.rating_breakdown),
+      })
+    );
   }
 
   return {

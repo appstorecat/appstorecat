@@ -7,6 +7,8 @@ from datetime import date
 import requests
 from gplay_scraper import GPlayScraper
 
+logger = logging.getLogger(__name__)
+
 from .schemas import (
     AppIdentity,
     AppMetrics,
@@ -131,7 +133,11 @@ def fetch_localized_listings(
         try:
             listing = fetch_listing(app_id, locale=locale)
             listings.append(listing)
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "fetch_localized_listings: locale failed",
+                extra={"app_id": app_id, "locale": locale, "reason": str(exc)},
+            )
             continue
 
     return LocalizedListingsResponse(listings=listings)
@@ -156,6 +162,16 @@ def fetch_metrics(app_id: str, country: str = "us") -> AppMetrics:
             "2": histogram[1],
             "1": histogram[0],
         }
+    elif (info.get("ratings") or 0) > 0:
+        logger.warning(
+            "fetch_metrics: rating_breakdown missing despite non-zero ratings",
+            extra={
+                "app_id": app_id,
+                "country": country,
+                "rating_count": info.get("ratings"),
+                "histogram_len": len(histogram) if histogram else 0,
+            },
+        )
 
     return AppMetrics(
         rating=info.get("score", 0) or 0,
@@ -173,11 +189,18 @@ def _scrape_developer_page(developer_id: str) -> list[str]:
     try:
         resp = requests.get(url, headers=headers, timeout=15)
         if resp.status_code != 200:
+            logger.warning(
+                "_scrape_developer_page: non-200",
+                extra={"developer_id": developer_id, "status": resp.status_code},
+            )
             return []
         app_ids = re.findall(r"details\?id=([a-zA-Z0-9._]+)", resp.text)
         return list(dict.fromkeys(app_ids))
     except Exception as e:
-        logging.warning(f"Developer page scrape failed: {e}")
+        logger.warning(
+            "_scrape_developer_page: exception",
+            extra={"developer_id": developer_id, "reason": str(e)},
+        )
         return []
 
 
@@ -190,6 +213,10 @@ def fetch_developer_apps(developer_id: str) -> DeveloperAppsResponse:
         try:
             info = scraper.app_get_fields(app_id, DEVELOPER_FIELDS + ["free"])
             if not info:
+                logger.warning(
+                    "fetch_developer_apps: empty info",
+                    extra={"developer_id": developer_id, "app_id": app_id},
+                )
                 continue
             apps.append(
                 DeveloperApp(
@@ -205,7 +232,15 @@ def fetch_developer_apps(developer_id: str) -> DeveloperAppsResponse:
                     category_id=info.get("genreId"),
                 )
             )
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "fetch_developer_apps: enrichment failed",
+                extra={
+                    "developer_id": developer_id,
+                    "app_id": app_id,
+                    "reason": str(exc),
+                },
+            )
             continue
 
     return DeveloperAppsResponse(apps=apps)
