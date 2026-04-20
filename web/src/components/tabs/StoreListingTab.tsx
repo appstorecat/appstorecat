@@ -11,7 +11,7 @@ interface Screenshot {
 interface StoreListingData {
   id: number
   version_id: number | null
-  language: string
+  locale: string
   title: string
   subtitle: string | null
   description: string
@@ -36,11 +36,11 @@ interface StoreListingTabProps {
   versions: AppVersionData[]
   platform: string
   externalId: string
-  selectedLanguage: string
+  selectedLocale: string
   selectedVersion: string
 }
 
-export default function StoreListingTab({ listings, versions, platform, externalId, selectedLanguage, selectedVersion }: StoreListingTabProps) {
+export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedVersion }: StoreListingTabProps) {
   const sortedVersions = useMemo(
     () => [...versions].sort((a, b) => b.id - a.id),
     [versions],
@@ -56,8 +56,8 @@ export default function StoreListingTab({ listings, versions, platform, external
   }, [selectedVersionId, latestVersionId, listings])
 
   const currentListing = useMemo(
-    () => filteredListings.find((l) => l.language === selectedLanguage) ?? filteredListings[0],
-    [filteredListings, selectedLanguage],
+    () => filteredListings.find((l) => l.locale === selectedLocale) ?? filteredListings[0],
+    [filteredListings, selectedLocale],
   )
 
   if (listings.length === 0) {

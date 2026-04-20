@@ -64,7 +64,7 @@ export default function Trending() {
 
   const platform = searchParams.get('platform') || 'ios'
   const collection = searchParams.get('collection') || 'top_free'
-  const country = searchParams.get('country') || 'us'
+  const countryCode = searchParams.get('country_code') || 'us'
   const categoryId = searchParams.get('category_id') || ''
 
   const setParam = useCallback((key: string, value: string) => {
@@ -97,14 +97,14 @@ export default function Trending() {
   })
 
   const { data: chart, isLoading } = useQuery<ChartResponse>({
-    queryKey: ['charts', platform, collection, country, categoryId],
+    queryKey: ['charts', platform, collection, countryCode, categoryId],
     queryFn: () =>
       axios
         .get('/charts', {
           params: {
             platform,
             collection,
-            country,
+            country_code: countryCode,
             ...(categoryId ? { category_id: categoryId } : {}),
           },
         })
@@ -134,7 +134,7 @@ export default function Trending() {
       <div className="flex flex-wrap items-center gap-3">
         <PlatformSwitcher value={platform} onChange={setPlatform} />
 
-        <CountrySelect value={country} onChange={(v) => setParam('country', v)} />
+        <CountrySelect value={countryCode} onChange={(v) => setParam('country_code', v)} />
 
         <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
           {([

@@ -12,7 +12,7 @@ export interface ChangeResource {
   app?: ChangeResourceApp;
   /** @nullable */
   version_id?: number | null;
-  language?: string;
+  locale?: string;
   field_changed: string;
   /** @nullable */
   old_value?: string | null;

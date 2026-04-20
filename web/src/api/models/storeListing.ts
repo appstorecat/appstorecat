@@ -10,7 +10,7 @@ export interface StoreListing {
   id: number;
   /** @nullable */
   version_id?: number | null;
-  language: string;
+  locale: string;
   title?: string;
   /** @nullable */
   subtitle?: string | null;

@@ -66,32 +66,32 @@ export default function AppsShow() {
   }
   const { data: countries } = useCountries()
 
-  const selectedCountry = searchParams.get('country') || 'us'
-  const selectedLanguage = searchParams.get('language') || ''
+  const selectedCountry = searchParams.get('country_code') || 'us'
+  const selectedLocale = searchParams.get('locale') || ''
 
   const currentCountry = countries?.find((c) => c.code === selectedCountry)
-  const languagesForCountry = (platform === 'ios' ? currentCountry?.ios_languages : currentCountry?.android_languages) ?? []
-  const effectiveLanguage = selectedLanguage && languagesForCountry.includes(selectedLanguage)
-    ? selectedLanguage
-    : languagesForCountry[0] ?? ''
+  const localesForCountry = (platform === 'ios' ? currentCountry?.ios_languages : currentCountry?.android_languages) ?? []
+  const effectiveLocale = selectedLocale && localesForCountry.includes(selectedLocale)
+    ? selectedLocale
+    : localesForCountry[0] ?? ''
 
   const setSelectedCountry = (code: string) => {
     const country = countries?.find((c) => c.code === code)
-    const langs = (platform === 'ios' ? country?.ios_languages : country?.android_languages) ?? []
+    const locales = (platform === 'ios' ? country?.ios_languages : country?.android_languages) ?? []
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
-      if (code === 'us') next.delete('country')
-      else next.set('country', code)
-      if (langs.length > 0) next.set('language', langs[0])
-      else next.delete('language')
+      if (code === 'us') next.delete('country_code')
+      else next.set('country_code', code)
+      if (locales.length > 0) next.set('locale', locales[0])
+      else next.delete('locale')
       return next
     }, { replace: true })
   }
 
-  const setSelectedLanguage = (lang: string) => {
+  const setSelectedLocale = (locale: string) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
-      next.set('language', lang)
+      next.set('locale', locale)
       return next
     }, { replace: true })
   }
@@ -253,11 +253,11 @@ export default function AppsShow() {
           {(app.listings?.length > 0 || app.versions?.length > 0) && (
             <div className="flex items-center gap-2">
               <CountrySelect value={selectedCountry} onChange={setSelectedCountry} className="w-[160px]" />
-              {languagesForCountry.length > 1 && (
+              {localesForCountry.length > 1 && (
                 <LanguageSelect
-                  languages={languagesForCountry}
-                  value={effectiveLanguage}
-                  onChange={setSelectedLanguage}
+                  languages={localesForCountry}
+                  value={effectiveLocale}
+                  onChange={setSelectedLocale}
                   className="w-[150px]"
                 />
               )}
@@ -333,7 +333,7 @@ export default function AppsShow() {
                     versions={app.versions ?? []}
                     platform={app.platform}
                     externalId={app.external_id}
-                    selectedLanguage={effectiveLanguage}
+                    selectedLocale={effectiveLocale}
                     selectedVersion={selectedVersion}
                   />
                 )}
@@ -352,7 +352,7 @@ export default function AppsShow() {
                     platform={app.platform}
                     externalId={app.external_id}
                     versions={app.versions ?? []}
-                    selectedLanguage={effectiveLanguage}
+                    selectedLocale={effectiveLocale}
                     selectedVersion={selectedVersion}
                     allApps={competitorAppsForCompare ?? []}
                   />

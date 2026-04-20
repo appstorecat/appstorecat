@@ -518,7 +518,7 @@
                         }
                     },
                     {
-                        "name": "country",
+                        "name": "country_code",
                         "in": "query",
                         "required": true,
                         "schema": {
@@ -527,7 +527,7 @@
                         }
                     },
                     {
-                        "name": "language",
+                        "name": "locale",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -543,6 +543,102 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ListingResource"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/sync": {
+            "post": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Trigger a sync job for this app",
+                "operationId": "syncApp",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sync queued or already in progress",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SyncStatusResource"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/apps/{platform}/{externalId}/sync-status": {
+            "get": {
+                "tags": [
+                    "Apps"
+                ],
+                "summary": "Get current sync status for this app",
+                "operationId": "appSyncStatus",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "externalId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sync status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SyncStatusResource"
                                 }
                             }
                         }
@@ -729,7 +825,7 @@
                         }
                     },
                     {
-                        "name": "country",
+                        "name": "country_code",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -988,7 +1084,7 @@
                         }
                     },
                     {
-                        "name": "language",
+                        "name": "locale",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -1097,7 +1193,7 @@
                         }
                     },
                     {
-                        "name": "language",
+                        "name": "locale",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -1125,223 +1221,6 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/KeywordCompareResource"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "App not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/apps/{platform}/{externalId}/reviews": {
-            "get": {
-                "tags": [
-                    "Apps"
-                ],
-                "summary": "List reviews for an app",
-                "operationId": "appReviews",
-                "parameters": [
-                    {
-                        "name": "platform",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "ios",
-                                "android"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "externalId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "country_code",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "example": "US"
-                        }
-                    },
-                    {
-                        "name": "rating",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "enum": [
-                                1,
-                                2,
-                                3,
-                                4,
-                                5
-                            ]
-                        }
-                    },
-                    {
-                        "name": "sort",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "latest",
-                                "oldest",
-                                "highest",
-                                "lowest"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "example": 25
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Paginated review list",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ReviewResource"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "App not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/apps/{platform}/{externalId}/reviews/summary": {
-            "get": {
-                "tags": [
-                    "Apps"
-                ],
-                "summary": "Get review summary and rating distribution for an app",
-                "operationId": "appReviewsSummary",
-                "parameters": [
-                    {
-                        "name": "platform",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "ios",
-                                "android"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "externalId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "country_code",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "example": "US"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Review summary with rating distribution",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "total_reviews": {
-                                            "type": "integer",
-                                            "example": 150
-                                        },
-                                        "average_rating": {
-                                            "type": "number",
-                                            "format": "float",
-                                            "example": 4.2
-                                        },
-                                        "distribution": {
-                                            "properties": {
-                                                "1": {
-                                                    "type": "integer",
-                                                    "example": 5
-                                                },
-                                                "2": {
-                                                    "type": "integer",
-                                                    "example": 10
-                                                },
-                                                "3": {
-                                                    "type": "integer",
-                                                    "example": 20
-                                                },
-                                                "4": {
-                                                    "type": "integer",
-                                                    "example": 45
-                                                },
-                                                "5": {
-                                                    "type": "integer",
-                                                    "example": 70
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "countries": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            },
-                                            "example": [
-                                                "US",
-                                                "TR",
-                                                "DE"
-                                            ]
-                                        }
-                                    },
-                                    "type": "object"
                                 }
                             }
                         }
@@ -1503,7 +1382,7 @@
                         }
                     },
                     {
-                        "name": "country",
+                        "name": "country_code",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -1579,10 +1458,6 @@
                                             "type": "integer",
                                             "example": 5
                                         },
-                                        "total_reviews": {
-                                            "type": "integer",
-                                            "example": 143
-                                        },
                                         "total_versions": {
                                             "type": "integer",
                                             "example": 12
@@ -1590,36 +1465,6 @@
                                         "total_changes": {
                                             "type": "integer",
                                             "example": 8
-                                        },
-                                        "recent_reviews": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "app_name": {
-                                                        "type": "string"
-                                                    },
-                                                    "author": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    },
-                                                    "title": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    },
-                                                    "rating": {
-                                                        "type": "integer"
-                                                    },
-                                                    "review_date": {
-                                                        "type": "string",
-                                                        "format": "date",
-                                                        "nullable": true
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
                                         },
                                         "recent_changes": {
                                             "type": "array",
@@ -1634,7 +1479,7 @@
                                                     "field_changed": {
                                                         "type": "string"
                                                     },
-                                                    "language": {
+                                                    "locale": {
                                                         "type": "string"
                                                     },
                                                     "detected_at": {
@@ -1823,7 +1668,7 @@
                         }
                     },
                     {
-                        "name": "country",
+                        "name": "country_code",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -2275,7 +2120,7 @@
                             "android"
                         ]
                     },
-                    "country": {
+                    "country_code": {
                         "type": "string",
                         "example": "us",
                         "maxLength": 2,
@@ -2309,9 +2154,9 @@
                             "type": "integer"
                         }
                     },
-                    "language": {
+                    "locale": {
                         "type": "string",
-                        "example": "us"
+                        "example": "en-US"
                     },
                     "ngram": {
                         "type": "integer",
@@ -2328,9 +2173,9 @@
             },
             "KeywordIndexRequest": {
                 "properties": {
-                    "language": {
+                    "locale": {
                         "type": "string",
-                        "example": "us"
+                        "example": "en-US"
                     },
                     "ngram": {
                         "type": "integer",
@@ -2345,40 +2190,6 @@
                     "version_id": {
                         "type": "integer",
                         "example": 1
-                    }
-                },
-                "type": "object"
-            },
-            "ReviewIndexRequest": {
-                "properties": {
-                    "country_code": {
-                        "type": "string",
-                        "example": "US"
-                    },
-                    "rating": {
-                        "type": "integer",
-                        "example": 5,
-                        "enum": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5
-                        ]
-                    },
-                    "sort": {
-                        "type": "string",
-                        "example": "latest",
-                        "enum": [
-                            "latest",
-                            "oldest",
-                            "highest",
-                            "lowest"
-                        ]
-                    },
-                    "per_page": {
-                        "type": "integer",
-                        "example": 25
                     }
                 },
                 "type": "object"
@@ -2464,7 +2275,7 @@
                             "android"
                         ]
                     },
-                    "country": {
+                    "country_code": {
                         "type": "string",
                         "example": "us",
                         "maxLength": 2,
@@ -2661,8 +2472,8 @@
             },
             "AppRankingResource": {
                 "properties": {
-                    "country": {
-                        "description": "Expects $resource as array with keys:\n country, collection, category, rank, previous_rank, status, snapshot_date.",
+                    "country_code": {
+                        "description": "Expects $resource as array with keys:\n country_code, collection, category, rank, previous_rank, status, snapshot_date.",
                         "type": "string"
                     },
                     "collection": {
@@ -2868,7 +2679,7 @@
                     "density"
                 ],
                 "properties": {
-                    "language": {
+                    "locale": {
                         "type": "string",
                         "example": "en-US"
                     },
@@ -2899,32 +2710,70 @@
                     }
                 ]
             },
-            "ReviewResource": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Review"
-                    }
-                ]
-            },
-            "ReviewSummaryResource": {
+            "SyncStatusResource": {
                 "properties": {
-                    "total_reviews": {
-                        "type": "integer",
-                        "example": 150
+                    "app_id": {
+                        "type": "integer"
                     },
-                    "average_rating": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 4.2
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "queued",
+                            "processing",
+                            "completed",
+                            "failed"
+                        ]
                     },
-                    "distribution": {
+                    "current_step": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "progress": {
+                        "properties": {
+                            "done": {
+                                "type": "integer"
+                            },
+                            "total": {
+                                "type": "integer"
+                            }
+                        },
                         "type": "object"
                     },
-                    "countries": {
+                    "failed_items": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "type": "object"
                         }
+                    },
+                    "failed_items_count": {
+                        "type": "integer"
+                    },
+                    "error_message": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "job_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "started_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "completed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "next_retry_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "elapsed_ms": {
+                        "type": "integer",
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -2972,9 +2821,9 @@
                         "type": "integer",
                         "nullable": true
                     },
-                    "language": {
+                    "locale": {
                         "type": "string",
-                        "example": "us"
+                        "example": "en-US"
                     },
                     "field_changed": {
                         "type": "string",
@@ -3001,10 +2850,6 @@
                         "type": "integer",
                         "example": 5
                     },
-                    "total_reviews": {
-                        "type": "integer",
-                        "example": 143
-                    },
                     "total_versions": {
                         "type": "integer",
                         "example": 12
@@ -3012,12 +2857,6 @@
                     "total_changes": {
                         "type": "integer",
                         "example": 8
-                    },
-                    "recent_reviews": {
-                        "type": "array",
-                        "items": {
-                            "type": "object"
-                        }
                     },
                     "recent_changes": {
                         "type": "array",
@@ -3242,6 +3081,10 @@
                         "type": "integer",
                         "example": 1
                     },
+                    "country_code": {
+                        "type": "string",
+                        "example": "us"
+                    },
                     "date": {
                         "type": "string",
                         "format": "date",
@@ -3264,6 +3107,16 @@
                         "type": "integer",
                         "nullable": true
                     },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 0
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "USD",
+                        "nullable": true
+                    },
                     "installs_range": {
                         "type": "string",
                         "example": "1,000,000+",
@@ -3273,6 +3126,10 @@
                         "type": "integer",
                         "example": 73822208,
                         "nullable": true
+                    },
+                    "is_available": {
+                        "type": "boolean",
+                        "example": true
                     }
                 },
                 "type": "object"
@@ -3366,51 +3223,6 @@
                 },
                 "type": "object"
             },
-            "Review": {
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "country_code": {
-                        "type": "string",
-                        "example": "US"
-                    },
-                    "external_id": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "author": {
-                        "type": "string",
-                        "example": "John",
-                        "nullable": true
-                    },
-                    "title": {
-                        "type": "string",
-                        "example": "Great app",
-                        "nullable": true
-                    },
-                    "body": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "rating": {
-                        "type": "integer",
-                        "example": 5
-                    },
-                    "review_date": {
-                        "type": "string",
-                        "format": "date",
-                        "nullable": true
-                    },
-                    "app_version": {
-                        "type": "string",
-                        "example": "1.2.4",
-                        "nullable": true
-                    }
-                },
-                "type": "object"
-            },
             "StoreCategory": {
                 "required": [
                     "id",
@@ -3440,7 +3252,7 @@
             "StoreListing": {
                 "required": [
                     "id",
-                    "language"
+                    "locale"
                 ],
                 "properties": {
                     "id": {
@@ -3451,7 +3263,7 @@
                         "type": "integer",
                         "nullable": true
                     },
-                    "language": {
+                    "locale": {
                         "type": "string",
                         "example": "tr"
                     },
@@ -3513,9 +3325,9 @@
                         "type": "integer",
                         "nullable": true
                     },
-                    "language": {
+                    "locale": {
                         "type": "string",
-                        "example": "us"
+                        "example": "en-US"
                     },
                     "field_changed": {
                         "type": "string",

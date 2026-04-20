@@ -13,7 +13,7 @@ import ChangeCard from '@/components/ChangeCard'
 interface ListingData {
   id: number
   version_id: number | null
-  lang: string
+  locale: string
   title: string
   subtitle: string | null
   description: string
@@ -62,8 +62,8 @@ function computeDiffs(
 ): FieldDiff[] {
   const diffs: FieldDiff[] = []
 
-  const oldByCountry = new Map(oldListings.map((l) => [l.language, l]))
-  const newByCountry = new Map(newListings.map((l) => [l.language, l]))
+  const oldByCountry = new Map(oldListings.map((l) => [l.locale, l]))
+  const newByCountry = new Map(newListings.map((l) => [l.locale, l]))
 
   const allLanguages = new Set([...oldByCountry.keys(), ...newByCountry.keys()])
 
@@ -72,12 +72,12 @@ function computeDiffs(
     const newL = newByCountry.get(cc)
 
     if (!oldL && newL) {
-      diffs.push({ lang: cc, field: 'language_added', oldValue: null, newValue: newL.title })
+      diffs.push({ lang: cc, field: 'locale_added', oldValue: null, newValue: newL.title })
       continue
     }
 
     if (oldL && !newL) {
-      diffs.push({ lang: cc, field: 'language_removed', oldValue: oldL.title, newValue: null })
+      diffs.push({ lang: cc, field: 'locale_removed', oldValue: oldL.title, newValue: null })
       continue
     }
 

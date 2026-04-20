@@ -10,8 +10,8 @@ import type { AppRankingResourceStatus } from './appRankingResourceStatus';
 
 export interface AppRankingResource {
   /** Expects $resource as array with keys:
-   country, collection, category, rank, previous_rank, status, snapshot_date. */
-  country?: string;
+   country_code, collection, category, rank, previous_rank, status, snapshot_date. */
+  country_code?: string;
   collection?: string;
   /** @nullable */
   category?: AppRankingResourceCategory;

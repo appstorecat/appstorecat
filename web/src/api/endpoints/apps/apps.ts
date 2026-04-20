@@ -30,9 +30,6 @@ import type {
   AppListingParams,
   AppRankingResource,
   AppResource,
-  AppReviewsParams,
-  AppReviewsSummary200,
-  AppReviewsSummaryParams,
   CompareKeywordsParams,
   CompetitorResource,
   KeywordCompareResource,
@@ -40,10 +37,10 @@ import type {
   ListAppRankingsParams,
   ListAppsParams,
   ListingResource,
-  ReviewResource,
   SearchAppsParams,
   StoreAppRequest,
-  StoreCompetitorRequest
+  StoreCompetitorRequest,
+  SyncStatusResource
 } from '../../models';
 
 
@@ -522,6 +519,219 @@ export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getAppListingQueryOptions(platform,externalId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Trigger a sync job for this app
+ */
+export type syncAppResponse200 = {
+  data: SyncStatusResource
+  status: 200
+}
+
+export type syncAppResponseSuccess = (syncAppResponse200) & {
+  headers: Headers;
+};
+;
+
+export type syncAppResponse = (syncAppResponseSuccess)
+
+export const getSyncAppUrl = (platform: 'ios' | 'android',
+    externalId: string,) => {
+
+
+
+
+  return `/api/v1/apps/${platform}/${externalId}/sync`
+}
+
+export const syncApp = async (platform: 'ios' | 'android',
+    externalId: string, options?: RequestInit): Promise<syncAppResponse> => {
+
+  const res = await fetch(getSyncAppUrl(platform,externalId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: syncAppResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as syncAppResponse
+}
+
+
+
+
+export const getSyncAppMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext> => {
+
+const mutationKey = ['syncApp'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncApp>>, {platform: 'ios' | 'android';externalId: string}> = (props) => {
+          const {platform,externalId} = props ?? {};
+
+          return  syncApp(platform,externalId,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SyncAppMutationResult = NonNullable<Awaited<ReturnType<typeof syncApp>>>
+
+    export type SyncAppMutationError = unknown
+
+    /**
+ * @summary Trigger a sync job for this app
+ */
+export const useSyncApp = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof syncApp>>,
+        TError,
+        {platform: 'ios' | 'android';externalId: string},
+        TContext
+      > => {
+      return useMutation(getSyncAppMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Get current sync status for this app
+ */
+export type appSyncStatusResponse200 = {
+  data: SyncStatusResource
+  status: 200
+}
+
+export type appSyncStatusResponseSuccess = (appSyncStatusResponse200) & {
+  headers: Headers;
+};
+;
+
+export type appSyncStatusResponse = (appSyncStatusResponseSuccess)
+
+export const getAppSyncStatusUrl = (platform: 'ios' | 'android',
+    externalId: string,) => {
+
+
+
+
+  return `/api/v1/apps/${platform}/${externalId}/sync-status`
+}
+
+export const appSyncStatus = async (platform: 'ios' | 'android',
+    externalId: string, options?: RequestInit): Promise<appSyncStatusResponse> => {
+
+  const res = await fetch(getAppSyncStatusUrl(platform,externalId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: appSyncStatusResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as appSyncStatusResponse
+}
+
+
+
+
+
+export const getAppSyncStatusQueryKey = (platform: 'ios' | 'android',
+    externalId: string,) => {
+    return [
+    `/api/v1/apps/${platform}/${externalId}/sync-status`
+    ] as const;
+    }
+
+
+export const getAppSyncStatusQueryOptions = <TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAppSyncStatusQueryKey(platform,externalId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof appSyncStatus>>> = ({ signal }) => appSyncStatus(platform,externalId, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AppSyncStatusQueryResult = NonNullable<Awaited<ReturnType<typeof appSyncStatus>>>
+export type AppSyncStatusQueryError = unknown
+
+
+export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof appSyncStatus>>,
+          TError,
+          Awaited<ReturnType<typeof appSyncStatus>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof appSyncStatus>>,
+          TError,
+          Awaited<ReturnType<typeof appSyncStatus>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get current sync status for this app
+ */
+
+export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAppSyncStatusQueryOptions(platform,externalId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -1709,298 +1919,6 @@ export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeyw
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getCompareKeywordsQueryOptions(platform,externalId,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-/**
- * @summary List reviews for an app
- */
-export type appReviewsResponse200 = {
-  data: ReviewResource[]
-  status: 200
-}
-
-export type appReviewsResponse404 = {
-  data: void
-  status: 404
-}
-
-export type appReviewsResponseSuccess = (appReviewsResponse200) & {
-  headers: Headers;
-};
-export type appReviewsResponseError = (appReviewsResponse404) & {
-  headers: Headers;
-};
-
-export type appReviewsResponse = (appReviewsResponseSuccess | appReviewsResponseError)
-
-export const getAppReviewsUrl = (platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/reviews?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/reviews`
-}
-
-export const appReviews = async (platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsParams, options?: RequestInit): Promise<appReviewsResponse> => {
-
-  const res = await fetch(getAppReviewsUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: appReviewsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as appReviewsResponse
-}
-
-
-
-
-
-export const getAppReviewsQueryKey = (platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsParams,) => {
-    return [
-    `/api/v1/apps/${platform}/${externalId}/reviews`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getAppReviewsQueryOptions = <TData = Awaited<ReturnType<typeof appReviews>>, TError = void>(platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviews>>, TError, TData>>, fetch?: RequestInit}
-) => {
-
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAppReviewsQueryKey(platform,externalId,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appReviews>>> = ({ signal }) => appReviews(platform,externalId,params, { signal, ...fetchOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof appReviews>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AppReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof appReviews>>>
-export type AppReviewsQueryError = void
-
-
-export function useAppReviews<TData = Awaited<ReturnType<typeof appReviews>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params: undefined |  AppReviewsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviews>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof appReviews>>,
-          TError,
-          Awaited<ReturnType<typeof appReviews>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppReviews<TData = Awaited<ReturnType<typeof appReviews>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviews>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof appReviews>>,
-          TError,
-          Awaited<ReturnType<typeof appReviews>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppReviews<TData = Awaited<ReturnType<typeof appReviews>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviews>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary List reviews for an app
- */
-
-export function useAppReviews<TData = Awaited<ReturnType<typeof appReviews>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviews>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAppReviewsQueryOptions(platform,externalId,params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-
-
-
-/**
- * @summary Get review summary and rating distribution for an app
- */
-export type appReviewsSummaryResponse200 = {
-  data: AppReviewsSummary200
-  status: 200
-}
-
-export type appReviewsSummaryResponse404 = {
-  data: void
-  status: 404
-}
-
-export type appReviewsSummaryResponseSuccess = (appReviewsSummaryResponse200) & {
-  headers: Headers;
-};
-export type appReviewsSummaryResponseError = (appReviewsSummaryResponse404) & {
-  headers: Headers;
-};
-
-export type appReviewsSummaryResponse = (appReviewsSummaryResponseSuccess | appReviewsSummaryResponseError)
-
-export const getAppReviewsSummaryUrl = (platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsSummaryParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/reviews/summary?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/reviews/summary`
-}
-
-export const appReviewsSummary = async (platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsSummaryParams, options?: RequestInit): Promise<appReviewsSummaryResponse> => {
-
-  const res = await fetch(getAppReviewsSummaryUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: appReviewsSummaryResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as appReviewsSummaryResponse
-}
-
-
-
-
-
-export const getAppReviewsSummaryQueryKey = (platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsSummaryParams,) => {
-    return [
-    `/api/v1/apps/${platform}/${externalId}/reviews/summary`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getAppReviewsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof appReviewsSummary>>, TError = void>(platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviewsSummary>>, TError, TData>>, fetch?: RequestInit}
-) => {
-
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAppReviewsSummaryQueryKey(platform,externalId,params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appReviewsSummary>>> = ({ signal }) => appReviewsSummary(platform,externalId,params, { signal, ...fetchOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof appReviewsSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AppReviewsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof appReviewsSummary>>>
-export type AppReviewsSummaryQueryError = void
-
-
-export function useAppReviewsSummary<TData = Awaited<ReturnType<typeof appReviewsSummary>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params: undefined |  AppReviewsSummaryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviewsSummary>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof appReviewsSummary>>,
-          TError,
-          Awaited<ReturnType<typeof appReviewsSummary>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppReviewsSummary<TData = Awaited<ReturnType<typeof appReviewsSummary>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviewsSummary>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof appReviewsSummary>>,
-          TError,
-          Awaited<ReturnType<typeof appReviewsSummary>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAppReviewsSummary<TData = Awaited<ReturnType<typeof appReviewsSummary>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviewsSummary>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get review summary and rating distribution for an app
- */
-
-export function useAppReviewsSummary<TData = Awaited<ReturnType<typeof appReviewsSummary>>, TError = void>(
- platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppReviewsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appReviewsSummary>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAppReviewsSummaryQueryOptions(platform,externalId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

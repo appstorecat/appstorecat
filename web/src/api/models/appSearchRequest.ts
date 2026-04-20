@@ -18,5 +18,5 @@ export interface AppSearchRequest {
      * @minLength 2
      * @maxLength 2
      */
-  country?: string;
+  country_code?: string;
 }

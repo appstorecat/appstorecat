@@ -57,7 +57,7 @@ interface KeywordsTabProps {
   platform: string
   externalId: string
   versions: AppVersionData[]
-  selectedLanguage: string
+  selectedLocale: string
   selectedVersion: string
   allApps: { id: number; name: string; icon_url?: string | null }[]
 }
@@ -101,7 +101,7 @@ function getDensityColor(density: number): string {
 
 // --- Main component ---
 
-export default function KeywordsTab({ platform, externalId, versions, selectedLanguage, selectedVersion, allApps }: KeywordsTabProps) {
+export default function KeywordsTab({ platform, externalId, versions, selectedLocale, selectedVersion, allApps }: KeywordsTabProps) {
   const sortedVersions = useMemo(() => [...versions].sort((a, b) => b.id - a.id), [versions])
   const latestVersionId = sortedVersions[0]?.id
   const selectedVersionId = selectedVersion === 'latest' ? String(latestVersionId ?? '') : selectedVersion
@@ -110,18 +110,18 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLa
   const [compareVersionIds, setCompareVersionIds] = useState<Record<number, number>>({})
 
   const { data: keywords, isLoading } = useQuery({
-    queryKey: ['keywords', platform, externalId, selectedVersionId, selectedLanguage, selectedNgram],
+    queryKey: ['keywords', platform, externalId, selectedVersionId, selectedLocale, selectedNgram],
     queryFn: () =>
       axios
         .get(`/apps/${platform}/${externalId}/keywords`, {
-          params: { version_id: selectedVersionId, language: selectedLanguage, ngram: selectedNgram },
+          params: { version_id: selectedVersionId, locale: selectedLocale, ngram: selectedNgram },
         })
         .then((r) => r.data as KeywordData[]),
-    enabled: !!selectedVersionId && !!selectedLanguage,
+    enabled: !!selectedVersionId && !!selectedLocale,
   })
 
   const { data: compareData } = useQuery({
-    queryKey: ['keywords-compare', platform, externalId, compareAppIds, compareVersionIds, selectedLanguage, selectedNgram],
+    queryKey: ['keywords-compare', platform, externalId, compareAppIds, compareVersionIds, selectedLocale, selectedNgram],
     queryFn: () => {
       const versionIdsParam: Record<string, number> = {}
       compareAppIds.forEach((id) => {
@@ -132,13 +132,13 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLa
           params: {
             app_ids: compareAppIds,
             version_ids: Object.keys(versionIdsParam).length > 0 ? versionIdsParam : undefined,
-            language: selectedLanguage,
+            locale: selectedLocale,
             ngram: selectedNgram,
           },
         })
         .then((r) => r.data as CompareResponse)
     },
-    enabled: compareAppIds.length > 0 && !!selectedLanguage,
+    enabled: compareAppIds.length > 0 && !!selectedLocale,
   })
 
   const addCompareApp = (id: number) => {

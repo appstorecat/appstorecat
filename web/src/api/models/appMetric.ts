@@ -9,6 +9,7 @@ import type { AppMetricRatingBreakdown } from './appMetricRatingBreakdown';
 
 export interface AppMetric {
   id?: number;
+  country_code?: string;
   date?: string;
   rating?: number;
   rating_count?: number;
@@ -16,8 +17,12 @@ export interface AppMetric {
   rating_breakdown?: AppMetricRatingBreakdown;
   /** @nullable */
   rating_delta?: number | null;
+  price?: number;
+  /** @nullable */
+  currency?: string | null;
   /** @nullable */
   installs_range?: string | null;
   /** @nullable */
   file_size_bytes?: number | null;
+  is_available?: boolean;
 }

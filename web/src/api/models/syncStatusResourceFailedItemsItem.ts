@@ -6,7 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type AppListingParams = {
-country_code: string;
-locale?: string;
-};
+export type SyncStatusResourceFailedItemsItem = { [key: string]: unknown };
