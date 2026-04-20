@@ -661,43 +661,55 @@ statements cause long InnoDB undo log pressure.
 
 ## 4. Priority Matrix
 
-| # | Proposal | Priority | Impact | Effort |
-|---|----------|----------|--------|--------|
-| 1.1 | `app_metrics.price` nullable (unknown vs free) | High | Breaking | M |
-| 1.2 | `app_metrics.completeness` bitmask | High | Non-breaking | M |
-| 1.3 | Per-phase progress on `sync_statuses` | Medium | Non-breaking | M |
-| 1.4 | Redefine/drop `apps.is_available` | High | Breaking (Phase 2) | L |
-| 2.1a | Index `apps.last_synced_at` | High | Non-breaking | S |
-| 2.1b | Index `apps.discovered_from` | Low | Non-breaking | S |
-| 2.1c | Composite `apps(platform, is_available, last_synced_at)` | Medium | Non-breaking | S |
-| 2.1d | FK `apps.origin_country` → `countries.code` | Medium | Breaking | M |
-| 2.1e | Country-code lowercase normalisation | Low | Non-breaking | S |
-| 2.1f | Add `apps.bundle_id` | Low | Non-breaking | S |
-| 2.2a | `app_metrics.country_code` → `CHAR(2)` + FK | High | Breaking | M |
-| 2.2b | `app_metrics` partitioning | Low | Non-breaking | L |
-| 2.3a | Composite `app_store_listings(app_id, language, fetched_at)` | High | Non-breaking | S |
-| 2.3b | Index `app_store_listings.checksum` | Medium | Non-breaking | S |
-| 2.3c | FULLTEXT on `title`, `description` | Medium | Non-breaking | M |
-| 2.4a | Index `app_store_listing_changes(app_id, field_changed, detected_at)` | Medium | Non-breaking | S |
-| 2.4b | `app_store_listing_changes` partitioning | Low | Non-breaking | L |
-| 2.5 | Index `app_versions.release_date` | Medium | Non-breaking | S |
-| 2.6 | `publishers` website/email/country | Low | Non-breaking | S |
-| 2.7 | Index `store_categories(platform, parent_id)` | Low | Non-breaking | S |
-| 2.8 | Index `trending_chart_entries.app_id` | Low | Non-breaking | S |
-| 2.9 | Index `sync_statuses.job_id` | Medium | Non-breaking | S |
-| 2.10 | `user_apps` `updated_at`, `pinned_at`, `last_opened_at` | Medium | Non-breaking | S |
-| 3.1 | `platform` enum discussion | — | — | — |
-| 3.2 | Soft deletes on user-owned rows | Low | Non-breaking | S |
-| 3.3 | Locale field length audit | Low | Non-breaking | S |
-| 3.4 | Retention and archival policy | Low | Non-breaking | L |
+| # | Proposal | Priority | Impact | Effort | Status |
+|---|----------|----------|--------|--------|--------|
+| 1.1 | `app_metrics.price` nullable (unknown vs free) | High | Breaking | M | Pending |
+| 1.2 | `app_metrics.completeness` bitmask | High | Non-breaking | M | Pending |
+| 1.3 | Per-phase progress on `sync_statuses` | Medium | Non-breaking | M | Pending |
+| 1.4 | Redefine/drop `apps.is_available` | High | Breaking (Phase 2) | L | Pending |
+| 2.1a | Index `apps.last_synced_at` | High | Non-breaking | S | ✅ Applied |
+| 2.1b | Index `apps.discovered_from` | Low | Non-breaking | S | ✅ Applied |
+| 2.1c | Composite `apps(platform, is_available, last_synced_at)` | Medium | Non-breaking | S | ✅ Applied |
+| 2.1d | FK `apps.origin_country_code` → `countries.code` | Medium | Breaking | M | ✅ Applied |
+| 2.1e | Country-code lowercase normalisation | Low | Non-breaking | S | Pending |
+| 2.1f | Add `apps.bundle_id` | Low | Non-breaking | S | ✅ Applied |
+| 2.2a | `app_metrics.country_code` → `CHAR(2)` + FK | High | Breaking | M | ✅ Applied |
+| 2.2b | `app_metrics` partitioning | Low | Non-breaking | L | Pending |
+| 2.3a | Composite `app_store_listings(app_id, locale, fetched_at)` | High | Non-breaking | S | ✅ Applied |
+| 2.3b | Index `app_store_listings.checksum` | Medium | Non-breaking | S | ✅ Applied |
+| 2.3c | FULLTEXT on `title`, `description` | Medium | Non-breaking | M | Pending |
+| 2.4a | Index `app_store_listing_changes(app_id, field_changed, detected_at)` | Medium | Non-breaking | S | ✅ Applied |
+| 2.4b | `app_store_listing_changes` partitioning | Low | Non-breaking | L | Pending |
+| 2.5 | Index `app_versions.release_date` | Medium | Non-breaking | S | ✅ Applied |
+| 2.6 | `publishers` website/email/country | Low | Non-breaking | S | Pending |
+| 2.7 | Index `store_categories(platform, parent_id)` | Low | Non-breaking | S | ✅ Applied |
+| 2.8 | Index `trending_chart_entries.app_id` | Low | Non-breaking | S | ✅ Applied |
+| 2.9 | Index `sync_statuses.job_id` | Medium | Non-breaking | S | ✅ Applied |
+| 2.10 | `user_apps` `updated_at`, `pinned_at`, `last_opened_at` | Medium | Non-breaking | S | Pending |
+| 3.1 | `platform` enum discussion | — | — | — | Pending |
+| 3.2 | Soft deletes on user-owned rows | Low | Non-breaking | S | Pending |
+| 3.3 | Locale field length audit | Low | Non-breaking | S | Pending |
+| 3.4 | Retention and archival policy | Low | Non-breaking | L | Pending |
 
-**Suggested first batch (low-risk, high-value):** 2.1a, 2.3a, 2.5, 2.9,
-2.10 — five pure index additions that should land together in a single
-migration.
+### Applied in this iteration
 
-**Suggested second batch (requires design work):** 1.1, 1.2, 1.3, 2.2a —
-changes that improve data quality and operational visibility but need
-backfill planning.
+On top of the items marked ✅ above, the following naming-consistency
+changes shipped in the same migration pass:
 
-**Suggested third batch (structural):** 1.4, 2.1d, 3.4 — larger changes
-that need an application-level audit before they are safe to apply.
+- `apps.origin_country` → `apps.origin_country_code` (`CHAR(2)`, FK on
+  `countries.code`).
+- `apps.display_icon` → `apps.icon_url`.
+- `app_store_listings.language` → `app_store_listings.locale`.
+- `app_store_listing_changes.language` → `app_store_listing_changes.locale`.
+- `trending_charts.country` → `trending_charts.country_code`.
+- `AppMetric::GLOBAL_COUNTRY` switched from the 6-character string
+  `'GLOBAL'` to the ISO 3166 user-assigned code `'zz'`, seeded as a
+  `Country` row named "Global" so the new FK on
+  `app_metrics.country_code` remains satisfied.
+
+**Remaining first batch (design-work required):** 1.1, 1.2, 1.3, 2.2a
+(now applied) —  the data-quality / progress-tracking items still need
+dedicated design passes and backfill strategies.
+
+**Remaining structural batch:** 1.4, 2.1e, 3.4 — larger changes that
+need an application-level audit before they are safe to apply.

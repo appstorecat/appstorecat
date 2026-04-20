@@ -671,43 +671,55 @@ ifadeleri uzun süren InnoDB undo log baskısına neden olur.
 
 ## 4. Öncelik Matrisi
 
-| # | Öneri | Öncelik | Etki | Efor |
-|---|-------|---------|------|------|
-| 1.1 | `app_metrics.price` nullable (bilinmiyor / ücretsiz) | Yüksek | Breaking | M |
-| 1.2 | `app_metrics.completeness` bitmask | Yüksek | Non-breaking | M |
-| 1.3 | `sync_statuses` üzerinde faz başına ilerleme | Orta | Non-breaking | M |
-| 1.4 | `apps.is_available`'ı yeniden tanımla/düşür | Yüksek | Breaking (Faz 2) | L |
-| 2.1a | `apps.last_synced_at` üzerine index | Yüksek | Non-breaking | S |
-| 2.1b | `apps.discovered_from` üzerine index | Düşük | Non-breaking | S |
-| 2.1c | Bileşik `apps(platform, is_available, last_synced_at)` | Orta | Non-breaking | S |
-| 2.1d | FK `apps.origin_country` → `countries.code` | Orta | Breaking | M |
-| 2.1e | Ülke kodu küçük harf normalizasyonu | Düşük | Non-breaking | S |
-| 2.1f | `apps.bundle_id` ekle | Düşük | Non-breaking | S |
-| 2.2a | `app_metrics.country_code` → `CHAR(2)` + FK | Yüksek | Breaking | M |
-| 2.2b | `app_metrics` partitioning | Düşük | Non-breaking | L |
-| 2.3a | Bileşik `app_store_listings(app_id, language, fetched_at)` | Yüksek | Non-breaking | S |
-| 2.3b | `app_store_listings.checksum` üzerine index | Orta | Non-breaking | S |
-| 2.3c | `title`, `description` üzerine FULLTEXT | Orta | Non-breaking | M |
-| 2.4a | Index `app_store_listing_changes(app_id, field_changed, detected_at)` | Orta | Non-breaking | S |
-| 2.4b | `app_store_listing_changes` partitioning | Düşük | Non-breaking | L |
-| 2.5 | `app_versions.release_date` üzerine index | Orta | Non-breaking | S |
-| 2.6 | `publishers` website/email/country | Düşük | Non-breaking | S |
-| 2.7 | Index `store_categories(platform, parent_id)` | Düşük | Non-breaking | S |
-| 2.8 | `trending_chart_entries.app_id` üzerine index | Düşük | Non-breaking | S |
-| 2.9 | `sync_statuses.job_id` üzerine index | Orta | Non-breaking | S |
-| 2.10 | `user_apps` `updated_at`, `pinned_at`, `last_opened_at` | Orta | Non-breaking | S |
-| 3.1 | `platform` enum tartışması | — | — | — |
-| 3.2 | Kullanıcıya ait satırlarda soft delete | Düşük | Non-breaking | S |
-| 3.3 | Locale alan uzunluğu denetimi | Düşük | Non-breaking | S |
-| 3.4 | Retention ve arşivleme politikası | Düşük | Non-breaking | L |
+| # | Öneri | Öncelik | Etki | Efor | Durum |
+|---|-------|---------|------|------|-------|
+| 1.1 | `app_metrics.price` nullable (bilinmiyor / ücretsiz) | Yüksek | Breaking | M | Bekliyor |
+| 1.2 | `app_metrics.completeness` bitmask | Yüksek | Non-breaking | M | Bekliyor |
+| 1.3 | `sync_statuses` üzerinde faz başına ilerleme | Orta | Non-breaking | M | Bekliyor |
+| 1.4 | `apps.is_available`'ı yeniden tanımla/düşür | Yüksek | Breaking (Faz 2) | L | Bekliyor |
+| 2.1a | `apps.last_synced_at` üzerine index | Yüksek | Non-breaking | S | ✅ Uygulandı |
+| 2.1b | `apps.discovered_from` üzerine index | Düşük | Non-breaking | S | ✅ Uygulandı |
+| 2.1c | Bileşik `apps(platform, is_available, last_synced_at)` | Orta | Non-breaking | S | ✅ Uygulandı |
+| 2.1d | FK `apps.origin_country_code` → `countries.code` | Orta | Breaking | M | ✅ Uygulandı |
+| 2.1e | Ülke kodu küçük harf normalizasyonu | Düşük | Non-breaking | S | Bekliyor |
+| 2.1f | `apps.bundle_id` ekle | Düşük | Non-breaking | S | ✅ Uygulandı |
+| 2.2a | `app_metrics.country_code` → `CHAR(2)` + FK | Yüksek | Breaking | M | ✅ Uygulandı |
+| 2.2b | `app_metrics` partitioning | Düşük | Non-breaking | L | Bekliyor |
+| 2.3a | Bileşik `app_store_listings(app_id, locale, fetched_at)` | Yüksek | Non-breaking | S | ✅ Uygulandı |
+| 2.3b | `app_store_listings.checksum` üzerine index | Orta | Non-breaking | S | ✅ Uygulandı |
+| 2.3c | `title`, `description` üzerine FULLTEXT | Orta | Non-breaking | M | Bekliyor |
+| 2.4a | Index `app_store_listing_changes(app_id, field_changed, detected_at)` | Orta | Non-breaking | S | ✅ Uygulandı |
+| 2.4b | `app_store_listing_changes` partitioning | Düşük | Non-breaking | L | Bekliyor |
+| 2.5 | `app_versions.release_date` üzerine index | Orta | Non-breaking | S | ✅ Uygulandı |
+| 2.6 | `publishers` website/email/country | Düşük | Non-breaking | S | Bekliyor |
+| 2.7 | Index `store_categories(platform, parent_id)` | Düşük | Non-breaking | S | ✅ Uygulandı |
+| 2.8 | `trending_chart_entries.app_id` üzerine index | Düşük | Non-breaking | S | ✅ Uygulandı |
+| 2.9 | `sync_statuses.job_id` üzerine index | Orta | Non-breaking | S | ✅ Uygulandı |
+| 2.10 | `user_apps` `updated_at`, `pinned_at`, `last_opened_at` | Orta | Non-breaking | S | Bekliyor |
+| 3.1 | `platform` enum tartışması | — | — | — | Bekliyor |
+| 3.2 | Kullanıcıya ait satırlarda soft delete | Düşük | Non-breaking | S | Bekliyor |
+| 3.3 | Locale alan uzunluğu denetimi | Düşük | Non-breaking | S | Bekliyor |
+| 3.4 | Retention ve arşivleme politikası | Düşük | Non-breaking | L | Bekliyor |
 
-**Önerilen ilk parti (düşük risk, yüksek değer):** 2.1a, 2.3a, 2.5, 2.9,
-2.10 — tek bir migration'da birlikte gönderilmesi gereken beş saf index
-ekleme.
+### Bu iterasyonda uygulananlar
 
-**Önerilen ikinci parti (tasarım çalışması gerekir):** 1.1, 1.2, 1.3,
-2.2a — veri kalitesini ve operasyonel görünürlüğü iyileştiren ama
-backfill planlaması gerektiren değişiklikler.
+Yukarıdaki ✅ ile işaretlenen maddelere ek olarak, aynı migration turunda
+şu isimlendirme tutarlılığı değişiklikleri de yapıldı:
 
-**Önerilen üçüncü parti (yapısal):** 1.4, 2.1d, 3.4 — uygulanmadan önce
-uygulama düzeyinde denetim gerektiren daha büyük değişiklikler.
+- `apps.origin_country` → `apps.origin_country_code` (`CHAR(2)`,
+  `countries.code` üzerine FK).
+- `apps.display_icon` → `apps.icon_url`.
+- `app_store_listings.language` → `app_store_listings.locale`.
+- `app_store_listing_changes.language` → `app_store_listing_changes.locale`.
+- `trending_charts.country` → `trending_charts.country_code`.
+- `AppMetric::GLOBAL_COUNTRY` değeri 6 karakterli `'GLOBAL'` dizgisinden
+  ISO 3166 kullanıcıya ayrılmış `'zz'` koduna taşındı ve `countries`
+  tablosuna "Global" adıyla bir satır olarak seed edildi; böylece
+  `app_metrics.country_code` üzerindeki yeni FK karşılanıyor.
+
+**Kalan ikinci parti (tasarım çalışması gerektirir):** 1.1, 1.2, 1.3,
+2.2a (artık uygulandı) — veri kalitesi ve operasyonel görünürlük
+maddeleri hâlâ ayrı tasarım geçişleri ve backfill stratejileri gerektiriyor.
+
+**Kalan yapısal parti:** 1.4, 2.1e, 3.4 — uygulanmadan önce uygulama
+düzeyinde denetim gerektiren daha büyük değişiklikler.

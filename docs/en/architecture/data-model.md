@@ -36,8 +36,9 @@ The central entity. Each record represents a unique app on a specific platform.
 | `publisher_id` | FK | Links to publishers table |
 | `category_id` | FK | Links to store_categories table |
 | `display_name` | string | Cached app name (from default locale) |
-| `display_icon` | string | Cached icon URL |
-| `origin_country` | string | Country where app was first found |
+| `icon_url` | text | Cached icon URL |
+| `bundle_id` | string, nullable | iOS bundle identifier (`com.example.app`) |
+| `origin_country_code` | char(2) | Country where app was first found (FK `countries.code`) |
 | `supported_locales` | json | Array of locale codes the app supports |
 | `original_release_date` | date | First release date |
 | `is_free` | boolean | Free or paid |
@@ -50,13 +51,13 @@ The central entity. Each record represents a unique app on a specific platform.
 
 ### app_store_listings
 
-Store listing data per language. One record per app per language.
+Store listing data per locale. One record per app per locale per version.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | `app_id` | FK | Links to apps |
 | `version_id` | FK | Links to app_versions (nullable) |
-| `language` | string | Locale code (e.g., `en-US`, `tr`) |
+| `locale` | varchar(10) | BCP-47 locale code (e.g., `en-US`, `tr`) |
 | `title` | string | App title in this language |
 | `subtitle` | string | App subtitle (iOS only) |
 | `description` | text | Full description |
@@ -69,7 +70,7 @@ Store listing data per language. One record per app per language.
 | `fetched_at` | datetime | When this listing was fetched |
 | `checksum` | string | Hash for change detection |
 
-**Unique constraint:** `(app_id, language)`
+**Unique constraint:** `(app_id, version_id, locale)`
 
 ### app_versions
 
@@ -129,8 +130,8 @@ Tracks changes detected in store listings.
 |--------|------|-------------|
 | `app_id` | FK | Links to apps |
 | `version_id` | FK | Links to app_versions (nullable) |
-| `language` | string | Locale code |
-| `field_changed` | string | `title`, `subtitle`, `description`, `whats_new`, `screenshots`, `locale_removed` |
+| `locale` | varchar(10) | BCP-47 locale code |
+| `field_changed` | string | `title`, `subtitle`, `description`, `whats_new`, `screenshots`, `locale_added`, `locale_removed` |
 | `old_value` | text | Previous value |
 | `new_value` | text | New value |
 | `detected_at` | datetime | When the change was detected |

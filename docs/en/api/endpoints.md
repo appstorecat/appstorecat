@@ -41,9 +41,9 @@ All API endpoints are prefixed with `/api/v1` and require authentication via San
 |--------|----------|-------------|
 | GET | `/apps` | List tracked apps (`?platform=ios\|android`) |
 | POST | `/apps` | Register and track a new app |
-| GET | `/apps/search` | Search apps in stores (`?term=X&platform=ios&country=us`) |
+| GET | `/apps/search` | Search apps in stores (`?term=X&platform=ios&country_code=us`) |
 | GET | `/apps/{platform}/{externalId}` | Get app details |
-| GET | `/apps/{platform}/{externalId}/listing` | Get store listing (`?country=us&language=en-US`) |
+| GET | `/apps/{platform}/{externalId}/listing` | Get store listing (`?country_code=us&locale=en-US`) |
 | GET | `/apps/{platform}/{externalId}/rankings` | Chart rankings for the app on a given day (`?date=YYYY-MM-DD`) |
 | POST | `/apps/{platform}/{externalId}/track` | Track an app |
 | DELETE | `/apps/{platform}/{externalId}/track` | Untrack an app |
@@ -63,8 +63,8 @@ All API endpoints are prefixed with `/api/v1` and require authentication via San
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/apps/{platform}/{externalId}/keywords` | Keyword density (`?language=en-US&ngram=2`) — computed on demand from the current listing |
-| GET | `/apps/{platform}/{externalId}/keywords/compare` | Compare keywords (`?app_ids=1,2,3&language=en`) |
+| GET | `/apps/{platform}/{externalId}/keywords` | Keyword density (`?locale=en-US&ngram=2`) — computed on demand from the current listing |
+| GET | `/apps/{platform}/{externalId}/keywords/compare` | Compare keywords (`?app_ids=1,2,3&locale=en-US`) |
 
 ## Reviews
 
@@ -84,7 +84,7 @@ All API endpoints are prefixed with `/api/v1` and require authentication via San
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/charts` | Chart rankings (`?platform=ios&collection=top_free&country=us&category_id=X`) |
+| GET | `/charts` | Chart rankings (`?platform=ios&collection=top_free&country_code=us&category_id=X`) |
 
 ## Explorer
 
@@ -104,7 +104,7 @@ All API endpoints are prefixed with `/api/v1` and require authentication via San
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/publishers/search` | Search publishers (`?term=X&platform=ios&country=us`) |
+| GET | `/publishers/search` | Search publishers (`?term=X&platform=ios&country_code=us`) |
 | GET | `/publishers` | List publishers from tracked apps |
 | GET | `/publishers/{platform}/{externalId}` | Publisher details |
 | GET | `/publishers/{platform}/{externalId}/store-apps` | Publisher's store apps |
