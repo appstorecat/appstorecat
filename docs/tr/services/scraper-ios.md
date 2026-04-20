@@ -10,7 +10,6 @@ Apple App Store'dan uygulama verilerini ceken durumsuz bir Node.js mikroservisid
 | Dil | TypeScript |
 | Scraper | app-store-scraper |
 | API Dokumantasyonu | @fastify/swagger + Swagger UI |
-| Testler | Vitest |
 
 ## Endpoint'ler
 
@@ -23,7 +22,6 @@ Apple App Store'dan uygulama verilerini ceken durumsuz bir Node.js mikroservisid
 | GET | `/apps/:appId/listings` | Bir ulke icin magaza listesi |
 | GET | `/apps/:appId/listings/locales` | Birden fazla ulke icin listeler |
 | GET | `/apps/:appId/metrics` | Puan ve metrikler |
-| GET | `/apps/:appId/reviews` | Kullanici yorumlari |
 | GET | `/developers/:developerId/apps` | Gelisitiricinin uygulama katalogu |
 | GET | `/developers/search` | Gelistirici ara |
 
@@ -46,6 +44,16 @@ Apple App Store'dan uygulama verilerini ceken durumsuz bir Node.js mikroservisid
 
 ## Yanit Formati
 
+### Identity
+
+Identity yaniti ucretli/ucretsiz bilgisini `is_free` boolean'i olarak iletir.
+
+### Listing
+
+- `promotional_text` (iOS'a ozgu) alani yanitin bir parcasidir.
+
+### Hata Yanitlari
+
 Tum endpoint'ler JSON dondurur. Hata yanitlari su formati kullanir:
 
 ```json
@@ -55,12 +63,20 @@ Tum endpoint'ler JSON dondurur. Hata yanitlari su formati kullanir:
 }
 ```
 
+## Hata Semantigi
+
+`sendScraperError()` yardimcisi `app-store-scraper`'dan gelen hatalari (Error instance ya da duz nesne) dogru HTTP durum koduna esler:
+
+- **404 Not Found** — Uygulama hedef storefront'ta mevcut degil. Sunucu tarafi bunu "bu ulkede kalici olarak mevcut degil" olarak yorumlar.
+- **5xx** — Beklenmeyen hatalar; sunucu tarafinda yeniden denenir.
+
+Hata durumlari yapilandirilmis JSON log olarak yayinlanir.
+
 ## Calistirma
 
 ```bash
 make dev-ios      # Servisi baslat
 make logs-ios     # Loglari goruntule
-make test-ios     # vitest calistir
 ```
 
 ## API Dokumantasyonu
@@ -71,5 +87,5 @@ Servis calisirken Swagger UI `/docs` adresinde kullanilabilir.
 
 - **Durumsuz:** Veritabani yok, onbellek yok, kalici durum yok
 - **Normallestirilmis yanitlar:** Ham App Store verileri tutarli JSON yapilarina normallestir
-- **Hata iletimi:** Magaza hatalari (404, hiz siniri) uygun durum kodlariyla iletilir
+- **Hata iletimi:** Magaza hatalari (404, hiz siniri) uygun HTTP durum kodlariyla iletilir; eksik uygulama = 404 (500 degil)
 - **Port:** `PORT` ortam degiskeni ile yapilandirilabilir (varsayilan: 7462)

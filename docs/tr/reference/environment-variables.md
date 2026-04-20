@@ -51,19 +51,42 @@ AppStoreCat tarafindan kullanilan tum ortam degiskenlerinin tam referansi.
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Takip edilen iOS senkronizasyonlari arasindaki saat |
 | `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Kesfedilen iOS uygulama senkronizasyonunu etkinlestir |
 | `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Kesfedilen iOS senkronizasyonlari arasindaki saat |
-| `SYNC_IOS_REVIEWS_ENABLED` | `true` | iOS yorum senkronizasyonunu etkinlestir |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Takip edilen Android uygulama senkronizasyonunu etkinlestir |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Takip edilen Android senkronizasyonlari arasindaki saat |
 | `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Kesfedilen Android uygulama senkronizasyonunu etkinlestir |
 | `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Kesfedilen Android senkronizasyonlari arasindaki saat |
-| `SYNC_ANDROID_REVIEWS_ENABLED` | `true` | Android yorum senkronizasyonunu etkinlestir |
+
+## Kesif Kaynaklari
+
+Her kaynak, platform bazinda bagimsiz olarak acilip kapatilabilir. Kaynak kapali iken bu yoldan gelen bilinmeyen uygulamalar veritabanina eklenmez.
+
+| Degisken | Varsayilan | Aciklama |
+|----------|------------|----------|
+| `DISCOVER_IOS_ON_UNKNOWN` | `true` | Bilinmeyen kaynaklarda iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_SEARCH` | `true` | Magaza aramasinda iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_TRENDING` | `true` | Trend listelerinde iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_PUBLISHER_APPS` | `true` | Yayinci uygulama listelerinde iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_REGISTER` | `true` | Kullanici kayit akisinda iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_IMPORT` | `true` | Yayinci import'unda iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_SIMILAR` | `true` | Benzer uygulamalar uzerinden iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_CATEGORY` | `true` | Kategori listelerinde iOS kesfini etkinlestir |
+| `DISCOVER_IOS_ON_DIRECT_VISIT` | `false` | Harici ID ile dogrudan ziyarette iOS kesfini etkinlestir (kapaliyken bilinmeyen uygulama URL'leri 404 dondurur) |
+| `DISCOVER_ANDROID_ON_UNKNOWN` | `true` | Bilinmeyen kaynaklarda Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_SEARCH` | `true` | Magaza aramasinda Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_TRENDING` | `true` | Trend listelerinde Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_PUBLISHER_APPS` | `true` | Yayinci uygulama listelerinde Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_REGISTER` | `true` | Kullanici kayit akisinda Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_IMPORT` | `true` | Yayinci import'unda Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_SIMILAR` | `true` | Benzer uygulamalar uzerinden Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_CATEGORY` | `true` | Kategori listelerinde Android kesfini etkinlestir |
+| `DISCOVER_ANDROID_ON_DIRECT_VISIT` | `false` | Harici ID ile dogrudan ziyarette Android kesfini etkinlestir (kapaliyken bilinmeyen uygulama URL'leri 404 dondurur) |
 
 ## Grafikler
 
 | Degisken | Varsayilan | Aciklama |
 |----------|------------|----------|
-| `CHARTS_IOS_DAILY_SYNC_ENABLED` | `true` | Gunluk iOS grafik senkronizasyonunu etkinlestir |
-| `CHARTS_ANDROID_DAILY_SYNC_ENABLED` | `true` | Gunluk Android grafik senkronizasyonunu etkinlestir |
+| `CHART_IOS_DAILY_SYNC_ENABLED` | `true` | Gunluk iOS grafik senkronizasyonunu etkinlestir |
+| `CHART_ANDROID_DAILY_SYNC_ENABLED` | `true` | Gunluk Android grafik senkronizasyonunu etkinlestir |
 
 ## Kuyruk ve Onbellek
 

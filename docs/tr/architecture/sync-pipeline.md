@@ -1,6 +1,6 @@
 # Senkronizasyon Pipeline'i
 
-Senkronizasyon pipeline'i temel veri toplama motorudur. `AppSyncer` tarafindan yonetilir ve her uygulama icin tam veri yasam dongusunu orkestra eder.
+Senkronizasyon pipeline'i temel veri toplama motorudur. `AppSyncer` tarafindan yonetilir ve her uygulama icin tam veri yasam dongusunu orkestra eder. Pipeline calismalarinin durumu `sync_statuses` tablosunda saklanir (status, current_step, progress_done/total, failed_items, error_message, job_id, next_retry_at).
 
 ## Pipeline Akisi
 
@@ -10,76 +10,68 @@ SyncAppJob
     ▼
 AppSyncer::syncAll(App)
     │
-    ├─ 1. syncIdentity()      → Uygulama metadata'si (ad, yayinci, kategori, diller)
-    │       └─ findOrCreate Publisher
-    │       └─ findOrCreate StoreCategory
+    ├─ 1. identity()         → Uygulama metadata'si (ad, yayinci, kategori, diller)
+    │       ├─ findOrCreate Publisher
+    │       ├─ findOrCreate StoreCategory
+    │       └─ Basarisiz olursa pipeline durur
     │
-    ├─ 2. saveVersion()        → AppVersion kaydi
+    ├─ 2. listings()         → Aktif ulke + locale basina StoreListing + StoreListingChange
+    │       └─ detectChanges() checksum karsilastirir
     │
-    ├─ 3. syncListing()        → Varsayilan dil icin StoreListing
-    │       └─ detectChanges() → StoreListingChange kayitlari (checksum tabanli)
+    ├─ 3. metrics()          → AppMetric (ulke + gun basina; Android `zz` sentinel'i altinda)
+    │       └─ rating_delta hesapla, `is_available` ayarla
     │
-    ├─ 4. detectLocaleChanges() → Eklenen/kaldirilan dilleri takip et
+    ├─ 4. finalize()         → `apps.last_synced_at`, ozet alanlar, `unavailable_countries`
     │
-    ├─ 5. syncMetrics()        → AppMetric (gunluk goruntusu)
-    │       └─ rating_delta hesapla
-    │
-    └─ 6. syncReviews()        → Review kayitlari (sayfalanmis)
+    └─ 5. reconciling()      → ReconcileFailedItemsJob gecici hatalari yeniden dener
 ```
 
 Anahtar kelime yogunlugu bir pipeline adimi **degildir** — `KeywordAnalyzer` keyword ucundan talep uzerine cagrilir ve mevcut `StoreListing`'den okur. Bkz. [Anahtar Kelime Yogunlugu](../features/keyword-density.md) ozellik sayfasi.
 
-## Adim Detaylari
+## Faz Detaylari
 
-### 1. Kimlik Senkronizasyonu
+### 1. Identity
 
 Uygulamanin temel metadata'sini magazadan getirir.
 
-- Ilk olarak `us` ulkesini dener, basarisiz olursa `app.origin_country`'ye doner
-- 404 durumunda: uygulamayi `is_available = false` olarak isaretler ve durur
-- Gunceller: `display_name`, `display_icon`, `supported_locales`, `original_release_date`, `is_free`
+- Ilk olarak `us` ulkesini dener, basarisiz olursa `apps.origin_country_code`'a doner
+- 404 durumunda: `empty_response` olarak siniflandirir; hic bir storefront kimligi cozumlenemezse pipeline bu calismayi durdurur (sonraki fazlar tanimsiz bir uygulamaya calismasin diye)
+- Gunceller: `display_name`, `icon_url`, `supported_locales`, `original_release_date`, `is_free`, `origin_country_code`
 - `Publisher` ve `StoreCategory` kayitlarini olusturur veya baglar
 
-### 2. Surum Kaydi
+### 2. Listings
 
-Mevcut surum kaydini olusturur veya bulur.
+Her aktif ulke icin o ulkede desteklenen her locale'de magaza listesini getirir.
 
-- `(app_id, version)` ile `firstOrCreate` kullanir — tekrar olmaz
-- Kimlik verisinden `release_date` ayarlar
-- Sonraki adimlarda kullanilmak uzere surumu dondurur
-
-### 3. Liste Senkronizasyonu
-
-Varsayilan dil icin magaza listesini getirir.
-
-- `StoreListing` kaydi olusturur (`app_id` + `language` bazinda benzersiz)
+- `StoreListing` kaydi olusturur (`(app_id, version_id, locale)` benzersiz)
+- `title`, `subtitle`, `promotional_text` (iOS-only), `description`, `whats_new`, `screenshots`, `icon_url` alanlarini yazar
 - Liste iceriginden bir `checksum` olusturur
-- Checksum oncekinden farkliysa: her alani tek tek karsilastirir
-- Degisen alanlar icin `StoreListingChange` kayitlari olusturur:
-  - `title`, `subtitle`, `description`, `whats_new`, `screenshots`
+- Checksum oncekinden farkliysa her alani karsilastirir ve `StoreListingChange` kayitlari olusturur
+- `supported_locales` karsilastirmasinda eklenen/kaldirilan locale'ler `locale_added` / `locale_removed` olarak isaretlenir
+- Storefront locale'i dondurmezse hicbir kayit yazilmaz
 
-### 4. Dil Degisiklik Tespiti
+### 3. Metrics
 
-Mevcut `supported_locales` degerini onceki senkronizasyonla karsilastirir.
+Ulke basina puanlari ve fiyati getirir.
 
-- Yeni eklenen dilleri tespit eder → `field_changed: locale_added` ile `StoreListingChange` olusturur
-- Kaldirilan dilleri tespit eder → `field_changed: locale_removed` ile `StoreListingChange` olusturur
-
-### 5. Metrik Senkronizasyonu
-
-Guncel puanlari ve metrikleri getirir.
-
-- `AppMetric` kaydi olusturur (`app_id` + `date` bazinda benzersiz)
-- Depolar: `rating`, `rating_count`, `rating_breakdown`, `file_size_bytes`
+- `AppMetric` kaydi olusturur (`(app_id, country_code, date)` benzersiz)
+- Android metrikleri global oldugundan `zz` sentinel ulkesi altinda depolanir
+- Depolar: `rating`, `rating_count`, `rating_breakdown`, `price` (null = bilinmiyor, 0 = ucretsiz), `installs_range`, `file_size_bytes`, `is_available`
 - `rating_delta` hesaplar (onceki gunden bu yana rating_count degisimi)
+- 404 bir ulke icin gelirse → `empty_response` olarak isaretlenir ve o ulke icin `is_available = false` yazilir, bir daha denemeye sokulmaz
 
-### 6. Inceleme Senkronizasyonu
+### 4. Finalize
 
-Magazadan kullanici incelemelerini getirir.
+- `apps.last_synced_at` degerini guncelle
+- Ozet alanlarini ve onbellekleri yenile
+- `AppDetailResource`'un `unavailable_countries` alani `app_metrics.is_available = false` degerleri uzerinden turetilir
+- `apps.is_available` alani en az bir storefront'ta erisilebilirligi temsil eder; ulke bazinda dogruluk kaynagi `app_metrics`'tir
 
-- Sayfalanmis: sayfa basina 200'e kadar inceleme
-- `Review` kayitlari olusturur (`app_id` + `external_id` bazinda benzersiz)
-- Yakalar: author, title, body, rating, review_date, app_version
+### 5. Reconciling
+
+- Onceki fazlarin bu calismaya yazdigi `failed_items` girislerini inceler
+- `ReconcileFailedItemsJob`, neden etiketi basina yapilandirilmis maksimum yeniden deneme sayisina uyarak `next_retry_at` zamaninda onlari siraya sokar
+- `empty_response` gibi kalici reason'lar atlanir — sonsuz yeniden deneme yok
 
 ## Senkronizasyon Zamanlamasi
 
@@ -96,7 +88,7 @@ Uygulamalar yalnizca `last_synced_at` degeri yapilandirilmis yenileme araliginda
 
 ### Talep Uzerine Yenileme Kuyrugu
 
-`AppController::show()` ve `AppController::listing()`, ziyaret edilen bir uygulamanin verisi eskiyse `SyncAppJob`'u `sync-on-demand-ios` / `sync-on-demand-android` kuyrugana gonderir. Bu, kullanici tetikli yenilemelerin kendi worker havuzunda calismasini ve olagan kesif/takip kuyruklarini beklememesini saglar.
+`AppController::show()` ve `AppController::listing()`, ziyaret edilen bir uygulamanin verisi eskiyse `SyncAppJob`'u `sync-on-demand-ios` / `sync-on-demand-android` kuyruguna gonderir. Arayuz ilerlemeyi `GET /apps/{platform}/{externalId}/sync-status` ile sorgular; kullanici `POST /apps/{platform}/{externalId}/sync` uzerinden de aciktan tetikleyebilir. Bu, kullanici tetikli yenilemelerin kendi worker havuzunda calismasini ve olagan kesif/takip kuyruklarini beklememesini saglar.
 
 ## Benzersizlik Korumalari
 
@@ -105,16 +97,18 @@ Pipeline, tekrar veriyi onlemek icin veritabani benzersizlik kisitlamalarini kul
 | Tablo | Benzersizlik Kriteri |
 |-------|---------------------|
 | `apps` | `(platform, external_id)` |
-| `app_store_listings` | `(app_id, language)` |
+| `app_store_listings` | `(app_id, version_id, locale)` |
 | `app_versions` | `(app_id, version)` |
-| `app_metrics` | `(app_id, date)` |
-| `app_reviews` | `(app_id, external_id)` |
+| `app_metrics` | `(app_id, country_code, date)` |
+| `sync_statuses` | `app_id` |
 
 Ek olarak, `SyncAppJob` uygulama ID'si basina 1 saatlik pencere ile `ShouldBeUnique` uygular.
 
 ## Hata Yonetimi
 
-- **404 (Uygulama kaldirilmis):** `is_available = false` olarak isaretler, senkronizasyonu durdurur
-- **Ag/zaman asimi hatalari:** Job `[30, 60, 120]` saniye geri cekilme ile yeniden dener (3 deneme)
-- **Basarisiz job'lar:** Tum denemelerden sonra, job'lar inceleme icin `failed_jobs` tablosuna gider
-- **Throttle asildi:** Job bir slot icin bekler (en fazla 300 saniye)
+- **Identity basarisiz:** Pipeline durur, `sync_statuses.status = failed` yazilir. Sonraki fazlar calistirilmaz.
+- **404 `empty_response`:** Ilgili ulke/locale kalici olarak "mevcut degil" olarak isaretlenir; yeniden denenmez.
+- **Gecici hatalar (5xx, zaman asimi):** `failed_items` icine reason etiketi ile yazilir; `ReconcileFailedItemsJob` neden basina maksimum deneme kuralina gore yeniden dener.
+- **Job seviyesinde yeniden deneme:** `[30, 60, 120]` saniye geri cekilme ile 3 deneme.
+- **Basarisiz job'lar:** Tum denemelerden sonra, job'lar inceleme icin `failed_jobs` tablosuna gider.
+- **Throttle asildi:** Job bir slot icin bekler (en fazla 300 saniye).

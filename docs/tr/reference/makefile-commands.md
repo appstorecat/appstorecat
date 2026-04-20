@@ -32,18 +32,36 @@ Tum komutlar proje kok dizininden calistirilir.
 | `make migrate` | Veritabani migrasyonlarini calistir |
 | `make seed` | Veritabani seeder'larini calistir |
 | `make fresh` | Seed ile birlikte temiz migrasyon |
-| `make artisan cmd="..."` | Herhangi bir artisan komutu calistir (orn., `make artisan cmd="make:model Foo"`) |
+| `make artisan ...` | Herhangi bir artisan komutu calistir (orn., `make artisan migrate:fresh --seed`) |
+| `make composer ...` | Herhangi bir composer komutu calistir (orn., `make composer require foo/bar`) |
+| `make cache-clear` | Tum onbellekleri temizle (`optimize:clear`) |
+| `make route-list` | Rotalari listele |
+| `make queue-restart` | Kuyruk iscilerini yeniden baslat |
+| `make schedule` | Zamanlayiciyi tek seferlik calistir |
 | `make tinker` | Laravel Tinker REPL'i ac |
-| `make pint` | PHP kod stili duzelticiyi calistir (Laravel Pint) |
+| `make shell` | Server konteynerinde shell ac |
 
-## Testler
+## Web
 
 | Komut | Aciklama |
 |-------|----------|
-| `make test` | Tum testleri calistir (server + her iki scraper) |
-| `make test-server` | Yalnizca PHPUnit testlerini calistir |
-| `make test-ios` | App Store scraper testlerini calistir (vitest) |
-| `make test-android` | Google Play scraper testlerini calistir (pytest) |
+| `make npm ...` | Web konteynerinde herhangi bir npm komutu calistir (orn., `make npm install axios`) |
+
+## API Dokumantasyonu
+
+| Komut | Aciklama |
+|-------|----------|
+| `make swagger` | OpenAPI dokumantasyonunu olustur (L5-Swagger) |
+| `make api-generate` | TypeScript API istemcisini olustur (Orval) |
+| `make api` | Ikisini birlikte calistir: swagger + api-generate |
+
+## Kod Kalitesi
+
+| Komut | Aciklama |
+|-------|----------|
+| `make lint` | Tum linter'lari calistir (pint + eslint) |
+| `make pint` | PHP kod stili duzelticiyi calistir (Laravel Pint) |
+| `make lint-web` | ESLint calistir (web) |
 
 ## Loglar
 

@@ -71,12 +71,12 @@ Platform bazında otomatik uygulama senkronizasyonunu kontrol eder:
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Takip edilen iOS uygulamaları sync aralığı (saat) |
 | `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Keşfedilen iOS uygulamaları için sync'i etkinleştir |
 | `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Keşfedilen iOS uygulamaları sync aralığı (saat) |
-| `SYNC_IOS_REVIEWS_ENABLED` | `true` | iOS yorum senkronizasyonunu etkinleştir |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Takip edilen Android uygulamaları için sync'i etkinleştir |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Takip edilen Android uygulamaları sync aralığı (saat) |
 | `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Keşfedilen Android uygulamaları için sync'i etkinleştir |
 | `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Keşfedilen Android uygulamaları sync aralığı (saat) |
-| `SYNC_ANDROID_REVIEWS_ENABLED` | `true` | Android yorum senkronizasyonunu etkinleştir |
+
+Sync pipeline'ı fazlara ayrılmıştır ve `sync_statuses` tablosu üzerinden izlenir: **identity → listings → metrics → finalize → reconciling**. Başarısız öğeler `ReconcileFailedItemsJob` tarafından toplanıp yeniden denenir.
 
 ### Chart Ayarları
 
@@ -84,22 +84,24 @@ Günlük trend chart senkronizasyonunu kontrol eder:
 
 | Değişken | Varsayılan | Açıklama |
 |----------|------------|----------|
-| `CHARTS_IOS_DAILY_SYNC_ENABLED` | `true` | Günlük iOS chart sync'ini etkinleştir |
-| `CHARTS_ANDROID_DAILY_SYNC_ENABLED` | `true` | Günlük Android chart sync'ini etkinleştir |
+| `CHART_IOS_DAILY_SYNC_ENABLED` | `true` | Günlük iOS chart sync'ini etkinleştir |
+| `CHART_ANDROID_DAILY_SYNC_ENABLED` | `true` | Günlük Android chart sync'ini etkinleştir |
 
 ### Keşif Ayarları
 
-Veritabanında yeni uygulama keşfedebilecek (oluşturabilecek) eylemleri kontrol eder. Her kaynak, `config/appstorecat.php` dosyasında platform bazında açılıp kapatılabilir:
+Veritabanında yeni uygulama keşfedebilecek (oluşturabilecek) eylemleri kontrol eder. Her kaynak, `DISCOVER_{IOS,ANDROID}_ON_{KAYNAK}` ortam değişkenleri ile platform bazında açılıp kapatılabilir:
 
-| Kaynak | Açıklama |
-|--------|----------|
-| `on_search` | Mağaza araması ile bulunan uygulamalar |
-| `on_trending` | Trend listelerinde bulunan uygulamalar |
-| `on_publisher_apps` | Yayıncının uygulama listesi ile bulunan uygulamalar |
-| `on_register` | Kullanıcılar tarafından doğrudan kaydedilen uygulamalar |
-| `on_import` | Yayıncı import'u ile içe aktarılan uygulamalar |
-| `on_direct_visit` | Harici ID ile doğrudan ziyaret edilen uygulamalar |
-| `on_unknown` | Bilinmeyen kaynaklardan gelen uygulamalar |
+| Kaynak | Varsayılan | Açıklama |
+|--------|------------|----------|
+| `on_search` | `true` | Mağaza araması ile bulunan uygulamalar |
+| `on_trending` | `true` | Trend listelerinde bulunan uygulamalar |
+| `on_publisher_apps` | `true` | Yayıncının uygulama listesi ile bulunan uygulamalar |
+| `on_register` | `true` | Kullanıcılar tarafından doğrudan kaydedilen uygulamalar |
+| `on_import` | `true` | Yayıncı import'u ile içe aktarılan uygulamalar |
+| `on_similar` | `true` | Benzer uygulamalar üzerinden bulunan uygulamalar |
+| `on_category` | `true` | Kategori listelerinde bulunan uygulamalar |
+| `on_direct_visit` | `false` | Harici ID ile doğrudan ziyaret edilen uygulamalar — kapalıyken bilinmeyen uygulama URL'leri 404 döner |
+| `on_unknown` | `true` | Bilinmeyen kaynaklardan gelen uygulamalar |
 
 ## Docker Compose Portları
 

@@ -31,7 +31,7 @@ Tek bir eylemle bir yayincinin tum uygulamalarini veritabaniniza iceri aktarin. 
 ### Yayinci Ara
 
 ```
-GET /api/v1/publishers/search?term=google&platform=android&country=us
+GET /api/v1/publishers/search?term=google&platform=android&country_code=US
 ```
 
 ### Yayincilari Listele
@@ -48,19 +48,23 @@ Takip ettiginiz uygulamalardaki yayincilari dondurur.
 GET /api/v1/publishers/{platform}/{externalId}
 ```
 
+Veritabaninda bulunmayan yayincilar icin `404` doner.
+
 ### Yayincinin Magaza Uygulamalari
 
 ```
 GET /api/v1/publishers/{platform}/{externalId}/store-apps
 ```
 
-Magazadaki tum uygulamalari ceker (canli scraper cagrisi).
+Magazadaki tum uygulamalari ceker (canli scraper cagrisi). Yayinci DB'de yoksa `404` doner.
 
 ### Tum Yayinci Uygulamalarini Iceri Aktar
 
 ```
 POST /api/v1/publishers/{platform}/{externalId}/import
 ```
+
+`external_ids[*]` alanindaki her kalem ayri ayri dogrulanir; gecersiz bir kimlik tum istegi `422` ile reddeder.
 
 ## Arayuz
 

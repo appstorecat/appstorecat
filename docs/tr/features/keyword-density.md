@@ -12,7 +12,7 @@ AppStoreCat, magaza listelerinden anahtar kelimeleri cikarir ve siklik ile yogun
 
 Anahtar kelime yogunlugu her istek sirasinda mevcut `StoreListing` uzerinden aninda hesaplanir — istekler arasinda hicbir sey kaydedilmez. Bu sayede analiz her zaman en guncel liste metnini yansitir; ayri bir yeniden indeksleme adimina gerek yoktur.
 
-1. Anahtar kelime ucu, istenen platform + external ID + dil icin eslesen `StoreListing` kaydini yukler
+1. Anahtar kelime ucu, istenen platform + external ID + yerel ayar icin eslesen `StoreListing` kaydini yukler
 2. Baslik + alt baslik + aciklama + yenilikler metinleri birlestirilir
 3. Icerik, dil duyarli dur-kelimesi filtrelemesiyle tokenize edilir
 4. N-gramlar (1 kelimelik, 2 kelimelik, 3 kelimelik kombinasyonlar) cikarilir
@@ -37,7 +37,7 @@ Dur-kelimesi dosyalari `server/resources/data/stopwords/{lang}.json` konumunda s
 ### Anahtar Kelime Yogunlugu
 
 ```
-GET /api/v1/apps/{platform}/{externalId}/keywords?language=en-US&ngram=2
+GET /api/v1/apps/{platform}/{externalId}/keywords?locale=en-US&ngram=2
 ```
 
 Belirtilen liste icin anahtar kelimeleri sayi ve yogunluk yuzdeleriyle birlikte dondurur. Analizci, her istekte mevcut saklanan liste uzerinde yeniden calisir; sonuclar en son senkronizasyon verilerini otomatik yansitir.
@@ -45,7 +45,7 @@ Belirtilen liste icin anahtar kelimeleri sayi ve yogunluk yuzdeleriyle birlikte 
 ### Anahtar Kelime Karsilastirmasi
 
 ```
-GET /api/v1/apps/{platform}/{externalId}/keywords/compare?app_ids=1,2,3&language=en
+GET /api/v1/apps/{platform}/{externalId}/keywords/compare?app_ids=1,2,3&locale=en-US
 ```
 
 Birden fazla uygulama arasinda anahtar kelime kullanimini karsilastirir -- rekabetci anahtar kelime analizi icin kullanislidir.
@@ -61,6 +61,6 @@ Uygulama detay sayfasindaki **Keywords** sekmesi sunlari gosterir:
 ## Teknik Detaylar
 
 - **Servis:** `KeywordAnalyzer` (`analyzeListing()` / `analyzeText()` dizi dondurur — DB yazmaz)
-- **Kaynak:** Istenen `(app_id, language)` icin mevcut `StoreListing` kaydi
+- **Kaynak:** Istenen `(app_id, locale)` icin mevcut `StoreListing` kaydi
 - **Controller'lar:** `KeywordController@index` ve `KeywordController@compare` her istekte yeniden hesaplar
 - **Minimum kelime uzunlugu:** 2 karakter

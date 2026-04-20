@@ -36,10 +36,10 @@ GET /api/v1/apps/{platform}/{externalId}/rankings?date=2026-04-17
 `date` query parametresi opsiyoneldir (varsayilan bugun) ve `Y-m-d` formatinda olmalidir. Yanit ogeleri sunlari icerir:
 
 ```
-country, collection, category, rank, previous_rank, rank_change, status, snapshot_date
+country_code, collection, category, rank, previous_rank, rank_change, status, snapshot_date
 ```
 
-`previous_rank`, ayni `(platform, collection, country, category_id)` cifti icin en yakin onceki anlik goruntuden alinir.
+`previous_rank`, ayni `(platform, collection, country_code, category_id)` cifti icin en yakin onceki anlik goruntuden alinir.
 
 ## Arayuz
 

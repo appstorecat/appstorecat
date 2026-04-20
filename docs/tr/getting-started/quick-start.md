@@ -16,6 +16,8 @@ http://localhost:7461 adresini açın ve yeni bir hesap oluşturun. Bu işlem, k
 
 **Keşif > Uygulamalar** sayfasına gidin ve herhangi bir uygulamayı ada göre arayın. Sonuçlar doğrudan App Store ve Google Play'den gelir. Detaylarını görmek için herhangi bir uygulamaya tıklayın — bu işlem uygulamayı otomatik olarak keşfeder.
 
+> Not: Varsayılan olarak `DISCOVER_{IOS,ANDROID}_ON_DIRECT_VISIT=false`'tur. Yani harici ID ile doğrudan ziyaret edilen, veritabanında henüz olmayan uygulamalar 404 döner. Kaydı yalnızca arama, trend listesi, yayıncı sayfası gibi etkin keşif kaynakları yaratır.
+
 ### Yayıncılar ile
 
 **Keşif > Yayıncılar** sayfasına gidin ve bir yayıncı arayın. Uygulamalarını görün ve hepsini tek seferde içe aktarın.
@@ -28,21 +30,29 @@ Bir uygulamanın detay sayfasını görüntülerken **Takip Et** butonuna tıkla
 
 Bir uygulama senkronize edildikten sonra şunları inceleyebilirsiniz:
 
-- **Mağaza Listesi** — Her dil için başlık, açıklama, ekran görüntüleri, ikon
+- **Mağaza Listesi** — Her yerel ayar (`locale`) için başlık, açıklama, ekran görüntüleri, ikon
 - **Sürümler** — Yayın tarihleri ve yeniliklerle birlikte sürüm geçmişi
-- **Yorumlar** — Puan filtreli kullanıcı yorumları
 - **Anahtar Kelimeler** — N-gram destekli anahtar kelime yoğunluk analizi
 - **Rakipler** — Karşılaştırma için rakip uygulamalar ekleyin
 - **Değişiklikler** — Mağaza listesi değişikliklerini zaman içinde takip edin
 
 ## 5. Arka Plan Senkronizasyonu
 
-AppStoreCat, kuyruk işçileri kullanarak arka planda verileri otomatik olarak senkronize eder:
+AppStoreCat, kuyruk işçileri kullanarak arka planda verileri otomatik olarak senkronize eder. Senkronizasyon pipeline'ı fazlara ayrılmıştır (`SyncStatus` tablosu üzerinden izlenir):
 
-- **Takip edilen uygulamalar** her 24 saatte bir senkronize edilir
-- **Keşfedilen uygulamalar** her 24 saatte bir senkronize edilir
-- **Listeler** günlük olarak senkronize edilir
-- **Yorumlar** her uygulama senkronizasyonuyla birlikte senkronize edilir
+1. **identity** — temel uygulama kimliği
+2. **listings** — her yerel ayar için mağaza listeleri
+3. **metrics** — ülke bazlı metrikler (`app_metrics`)
+4. **finalize** — uygulamanın genel durumu (`apps.is_available`)
+5. **reconciling** — başarısız öğeler `ReconcileFailedItemsJob` ile yeniden denenir
+
+Varsayılan aralıklar:
+
+- **Takip edilen uygulamalar** her 24 saatte bir senkronize edilir (`SYNC_{IOS,ANDROID}_TRACKED_REFRESH_HOURS`)
+- **Keşfedilen uygulamalar** her 24 saatte bir senkronize edilir (`SYNC_{IOS,ANDROID}_DISCOVERY_REFRESH_HOURS`)
+- **Listeler** günlük olarak senkronize edilir (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED`)
+
+Tüm scraper işleri platform ayrıktır: `sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. iOS ve Android bu sayede birbirini bloklamaz.
 
 Senkronizasyon aktivitesini görmek için `make logs-server` komutunu kontrol edin.
 

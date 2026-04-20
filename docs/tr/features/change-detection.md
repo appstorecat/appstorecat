@@ -17,7 +17,9 @@ AppStoreCat, her senkronizasyon dongusunde uygulama magaza listelerindeki degisi
 | `description` | Uygulama aciklamasi degisti |
 | `whats_new` | Surum notlari degisti |
 | `screenshots` | Ekran goruntusu seti degisti |
-| `locale_removed` | Desteklenen bir dil kaldirildi |
+| `promotional_text` | Tanitim metni degisti (yalnizca iOS; Android'de her zaman null) |
+| `locale_added` | Desteklenen yeni bir yerel ayar eklendi |
+| `locale_removed` | Desteklenen bir yerel ayar kaldirildi |
 
 ## Nasil Calisir
 
@@ -25,18 +27,18 @@ AppStoreCat, her senkronizasyon dongusunde uygulama magaza listelerindeki degisi
 2. Checksum onceki senkronizasyonla eslesirse degisiklik olmamistir -- atlanir
 3. Checksum farkliysa her alan ayri ayri karsilastirilir
 4. Degisen her alan icin asagidaki bilgilerle bir `StoreListingChange` kaydi olusturulur:
-   - Alan adi
+   - Alan adi (`field_changed`)
    - Eski deger
    - Yeni deger
    - Algilama zaman damgasi
-   - Dil/yerel ayar
+   - Yerel ayar (`locale` sutunu)
 
 ## Yerel Ayar Degisiklik Algilama
 
 Bireysel alan degisikliklerinin otesinde, AppStoreCat yerel ayar duzeyindeki degisiklikleri de takip eder:
 
-- **Yeni yerel ayar eklendi:** Bir uygulama yeni bir dili desteklemeye basladiginda
-- **Yerel ayar kaldirildi:** Bir uygulama bir dil icin destegi biraktiginda
+- **`locale_added`:** Bir uygulama yeni bir dili desteklemeye basladiginda
+- **`locale_removed`:** Bir uygulama bir dil icin destegi biraktiginda
 
 Bunlar, senkronizasyonlar arasinda `supported_locales` dizisinin karsilastirilmasiyla algilanir.
 
@@ -69,8 +71,8 @@ Degisiklik zaman cizelgesini gormek icin **Changes > Apps** veya **Changes > Com
 ## Teknik Detaylar
 
 - **Model:** `StoreListingChange`
-- **Tablo:** `app_store_listing_changes`
-- **Indeksler:** `(app_id, detected_at)`, `(version_id)`
+- **Tablo:** `app_store_listing_changes` (`locale` sutunu BCP-47 kodunu tutar)
+- **Indeksler:** `(app_id, detected_at)`, `(version_id)`, `(app_id, locale)`, `(field_changed)`
 - **Senkronizasyon adimi:** `AppSyncer::syncListing()` (alan degisiklikleri), `AppSyncer::detectLocaleChanges()` (yerel ayar degisiklikleri)
 - **Controller:** `ChangeMonitorController`
 - **Algilama yontemi:** Checksum tabanli (birlesik liste iceriginin SHA-256'si)

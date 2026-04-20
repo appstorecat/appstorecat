@@ -9,7 +9,7 @@ AppStoreCat MCP (Model Context Protocol) server, Claude Code gibi AI araçların
 | **Paket** | npm'de `@appstorecat/mcp` |
 | **Transport** | stdio (lokal process olarak spawn edilir) |
 | **Auth** | Env var üzerinden Sanctum bearer token |
-| **Tool'lar** | 19 read-only tool |
+| **Tool'lar** | Read-only tool seti |
 
 ```
 Claude Code (stdio) → MCP Server (lokal) → Laravel API (lokal veya remote)
@@ -62,17 +62,17 @@ claude mcp add appstorecat \
 
 | Tool | Açıklama |
 |------|----------|
-| `search_apps` | App Store veya Google Play'de anahtar kelimeyle uygulama ara |
-| `search_publishers` | Yayıncı/geliştirici ara |
-| `get_charts` | Trend/top listelerini getir (top_free, top_paid, top_grossing) |
+| `search_apps` | App Store veya Google Play'de anahtar kelimeyle uygulama ara (`country_code` parametresi) |
+| `search_publishers` | Yayıncı/geliştirici ara (`country_code` parametresi) |
+| `get_charts` | Trend/top listelerini getir (top_free, top_paid, top_grossing; `country_code` parametresi) |
 
 ### Uygulamalar
 
 | Tool | Açıklama |
 |------|----------|
 | `list_apps` | Takip edilen tüm uygulamaları listele |
-| `get_app` | Detaylı uygulama bilgisi (metadata, puanlar, versiyon geçmişi) |
-| `get_app_listing` | Mağaza listesini getir (açıklama, ekran görüntüleri, yenilikler) |
+| `get_app` | Detaylı uygulama bilgisi (metadata, puanlar, versiyon geçmişi, `unavailable_countries`) |
+| `get_app_listing` | Mağaza listesini getir (açıklama, ekran görüntüleri, yenilikler; `country_code` + `locale`) |
 
 ### Rakipler
 
@@ -80,13 +80,6 @@ claude mcp add appstorecat \
 |------|----------|
 | `get_app_competitors` | Belirli bir uygulamanın rakiplerini getir |
 | `list_all_competitors` | Tüm rakip ilişkilerini listele |
-
-### Değerlendirmeler
-
-| Tool | Açıklama |
-|------|----------|
-| `get_app_reviews` | Kullanıcı yorumlarını getir (puana göre filtre, sıralama) |
-| `get_review_summary` | Yorum özeti (puan dağılımı, ortalamalar) |
 
 ### Değişiklikler
 
@@ -114,9 +107,9 @@ claude mcp add appstorecat \
 
 | Tool | Açıklama |
 |------|----------|
-| `list_countries` | Desteklenen ülkeleri/bölgeleri listele |
+| `list_countries` | Desteklenen ülkeleri/bölgeleri listele (dahili `zz` sentineli filtrelenir) |
 | `list_store_categories` | Tüm uygulama mağazası kategorilerini listele |
-| `get_dashboard` | Dashboard özeti (uygulama sayısı, son değişiklikler/yorumlar) |
+| `get_dashboard` | Dashboard özeti (uygulama sayısı, son değişiklikler) |
 
 ## Geliştirme
 
@@ -142,8 +135,7 @@ mcp/
 │       ├── dashboard.ts  # get_dashboard
 │       ├── explorer.ts   # explore_screenshots, explore_icons
 │       ├── meta.ts       # list_countries, list_store_categories
-│       ├── publishers.ts # search/list/get publishers
-│       └── reviews.ts    # get_app_reviews, get_review_summary
+│       └── publishers.ts # search/list/get publishers
 ├── package.json
 └── tsconfig.json
 ```

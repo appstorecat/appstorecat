@@ -42,8 +42,10 @@ Islemler icin varsayilan ulke `config/appstorecat.php` dosyasinda ayarlanir:
 Bir uygulamayi senkronize ederken server:
 
 1. Once `us` yerel ayarini dener
-2. ABD yerel ayari basarisiz olursa uygulamanin `origin_country` degerine geri doner
+2. ABD yerel ayari basarisiz olursa uygulamanin `origin_country_code` degerine geri doner
 3. Yerel ayara ozgu islemler icin ulkenin `ios_languages` veya `android_languages` degerlerini kullanir
+
+Android metrikleri icin ISO 3166 standardindaki `zz` sentinel kodu "Global" olarak kullanilir (Google Play ulkeye ozgu olmayan global degerler icin).
 
 ## Ulkeleri Etkinlestirme
 
@@ -52,7 +54,7 @@ Ulkeler, `is_active_ios` ve `is_active_android` bayraklari araciligiyla platform
 - Magaza aramasi
 - Grafik senkronizasyonu
 - Liste cekme
-- Yorum cekme
+- Metrik toplama (`app_metrics`)
 
 ## Dil Eslemeleri
 
@@ -62,9 +64,13 @@ Her ulkenin platform basina desteklenen dillerin JSON dizisi vardir:
 - **android_languages**: Bu ulke icin Google Play'de desteklenen yerel ayar kodlari (orn., `["en-US", "es-419"]`)
 - **ios_cross_localizable**: Ulkeler arasi kullanilabilen iOS yerel ayarlari (capraz yerellestime)
 
+Mağaza listelerinde dil `app_store_listings.locale` sutununda saklanir.
+
 ## Notlar
 
 - iOS ve Android bazi durumlarda farkli yerel ayar kodu formatlari kullanir
-- Android yorumlari globaldir (ulkeye ozgu degildir), bu nedenle Android yorumlarinda `country_code` nullable olabilir
-- Grafik verileri her iki platform icin de her zaman ulkeye ozgudur
+- Android metriklerinde ulkeye ozgu olmayan degerler icin `zz` "Global" sentinel kodu kullanilir
+- Grafik verileri her iki platform icin de her zaman ulkeye ozgudur (`trending_charts.country_code`)
+- `app_metrics.country_code` `CHAR(2)` tipindedir ve `countries.code` ile FK iliskisine sahiptir
 - App Store, Google Play'e kiyasla cok daha fazla ulke/yerel ayar kombinasyonuna sahiptir
+- `apps.is_available` "en az bir magazada erisilebilir" anlamindadir; ulke bazli erisilebilirlik `app_metrics.is_available` icinde tutulur

@@ -33,22 +33,26 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
-| GET | `/dashboard` | Ozet istatistikler (toplam uygulama, yorum, surum, degisiklik) |
+| GET | `/dashboard` | Ozet istatistikler (toplam uygulama, surum, degisiklik) |
 
 ## Uygulamalar
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
 | GET | `/apps` | Takip edilen uygulamalari listele (`?platform=ios\|android`) |
-| POST | `/apps` | Yeni bir uygulamayi kaydet ve takip et |
+| POST | `/apps` | Daha onceden kesfedilmis bir uygulamayi takip et. `platform+external_id` DB'de bulunmalidir (once arama/chart ile kesif); yoksa 422 |
 | GET | `/apps/search` | Magazalarda uygulama ara (`?term=X&platform=ios&country_code=us`) |
-| GET | `/apps/{platform}/{externalId}` | Uygulama detaylarini getir |
-| GET | `/apps/{platform}/{externalId}/listing` | Magaza listesini getir (`?country_code=us&locale=en-US`) |
+| GET | `/apps/{platform}/{externalId}` | Uygulama detaylarini getir. Yanit `unavailable_countries: string[]` icerir (`app_metrics.is_available = false` degerlerinden turetilir) |
+| GET | `/apps/{platform}/{externalId}/listing` | Magaza listesini getir (`?country_code=us&locale=en-US`). `AppAvailableCountry` kurali uygulama secilen ulkede mevcut degilse 422 doner |
 | GET | `/apps/{platform}/{externalId}/rankings` | Secilen gun icin uygulamanin liste siralamalari (`?date=YYYY-MM-DD`) |
+| GET | `/apps/{platform}/{externalId}/sync-status` | `sync_statuses` kaydini dondurur (status, current_step, progress, failed_items) |
+| POST | `/apps/{platform}/{externalId}/sync` | Platforma ozel on-demand kuyruguna yenileme gonderir |
 | POST | `/apps/{platform}/{externalId}/track` | Bir uygulamayi takip et |
 | DELETE | `/apps/{platform}/{externalId}/track` | Bir uygulamanin takibini birak |
 
-**Rota kisitlamalari:** `platform` degeri `ios` veya `android` olmalidir, `externalId` `[a-zA-Z0-9._]+` ile eslesir
+**Rota kisitlamalari:** `platform` degeri `ios` veya `android` olmalidir, `externalId` `[a-zA-Z0-9._]+` ile eslesir.
+
+> Dogrudan URL ile kesif varsayilan olarak kapalidir (`DISCOVER_{IOS,ANDROID}_ON_DIRECT_VISIT=false`). DB'de bulunmayan bir `platform+external_id` icin `show`/`listing` cagrisi 404 doner — kullanicilar once arama/chart araciligiyla kaydetmelidir.
 
 ## Rakipler
 
@@ -65,13 +69,6 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 |-------|----------|----------|
 | GET | `/apps/{platform}/{externalId}/keywords` | Anahtar kelime yogunlugu (`?locale=en-US&ngram=2`) — mevcut liste uzerinden talep uzerine hesaplanir |
 | GET | `/apps/{platform}/{externalId}/keywords/compare` | Anahtar kelimeleri karsilastir (`?app_ids=1,2,3&locale=en-US`) |
-
-## Yorumlar
-
-| Metod | Endpoint | Aciklama |
-|-------|----------|----------|
-| GET | `/apps/{platform}/{externalId}/reviews` | Yorumlari listele (`?country_code=US&rating=5&sort=latest&per_page=25`) |
-| GET | `/apps/{platform}/{externalId}/reviews/summary` | Puan ozeti ve dagilimi |
 
 ## Degisiklikler
 
@@ -97,7 +94,7 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
-| GET | `/countries` | Aktif ulkeleri listele |
+| GET | `/countries` | Aktif ulkeleri listele. Dahili `zz` "Global" sentinel'i yanitta filtrelenir |
 | GET | `/store-categories` | Magaza kategorilerini listele (`?platform=ios&type=app`) |
 
 ## Yayincilar
@@ -106,11 +103,11 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 |-------|----------|----------|
 | GET | `/publishers/search` | Yayinci ara (`?term=X&platform=ios&country_code=us`) |
 | GET | `/publishers` | Takip edilen uygulamalardaki yayincilari listele |
-| GET | `/publishers/{platform}/{externalId}` | Yayinci detaylari |
-| GET | `/publishers/{platform}/{externalId}/store-apps` | Yayincinin magaza uygulamalari |
-| POST | `/publishers/{platform}/{externalId}/import` | Yayincinin tum uygulamalarini ice aktar |
+| GET | `/publishers/{platform}/{externalId}` | Yayinci detaylari. Bilinmeyen yayinci icin 404 |
+| GET | `/publishers/{platform}/{externalId}/store-apps` | Yayincinin magaza uygulamalari. Bilinmeyen yayinci icin 404 |
+| POST | `/publishers/{platform}/{externalId}/import` | Yayincinin uygulamalarini ice aktar. Her `external_ids[*]` DB'de zaten bulunmalidir; aksi halde 422 |
 
-**Yayinci rota kisitlamalari:** `externalId` `[a-zA-Z0-9._%+ -]+` ile eslesir (bosluk ve arti isaretine izin verir)
+**Yayinci rota kisitlamalari:** `externalId` `[a-zA-Z0-9._%+ -]+` ile eslesir (bosluk ve arti isaretine izin verir).
 
 ## Hiz Sinirlamasi
 
@@ -130,4 +127,4 @@ Tum hatalar asagidaki formati takip eder:
 }
 ```
 
-Yaygin HTTP durum kodlari: `401` (kimlik dogrulanmamis), `403` (yetkisiz), `404` (bulunamadi), `422` (dogrulama hatasi), `429` (hiz siniri asildi).
+Yaygin HTTP durum kodlari: `401` (kimlik dogrulanmamis), `403` (yetkisiz), `404` (bulunamadi — ornegin bilinmeyen app/publisher), `422` (dogrulama hatasi — ornegin `AppAvailableCountry` basarisizligi veya henuz kesfedilmemis `platform+external_id`), `429` (hiz siniri asildi).

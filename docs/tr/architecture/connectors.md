@@ -27,9 +27,8 @@ interface ConnectorInterface
 {
     public function supports(string $platform): bool;
     public function fetchIdentity(App $app, string $country = 'us'): ConnectorResult;
-    public function fetchListings(App $app, string $country = 'us', ?string $language = null): ConnectorResult;
+    public function fetchListings(App $app, string $country = 'us', ?string $locale = null): ConnectorResult;
     public function fetchMetrics(App $app, string $country = 'us'): ConnectorResult;
-    public function fetchReviews(App $app, string $country = 'us', int $page = 1): ConnectorResult;
     public function fetchDeveloperApps(string $developerExternalId): ConnectorResult;
     public function fetchSearch(string $term, int $limit = 10, string $country = 'us'): array;
     public function fetchChart(string $collection, string $country, ?string $categoryExternalId = null): array;
@@ -52,7 +51,7 @@ class ConnectorResult
 ```
 
 - `ConnectorResult::success($data)` — Normalize edilmis veri iceren basarili yanit
-- `ConnectorResult::failure($error, $statusCode)` — Hata detaylari iceren basarisiz yanit
+- `ConnectorResult::failure($error, $statusCode)` — Hata detaylari iceren basarisiz yanit (404 durumunda `empty_response` nedeniyle)
 
 ## ITunesLookupConnector
 
@@ -61,12 +60,13 @@ App Store scraper mikroservisi (`scraper-ios`) ile iletisim kurar.
 | Metot | Scraper Endpoint'i | Temel Yanit Alanlari |
 |-------|-------------------|---------------------|
 | `fetchIdentity` | `GET /apps/:appId/identity` | name, publisher, category, locales, release_date, is_free |
-| `fetchListings` | `GET /apps/:appId/listings` | title, subtitle, description, whats_new, screenshots, icon, price |
+| `fetchListings` | `GET /apps/:appId/listings` | title, subtitle, promotional_text, description, whats_new, screenshots, icon, price |
 | `fetchMetrics` | `GET /apps/:appId/metrics` | rating, rating_count, rating_breakdown, file_size |
-| `fetchReviews` | `GET /apps/:appId/reviews` | reviews[], rating_breakdown |
 | `fetchDeveloperApps` | `GET /developers/:id/apps` | apps[] with basic details |
 | `fetchSearch` | `GET /apps/search` | results[] with app_id, name, developer |
 | `fetchChart` | `GET /charts` | ranked results (up to 200 apps) |
+
+> iOS kimlik yaniti ucretsiz/ucretli bilgisini `is_free` boolean'i olarak iletir. Liste payload'i `promotional_text` alanini icerir.
 
 **Yapilandirma:** `appstorecat.connectors.appstore.base_url`, `appstorecat.connectors.appstore.timeout`
 
@@ -77,12 +77,13 @@ Google Play scraper mikroservisi (`scraper-android`) ile iletisim kurar.
 | Metot | Scraper Endpoint'i | Temel Yanit Alanlari |
 |-------|-------------------|---------------------|
 | `fetchIdentity` | `GET /apps/{app_id}/identity` | iTunes connector ile ayni |
-| `fetchListings` | `GET /apps/{app_id}/listings` | Ayni (`lang` yerine `locale` parametresi kullanir) |
-| `fetchMetrics` | `GET /apps/{app_id}/metrics` | Ayni (file_size_bytes yok) |
-| `fetchReviews` | `GET /apps/{app_id}/reviews` | Ayni |
+| `fetchListings` | `GET /apps/{app_id}/listings` | Ayni (`lang` yerine `locale` parametresi kullanir; `promotional_text` her zaman `null`) |
+| `fetchMetrics` | `GET /apps/{app_id}/metrics` | Ayni (file_size_bytes yok, puan Play icin global) |
 | `fetchDeveloperApps` | `GET /developers/{id}/apps` | Ayni |
 | `fetchSearch` | `GET /apps/search` | Ayni |
 | `fetchChart` | `GET /charts` | Ayni (varsayilan kategori: APPLICATION, maksimum 100) |
+
+> Android metrikleri ulke ayrimina sahip olmadigi icin `AppSyncer` bunlari `app_metrics` tablosuna `zz` "Global" sentinel ulkesi altinda yazar.
 
 **Yapilandirma:** `appstorecat.connectors.gplay.base_url`, `appstorecat.connectors.gplay.timeout`
 
@@ -99,6 +100,6 @@ Bu normalizasyon connector katmaninda gerceklesir, boylece servis katmani (`AppS
 
 ## Hata Yonetimi
 
-- **404 yanitlari:** Uygulamanin artik mevcut olmadigini gosterir. Connector basarisizlik dondurur ve syncer uygulamayi `is_available = false` olarak isaretler.
-- **Zaman asimi:** Connector basina yapilandirilabiir (varsayilan 30 saniye). Job'lar ustel geri cekilme ile yeniden dener.
+- **404 yanitlari:** Uygulamanin bu storefront'ta mevcut olmadigini gosterir. Connector `empty_response` hatasiyla basarisizlik dondurur. Syncer bunu kalici bir "bu ulkede yok" sinyali olarak isler — pipeline ilgili ulke icin `app_metrics.is_available = false` yazar ve sonsuza kadar yeniden denenmez. Android scraper'i, FastAPI istisna isleyicisi tarafindan 404'e cevrilen acik bir `AppNotFoundError` yayar.
+- **Zaman asimi:** Connector basina yapilandirilabilir (varsayilan 30 saniye). Job'lar ustel geri cekilme ile yeniden dener.
 - **Hiz sinirlandirma:** Connector'da degil, job seviyesinde Redis throttle ile yonetilir.

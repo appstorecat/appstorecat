@@ -15,11 +15,10 @@ Iki scraper mikroservisi, server'in connector'lar araciligiyla tuketigi REST API
 | `GET /health` | — | `{status: "ok"}` dondurur |
 | `GET /charts` | `collection` (zorunlu), `category`, `country`, `num` | Siralama listeleri (maks 200) |
 | `GET /apps/search` | `term` (zorunlu), `limit`, `country` | Uygulama ara |
-| `GET /apps/:appId/identity` | `country`, `lang` | Uygulama meta verileri |
-| `GET /apps/:appId/listings` | `country`, `lang` | Magaza listesi |
+| `GET /apps/:appId/identity` | `country`, `lang` | Uygulama meta verileri (`is_free` boolean'i doner) |
+| `GET /apps/:appId/listings` | `country`, `lang` | Magaza listesi (`promotional_text` dahildir) |
 | `GET /apps/:appId/listings/locales` | `countries` (virgul ile ayrilmis) | Coklu ulke listeleri |
 | `GET /apps/:appId/metrics` | `country`, `lang` | Puan, dosya boyutu |
-| `GET /apps/:appId/reviews` | `country`, `page` | Kullanici yorumlari |
 | `GET /developers/:developerId/apps` | — | Gelistiricinin uygulamalari |
 | `GET /developers/search` | `term`, `limit`, `country` | Gelistirici ara |
 
@@ -45,10 +44,9 @@ Iki scraper mikroservisi, server'in connector'lar araciligiyla tuketigi REST API
 | `GET /charts` | `collection`, `category`, `country`, `count` | Siralama listeleri (maks 200) |
 | `GET /apps/search` | `term` (zorunlu), `limit`, `country` | Uygulama ara |
 | `GET /apps/{app_id}/identity` | `country` | Uygulama meta verileri |
-| `GET /apps/{app_id}/listings` | `locale`, `country` | Magaza listesi |
+| `GET /apps/{app_id}/listings` | `locale`, `country` | Magaza listesi (`promotional_text` her zaman `null`) |
 | `GET /apps/{app_id}/listings/locales` | `locales` (virgul ile ayrilmis) | Coklu yerel ayar listeleri |
-| `GET /apps/{app_id}/metrics` | `country` | Puan, yukleme sayisi |
-| `GET /apps/{app_id}/reviews` | `country`, `limit` | Kullanici yorumlari (maks 500) |
+| `GET /apps/{app_id}/metrics` | `country` | Puan (global), yukleme sayisi |
 | `GET /developers/{developer_id}/apps` | — | Gelistiricinin uygulamalari |
 | `GET /developers/search` | `term`, `limit`, `country` | Gelistirici ara |
 
@@ -67,11 +65,11 @@ Iki scraper mikroservisi, server'in connector'lar araciligiyla tuketigi REST API
 | Dil parametresi | `lang` | `locale` |
 | Coklu yerel ayar parametresi | `countries` | `locales` |
 | Siralama maks sonuc | 200 | ~100 |
-| Yorum sayfalama | `page` parametresi | `limit` parametresi (maks 500) |
 | Altyazi destegi | Evet | Hayir |
+| `promotional_text` | Evet | Hayir (`null`) |
 | Yukleme sayisi | Hayir | Evet (aralik dizesi) |
 | Metriklerde dosya boyutu | Evet | Hayir |
-| Yorum ulke kapsamı | Ulke bazinda | Global |
+| Puan kapsami | Ulke bazinda | Global (`zz` sentinel'i altinda saklanir) |
 
 ## Hata Formati
 
@@ -85,5 +83,5 @@ Her iki scraper da hatalari su sekilde dondurur:
 ```
 
 Yaygin hatalar:
-- `404` — Uygulama bulunamadi / magazadan kaldirildi
+- `404` — Uygulama bu storefront'ta bulunamadi. Android scraper'i bunu `AppNotFoundError` olarak yayar ve FastAPI istisna isleyicisi 404'e cevirir. iOS scraper'i da 404 doner. Server connector'lari 404'u `empty_response` olarak ele alir — ilgili ulke icin kalici "mevcut degil" olarak isaretlenir ve yeniden denenmez.
 - `500` — Upstream scraper kutuphane hatasi

@@ -14,7 +14,7 @@ Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob
                     ├─ charts-ios ────────────▶ SyncChartSnapshotJob (iOS)
                     ├─ charts-android ────────▶ SyncChartSnapshotJob (Android)
                     ├─ discover ──────────────▶ Kesif job'lari
-                    └─ default ───────────────▶ Genel job'lar
+                    └─ default ───────────────▶ Genel job'lar + ReconcileFailedItemsJob
 ```
 
 ## Kuyruklar
@@ -30,19 +30,20 @@ Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob
 | `charts-ios` | iOS chart goruntuleri | `SyncChartSnapshotJob` |
 | `charts-android` | Android chart goruntuleri | `SyncChartSnapshotJob` |
 | `discover` | Uygulama kesfi | Cesitli |
-| `default` | Genel amacli job'lar | Cesitli |
+| `default` | Genel amacli job'lar | `ReconcileFailedItemsJob` dahil cesitli |
 
 ## Job'lar
 
 ### SyncAppJob
 
-Tek bir uygulamanin tam verisini senkronize eder (kimlik, liste, metrikler, incelemeler).
+Tek bir uygulamanin tum pipeline fazlarini (identity → listings → metrics → finalize) calistirir ve `sync_statuses` uzerinden ilerlemeyi takip eder.
 
 - **Kuyruk:** Platforma ozel senkronizasyon kuyrugu (`sync-tracked-*`, `sync-discovery-*` veya `sync-on-demand-*`)
 - **Benzersiz:** Uygulama ID'si basina, 1 saatlik pencere (tekrar senkronizasyonu onler)
 - **Yeniden deneme:** `[30, 60, 120]` saniye geri cekilme ile 3 deneme
 - **Throttle:** Redis tabanli, platform bazinda (iOS: 5/dk, Android: 5/dk)
 - **Blok zaman asimi:** 300 saniye (throttle slotu icin bekler)
+- **404 isleme:** Scraper'dan gelen 404 `empty_response` olarak siniflandirilir — ilgili ulke icin kalici olarak "mevcut degil" isaretlenir, sonsuza kadar yeniden denenmez
 
 ### SyncChartSnapshotJob
 
@@ -58,6 +59,14 @@ Bir chart goruntusu getirir (ornegin top_free iOS US) ve siralamalari kaydeder.
 `SyncChartSnapshotJob` ile aynidir ancak Redis throttle engeli yoktur. Kullanici arayuzunden talep uzerine chart getirmeleri icin kullanilir.
 
 - **Yeniden deneme:** `[30, 60, 120]` saniye geri cekilme ile 3 deneme
+
+### ReconcileFailedItemsJob
+
+Onceki bir geziyle `sync_statuses.failed_items` icine yazilan ogeleri yeniden dener. Neden etiketi basina yapilandirilmis maksimum deneme sayisina saygi duyar (`empty_response` gibi kalici reason'lar atlanir).
+
+- **Kuyruk:** `default`
+- **Zamanlama:** `sync_statuses.next_retry_at` tarafindan yonlendirilir
+- **Kapsam:** Olu olmayan ogeleri ayni Redis throttle kurallari altinda pipeline'a geri besler
 
 ## Throttling
 
@@ -81,7 +90,7 @@ Redis::throttle('sync-job:ios')
 | `chart-job:ios` | 24 | 60s | iOS |
 | `chart-job:android` | 37 | 60s | Android |
 
-Oranlar ortam degiskenleri araciligiyla yapilandirilabiir (bkz. [Yapilandirma](../getting-started/configuration.md)).
+Oranlar ortam degiskenleri araciligiyla yapilandirilabilir (bkz. [Yapilandirma](../getting-started/configuration.md)).
 
 ## Kuyruk Suruculeri
 
@@ -97,7 +106,7 @@ Worker'lar atanan kuyruklarindaki job'lari isler. Uretimde Laravel Supervisor wo
 Kod degisikliklerinden sonra worker'lari yeniden baslatin:
 
 ```bash
-docker compose exec appstorecat-server php artisan queue:restart
+make queue-restart
 ```
 
 ## Yeni Job Ekleme
@@ -108,3 +117,4 @@ Yeni scraper ile iliskili job'lar olusturulurken:
 2. Uygun connector'in hiz yapilandirmasiyla Redis throttle uygulatin
 3. Ustel geri cekilme ile yeniden deneme uygulayin
 4. Tekrar islemeyi onlemek icin `ShouldBeUnique` kullanmayi degerlendirin
+5. Gecici hatalari `sync_statuses.failed_items` icine yazin ki `ReconcileFailedItemsJob` onlari uzlastirabilsin

@@ -37,8 +37,10 @@ Listeler sunlara gore filtrelenebilir:
 ## API
 
 ```
-GET /api/v1/charts?platform=ios&collection=top_free&country=us&category_id=6014
+GET /api/v1/charts?platform=ios&collection=top_free&country_code=US&category_id=6014
 ```
+
+> `country_code` query parametresi `countries.code` FK'sine karsilik gelir. `/countries` endpoint'i dahili `zz` Global sentinel'i yanitlarindan filtreler.
 
 Pozisyon degisikligi gostergeleri icin onceki siralama verileriyle birlikte en son liste anlik goruntusunu dondurur.
 
@@ -52,8 +54,8 @@ Listeleri gozden gecirmek icin **Discovery > Trending** sayfasina gidin. Arayuz 
 
 ## Teknik Detaylar
 
-- **Tablolar:** `trending_charts`, `trending_chart_entries`
+- **Tablolar:** `trending_charts` (`country_code` sutunu `countries.code` FK'sine baglanir), `trending_chart_entries`
 - **Is:** `SyncChartSnapshotJob` (kisitlanmis: iOS 24/dk, Android 37/dk)
-- **Kuyruklar:** `charts-ios`, `charts-android`
+- **Kuyruklar:** `charts-ios`, `charts-android` (platform ayrimli)
 - **Anlik goruntu sikligi:** Gunluk (gun basina platform/koleksiyon/ulke/kategori basina bir anlil goruntu)
 - **Yapilandirma:** `CHARTS_IOS_DAILY_SYNC_ENABLED`, `CHARTS_ANDROID_DAILY_SYNC_ENABLED`

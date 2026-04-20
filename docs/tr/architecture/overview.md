@@ -59,18 +59,18 @@ Bu yaklasim, bir platformun hiz sinirlari veya hatalarinin digerini asla engelle
 ### Kullanici Tarafindan Baslatilan (Senkron)
 
 1. Kullanici web'de bir uygulama arar
-2. Frontend `GET /api/v1/apps/search?term=...&platform=ios` adresini cagrir
+2. Frontend `GET /api/v1/apps/search?term=...&platform=ios&country_code=us` adresini cagrir
 3. Backend istegi `ITunesLookupConnector` araciligiyla `scraper-ios`'a iletir
 4. Scraper sonuclari dondurur, server normalize eder ve web'e iletir
-5. Kullanici bir uygulamaya tiklar → server connector araciligiyla tam detaylari getirir ve veritabani kayitlarini olusturur
+5. Kullanici bir uygulamaya tiklar → server aramada/chart'ta zaten kesfedilmis olmasini dogrular (bilinmeyen uygulamalar icin 404/422). Dogrudan URL ile kesif varsayilan olarak kapalidir (`DISCOVER_{IOS,ANDROID}_ON_DIRECT_VISIT=false`).
 
 ### Arka Plan (Asenkron)
 
-1. Laravel zamanlayici senkronizasyon job'larini gonderir (ornegin `SyncAppJob`, `SyncChartSnapshotJob`)
-2. Job'lar platforma ozel kuyruklara yerlestirilir (`sync-tracked-ios`, `charts-android`, vb.)
+1. Laravel zamanlayici senkronizasyon job'larini gonderir (ornegin `SyncAppJob`, `SyncChartSnapshotJob`, `ReconcileFailedItemsJob`)
+2. Job'lar platforma ozel kuyruklara yerlestirilir (`sync-tracked-ios`, `sync-on-demand-android`, `charts-android`, vb.)
 3. Kuyruk isleyicileri job'lari alir, Redis throttle uygular, connector'lari cagrir
-4. Connector'lar scraper mikroservislerini cagrir
-5. Sonuclar normalize edilir ve veritabanina kaydedilir
+4. Connector'lar scraper mikroservislerini cagrir; scraper 404 dondurdugunde pipeline sonucu `empty_response` olarak isaretler (sonsuz yeniden deneme yok)
+5. Sonuclar normalize edilir ve veritabanina kaydedilir; `sync_statuses` her asamanin ilerlemesini ve basarisiz ogelerini takip eder
 
 ## Altyapi
 

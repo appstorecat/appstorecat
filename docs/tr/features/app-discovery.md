@@ -17,24 +17,25 @@ AppStoreCat, kullanici etkilesimleri araciligiyla uygulamalari organik olarak ke
 | **Yayinci Uygulamalari** | Bir yayincinin uygulama katalogu goruntulenmesi onun uygulamalarini kesfeder |
 | **Kayit** | API uzerinden bir uygulamanin acikca kaydedilmesi |
 | **Iceri Aktarma** | Bir yayincinin tum uygulamalarinin toplu olarak iceri aktarilmasi |
-| **Dogrudan Ziyaret** | Bir uygulamanin magaza kimligiyle ziyaret edilmesi |
+| **Dogrudan Ziyaret** | Bir uygulamanin magaza kimligiyle ziyaret edilmesi (varsayilan olarak devre disi) |
 
-Her kaynak, `config/appstorecat.php` dosyasindaki `discover` anahtari altinda platform bazinda etkinlestirilebilir/devre disi birakilabilir.
+Her kaynak, `config/appstorecat.php` dosyasindaki `discover` anahtari altinda platform bazinda etkinlestirilebilir/devre disi birakilabilir. `on_direct_visit` varsayilan olarak kapalidir — veritabaninda bulunmayan bir uygulamanin URL'sine dogrudan gidilirse API `404` doner.
 
 ## Nasil Calisir
 
 1. Kullanici bir eylem gerceklestirir (arama, listeleri goruntuler, yayinci ziyaret eder)
 2. Backend, magaza verilerini cekmek icin uygun scraper'i cagrir
 3. `App::discover()`, `discovered_from` etiketiyle yeni bir uygulama kaydi olusturur
-4. Uygulama, kesif kuyrugundan arka plan senkronizasyonu icin siraya alinir
+4. Uygulama, platform ayrimli kesif kuyruguna (`sync-discovery-ios` veya `sync-discovery-android`) arka plan senkronizasyonu icin itilir
+5. Senkronizasyon `sync_statuses` tablosunda faz faz (identity → listings → metrics → finalize → reconciling) takip edilir; identity asamasi basarisiz olursa tum pipeline durur ve uygulama "kullanilamaz" olarak isaretlenir
 
 ## Arama
 
 ```
-GET /api/v1/apps/search?term=instagram&platform=ios&country=us
+GET /api/v1/apps/search?term=instagram&platform=ios&country_code=US
 ```
 
-Scraper uzerinden magazada gercek zamanli arama yapar ve eslesen uygulamalari dondurur. Sonuclar her iki platform icin normalize edilir.
+Scraper uzerinden magazada gercek zamanli arama yapar ve eslesen uygulamalari dondurur. Sonuclar her iki platform icin normalize edilir. `country_code` iki harfli ISO kodudur ve `countries.code` uzerinden dogrulanir.
 
 ## Arayuz
 
@@ -48,5 +49,6 @@ Uygulama aramak icin **Discovery > Apps** sayfasina gidin. Arayuz sunlari saglar
 
 - **Controller:** `AppSearchController`
 - **Connector'lar:** Her iki connector uzerinde `fetchSearch()`
-- **Kesif kuyrugu:** `discover`
-- **Yapilandirma:** `appstorecat.discover.{platform}.on_search` (ve diger `on_*` anahtarlari)
+- **Kesif kuyruklari:** `sync-discovery-ios`, `sync-discovery-android` (platform ayrimli)
+- **Yapilandirma:** `appstorecat.discover.{platform}.on_search` (ve diger `on_*` anahtarlari; `on_direct_visit` varsayilan `false`)
+- **404 sozlesmesi:** Scraper'lar, bir uygulama bir magazada bulunamadiginda 404 dondurur; bu durumlar `sync_statuses.failed_items` uzerinden `ReconcileFailedItemsJob` tarafindan sonradan ele alinir.

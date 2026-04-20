@@ -77,7 +77,8 @@ docker compose exec appstorecat-server php artisan queue:failed
 Yaygın nedenler:
 - Scraper servisi kapalı → scraper'ı yeniden başlatın
 - Hız sınırı aşıldı → işler otomatik olarak yeniden denenir
-- Uygulama mağazadan kaldırıldı → beklenen 404, `is_available` bayrağını kontrol edin
+- Uygulama mağazadan kaldırıldı → scraper HTTP 404 döner, `apps.is_available` (en az bir mağazada erişilebilir) ve ülke bazlı `app_metrics.is_available` bayraklarını kontrol edin
+- Kalıcı başarısız öğeler `ReconcileFailedItemsJob` tarafından toplanır ve `sync_statuses` tablosunda `reconciling` fazında görünür
 
 Tüm başarısız işleri yeniden deneyin:
 
@@ -145,7 +146,27 @@ IP adresiniz hız sınırlamasına takılmıyorsa bu değerler artırılabilir.
 
 ### Veritabanı büyümesi
 
-`app_reviews` ve `trending_chart_entries` tabloları en hızlı büyüyen tablolardır. Şunları değerlendirin:
+`app_metrics` ve `trending_chart_entries` tabloları en hızlı büyüyen tablolardır. Şunları değerlendirin:
 
-- İhtiyacınız olmayan platformlar için yorum senkronizasyonunu devre dışı bırakma
-- Keşif senkronizasyon sıklığını ayarlama (`SYNC_{PLATFORM}_DISCOVERY_REFRESH_HOURS`)
+- Keşif senkronizasyon sıklığını ayarlama (`SYNC_{IOS,ANDROID}_DISCOVERY_REFRESH_HOURS`)
+- İhtiyacınız olmayan platformda günlük grafik senkronizasyonunu kapatma (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED=false`)
+- Aktif ülke listesini `countries.is_active_{ios,android}` üzerinden daraltma
+
+## Sync Pipeline
+
+### Başarısız sync öğeleri biriktikçe ne olur?
+
+Sync pipeline'ı fazlara ayrılmıştır (**identity → listings → metrics → finalize → reconciling**) ve ilerleme `sync_statuses` tablosunda tutulur. Başarısız öğeler otomatik olarak `ReconcileFailedItemsJob` tarafından toplanıp yeniden denenir. Manuel inceleme için:
+
+```bash
+make artisan tinker
+>>> \App\Models\SyncStatus::where('phase', 'reconciling')->latest()->take(20)->get();
+```
+
+### Kuyruklar bloklanıyor
+
+iOS ve Android kuyrukları platform bazında ayrıdır (`sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`). Biri yavaşsa diğerini bloklamaz. Hangi kuyruğun birikmiş iş barındırdığını görmek için:
+
+```bash
+make artisan queue:monitor sync-discovery-ios,sync-discovery-android,sync-tracked-ios,sync-tracked-android
+```
