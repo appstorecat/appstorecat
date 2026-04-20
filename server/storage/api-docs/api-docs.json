@@ -380,6 +380,15 @@
                                 "android"
                             ]
                         }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
+                        }
                     }
                 ],
                 "responses": {
@@ -2086,6 +2095,24 @@
                         "type": "string",
                         "example": "My MCP Token",
                         "maxLength": 255
+                    }
+                },
+                "type": "object"
+            },
+            "AppIndexRequest": {
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "search": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 100
                     }
                 },
                 "type": "object"

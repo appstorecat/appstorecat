@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1\App;
 
 use App\Enums\Platform;
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\App\AppIndexRequest;
 use App\Http\Requests\Api\App\StoreAppRequest;
 use App\Http\Resources\Api\App\AppDetailResource;
 use App\Http\Resources\Api\App\AppResource;
@@ -41,16 +42,23 @@ class AppController extends BaseController
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
         ],
         responses: [
             new OA\Response(response: 200, description: 'List of tracked apps', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/AppResource'))),
         ],
     )]
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(AppIndexRequest $request): AnonymousResourceCollection
     {
         $apps = $request->user()->apps()
-            ->when($request->query('platform'), function ($query, $platform) {
+            ->when($request->validated('platform'), function ($query, $platform) {
                 $query->platform($platform);
+            })
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $term = '%'.$request->validated('search').'%';
+                $query->where(fn ($q) => $q
+                    ->where('apps.display_name', 'like', $term)
+                    ->orWhere('apps.external_id', 'like', $term));
             })
             ->latest()
             ->get();
