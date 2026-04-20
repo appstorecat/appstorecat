@@ -112,6 +112,11 @@ export default function AppsShow() {
     queryFn: () => axios.get(`/apps/${platform}/${externalId}`).then((r) => r.data),
   })
 
+  const originCountryCode = (app?.origin_country_code as string | undefined) ?? 'us'
+  const originCountry = countries?.find((c) => c.code === originCountryCode)
+  const originLocale =
+    (platform === 'ios' ? originCountry?.ios_languages : originCountry?.android_languages)?.[0] ?? 'en-US'
+
   const { data: syncStatus } = useSyncStatus(platform, externalId, { enabled: !!app })
   const isSyncing = syncStatus?.status === 'queued' || syncStatus?.status === 'processing'
 
@@ -342,6 +347,8 @@ export default function AppsShow() {
                     selectedCountry={selectedCountry}
                     selectedVersion={selectedVersion}
                     unavailableCountries={app.unavailable_countries ?? []}
+                    fallbackLocale={originLocale}
+                    originCountryCode={originCountryCode}
                   />
                 )}
                 {activeTab === 'competitors' && (

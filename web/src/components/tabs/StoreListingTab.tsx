@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Smartphone, Info } from 'lucide-react'
+import { Smartphone, Ban, Languages } from 'lucide-react'
 
 interface Screenshot {
   url: string
@@ -40,9 +40,26 @@ interface StoreListingTabProps {
   selectedCountry?: string
   selectedVersion: string
   unavailableCountries?: string[]
+  fallbackLocale?: string
+  originCountryCode?: string
 }
 
-export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedCountry = 'us', selectedVersion, unavailableCountries = [] }: StoreListingTabProps) {
+function flagUrl(code: string): string {
+  return `https://flagcdn.com/w40/${code.toLowerCase()}.png`
+}
+
+export default function StoreListingTab({
+  listings,
+  versions,
+  platform,
+  externalId,
+  selectedLocale,
+  selectedCountry = 'us',
+  selectedVersion,
+  unavailableCountries = [],
+  fallbackLocale = 'en-US',
+  originCountryCode = 'us',
+}: StoreListingTabProps) {
   const sortedVersions = useMemo(
     () => [...versions].sort((a, b) => b.id - a.id),
     [versions],
@@ -62,35 +79,60 @@ export default function StoreListingTab({ listings, versions, platform, external
     [filteredListings, selectedLocale],
   )
 
-  const currentListing = requestedListing ?? filteredListings[0]
+  const fallbackListing = useMemo(
+    () =>
+      filteredListings.find((l) => l.locale === fallbackLocale) ??
+      filteredListings.find((l) => l.locale.toLowerCase().startsWith(fallbackLocale.toLowerCase().slice(0, 2))) ??
+      filteredListings[0],
+    [filteredListings, fallbackLocale],
+  )
+
+  const currentListing = requestedListing ?? fallbackListing
   const isCountryUnavailable = unavailableCountries.includes(selectedCountry)
-  const isFallback = !requestedListing && !!currentListing
+  const isLocaleFallback = !requestedListing && !!currentListing
+  const showFallbackNotice = isCountryUnavailable || isLocaleFallback
 
   if (listings.length === 0) {
     return (
-      <div className="py-12 text-center">
-        <Smartphone className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-        <p className="text-muted-foreground">No listings available.</p>
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
+        <Smartphone className="mb-4 h-10 w-10 text-muted-foreground" />
+        <p className="text-sm font-medium">No listings captured yet</p>
+        <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+          Store listings for this app will appear here after the next sync completes.
+        </p>
       </div>
     )
   }
 
   const countryLabel = selectedCountry.toUpperCase()
-  const dim = isCountryUnavailable ? 'opacity-60 pointer-events-none select-none' : ''
+  const displayedLocale = currentListing?.locale ?? fallbackLocale
 
   return (
-    <div className="space-y-3">
-      {isFallback && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Info className="h-3.5 w-3.5" />
-          <span>
-            No listing captured for <span className="font-medium text-foreground">{selectedLocale}</span> yet — showing the closest available locale.
-          </span>
+    <div className="space-y-5">
+      {showFallbackNotice && currentListing && (
+        <div className="overflow-hidden rounded-lg border border-amber-200/60 bg-amber-50/60 dark:border-amber-500/25 dark:bg-amber-500/5">
+          <div className="flex items-start gap-3 px-4 py-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
+              {isCountryUnavailable ? <Ban className="h-4 w-4" /> : <Languages className="h-4 w-4" />}
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                {isCountryUnavailable
+                  ? <>App not available in <span className="inline-flex items-center gap-1"><img src={flagUrl(selectedCountry)} alt="" className="inline h-3 w-4 rounded-[1px] object-cover" /> {countryLabel}</span></>
+                  : <>No localized listing for <span className="rounded bg-amber-200/60 px-1 py-0.5 font-mono text-xs dark:bg-amber-500/20">{selectedLocale || 'this locale'}</span></>}
+              </p>
+              <p className="text-xs text-amber-800/80 dark:text-amber-300/80">
+                {isCountryUnavailable
+                  ? <>This app is not listed on the {platform === 'ios' ? 'App Store' : 'Play Store'} in {countryLabel}. Showing content from <strong>{displayedLocale}</strong> ({originCountryCode.toUpperCase()} origin) for reference.</>
+                  : <>The app hasn't been localized into {selectedLocale}. Showing content from <strong>{displayedLocale}</strong> instead.</>}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
       {currentListing && (
-        <div className={`space-y-5 ${dim}`}>
+        <div className="space-y-5">
           {/* Title + Subtitle */}
           <div className="flex items-start gap-3">
             {currentListing.icon_url && (
@@ -101,21 +143,9 @@ export default function StoreListingTab({ listings, versions, platform, external
               />
             )}
             <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-lg font-semibold leading-tight">{currentListing.title}</h3>
-                {isCountryUnavailable && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-                    Not on {countryLabel} store
-                  </span>
-                )}
-              </div>
+              <h3 className="text-lg font-semibold leading-tight">{currentListing.title}</h3>
               {currentListing.subtitle && (
                 <p className="mt-0.5 text-sm text-muted-foreground">{currentListing.subtitle}</p>
-              )}
-              {isCountryUnavailable && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  This app is not listed on the App Store in {countryLabel}. Content shown is from another storefront for reference.
-                </p>
               )}
             </div>
           </div>
