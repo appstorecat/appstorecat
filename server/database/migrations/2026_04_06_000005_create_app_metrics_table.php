@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('app_id')->constrained('apps')->cascadeOnDelete();
             $table->foreignId('version_id')->nullable()->constrained('app_versions')->nullOnDelete();
-            $table->string('country_code', 10);
+            $table->char('country_code', 2);
             $table->date('date');
 
             // Rating
@@ -35,6 +35,10 @@ return new class extends Migration
             $table->unique(['app_id', 'country_code', 'date'], 'app_metrics_app_country_date_unique');
             $table->index(['app_id', 'date']);
             $table->index(['country_code', 'date']);
+
+            $table->foreign('country_code')
+                ->references('code')->on('countries')
+                ->cascadeOnUpdate()->restrictOnDelete();
         });
     }
 

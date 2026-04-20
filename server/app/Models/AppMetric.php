@@ -34,7 +34,7 @@ class AppMetric extends Model
 {
     protected $table = 'app_metrics';
 
-    public const GLOBAL_COUNTRY = 'GLOBAL';
+    public const GLOBAL_COUNTRY = 'zz';
 
     /**
      * @return BelongsTo<App, $this>

@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
     schema: 'KeywordDensityResource',
     required: ['keyword', 'count', 'density'],
     properties: [
-        new OA\Property(property: 'language', type: 'string', example: 'en-US'),
+        new OA\Property(property: 'locale', type: 'string', example: 'en-US'),
         new OA\Property(property: 'ngram_size', type: 'integer', example: 2),
         new OA\Property(property: 'keyword', type: 'string', example: 'photo editor'),
         new OA\Property(property: 'count', type: 'integer', example: 5),
@@ -23,11 +23,11 @@ class KeywordDensityResource extends BaseResource
 {
     protected function getResourceData(Request $request): array
     {
-        /** @var array{keyword:string,count:int,density:float,ngram_size:int,language?:string} $data */
+        /** @var array{keyword:string,count:int,density:float,ngram_size:int,locale?:string} $data */
         $data = $this->resource;
 
         return [
-            'language' => $data['language'] ?? null,
+            'locale' => $data['locale'] ?? null,
             'ngram_size' => $data['ngram_size'],
             'keyword' => $data['keyword'],
             'count' => $data['count'],

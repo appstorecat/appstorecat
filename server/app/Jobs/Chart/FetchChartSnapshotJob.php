@@ -30,7 +30,7 @@ class FetchChartSnapshotJob implements ShouldQueue
     public function __construct(
         private readonly string $platform,
         private readonly string $collection,
-        private readonly string $country,
+        private readonly string $countryCode,
         private readonly int $categoryId,
     ) {}
 
@@ -38,7 +38,7 @@ class FetchChartSnapshotJob implements ShouldQueue
     {
         $today = now()->toDateString();
 
-        $exists = ChartSnapshot::forChart($this->platform, $this->collection, $this->country, $this->categoryId)
+        $exists = ChartSnapshot::forChart($this->platform, $this->collection, $this->countryCode, $this->categoryId)
             ->where('snapshot_date', $today)
             ->exists();
 
@@ -54,13 +54,13 @@ class FetchChartSnapshotJob implements ShouldQueue
         $connector = $this->platform === 'ios' ? $ios : $android;
         $categoryExternalId = StoreCategory::find($this->categoryId)?->external_id;
 
-        $results = $connector->fetchChart($this->collection, $this->country, $categoryExternalId);
+        $results = $connector->fetchChart($this->collection, $this->countryCode, $categoryExternalId);
 
         if (empty($results)) {
             Log::warning('Chart fetch returned empty', [
                 'platform' => $this->platform,
                 'collection' => $this->collection,
-                'country' => $this->country,
+                'country_code' => $this->countryCode,
             ]);
 
             return;
@@ -70,7 +70,7 @@ class FetchChartSnapshotJob implements ShouldQueue
             'platform' => $this->platform,
             'collection' => $this->collection,
             'category_id' => $this->categoryId,
-            'country' => $this->country,
+            'country_code' => $this->countryCode,
             'snapshot_date' => $today,
         ]);
 
@@ -79,7 +79,7 @@ class FetchChartSnapshotJob implements ShouldQueue
                 $entry['genre_id'] = $categoryExternalId;
             }
 
-            $app = App::discover($this->platform, $entry['app_id'], $entry, DiscoverSource::Trending, $this->country);
+            $app = App::discover($this->platform, $entry['app_id'], $entry, DiscoverSource::Trending, $this->countryCode);
 
             if (! $app) {
                 continue;

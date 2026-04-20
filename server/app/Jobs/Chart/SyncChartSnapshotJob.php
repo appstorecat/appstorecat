@@ -34,20 +34,20 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
     public function __construct(
         private readonly string $platform,
         private readonly string $collection,
-        private readonly string $country,
+        private readonly string $countryCode,
         private readonly int $categoryId,
     ) {}
 
     public function uniqueId(): string
     {
-        return "{$this->platform}:{$this->collection}:{$this->country}:{$this->categoryId}";
+        return "{$this->platform}:{$this->collection}:{$this->countryCode}:{$this->categoryId}";
     }
 
     public function handle(ITunesLookupConnector $ios, GooglePlayConnector $android): void
     {
         $today = now()->toDateString();
 
-        $exists = ChartSnapshot::forChart($this->platform, $this->collection, $this->country, $this->categoryId)
+        $exists = ChartSnapshot::forChart($this->platform, $this->collection, $this->countryCode, $this->categoryId)
             ->where('snapshot_date', $today)
             ->exists();
 
@@ -74,12 +74,12 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
         $categoryExternalId = StoreCategory::find($this->categoryId)?->external_id;
 
         try {
-            $results = $connector->fetchChart($this->collection, $this->country, $categoryExternalId);
+            $results = $connector->fetchChart($this->collection, $this->countryCode, $categoryExternalId);
         } catch (\Throwable $e) {
             Log::warning('Chart fetch failed', [
                 'platform' => $this->platform,
                 'collection' => $this->collection,
-                'country' => $this->country,
+                'country_code' => $this->countryCode,
                 'category_id' => $this->categoryId,
                 'error' => $e->getMessage(),
             ]);
@@ -92,7 +92,7 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
             Log::info('Chart sync returned empty', [
                 'platform' => $this->platform,
                 'collection' => $this->collection,
-                'country' => $this->country,
+                'country_code' => $this->countryCode,
                 'category_id' => $this->categoryId,
                 'fetch_ms' => $fetchMs,
             ]);
@@ -104,7 +104,7 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
             'platform' => $this->platform,
             'collection' => $this->collection,
             'category_id' => $this->categoryId,
-            'country' => $this->country,
+            'country_code' => $this->countryCode,
             'snapshot_date' => $today,
         ]);
 
@@ -114,7 +114,7 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
                 $entry['genre_id'] = $categoryExternalId;
             }
 
-            $app = App::discover($this->platform, $entry['app_id'], $entry, DiscoverSource::Trending, $this->country);
+            $app = App::discover($this->platform, $entry['app_id'], $entry, DiscoverSource::Trending, $this->countryCode);
 
             if (! $app) {
                 continue;
@@ -138,7 +138,7 @@ class SyncChartSnapshotJob implements ShouldQueue, ShouldBeUnique
         Log::info('Chart sync completed', [
             'platform' => $this->platform,
             'collection' => $this->collection,
-            'country' => $this->country,
+            'country_code' => $this->countryCode,
             'category_id' => $this->categoryId,
             'entries' => count($results),
             'new_apps' => $newApps,

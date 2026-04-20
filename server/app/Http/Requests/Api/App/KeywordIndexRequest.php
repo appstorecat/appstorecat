@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'KeywordIndexRequest',
     properties: [
-        new OA\Property(property: 'language', type: 'string', example: 'us'),
+        new OA\Property(property: 'locale', type: 'string', example: 'en-US'),
         new OA\Property(property: 'ngram', type: 'integer', enum: [1, 2, 3, 4], example: 1),
         new OA\Property(property: 'version_id', type: 'integer', example: 1),
     ],
@@ -24,7 +24,7 @@ class KeywordIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'language' => ['sometimes', 'nullable', 'string', 'max:10'],
+            'locale' => ['sometimes', 'nullable', 'string', 'max:10'],
             'ngram' => ['sometimes', 'nullable', 'integer', 'in:1,2,3,4'],
             'version_id' => ['sometimes', 'nullable', 'integer', 'exists:app_versions,id'],
         ];

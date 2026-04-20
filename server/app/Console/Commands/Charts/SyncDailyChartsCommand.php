@@ -41,7 +41,7 @@ class SyncDailyChartsCommand extends Command
             $existingSnapshots = ChartSnapshot::platform($platform)
                 ->where('snapshot_date', $today)
                 ->get()
-                ->map(fn ($s) => "{$s->collection->value}:{$s->country}:{$s->category_id}")
+                ->map(fn ($s) => "{$s->collection->value}:{$s->country_code}:{$s->category_id}")
                 ->flip();
 
             $countries = Country::activeForPlatform($platform)

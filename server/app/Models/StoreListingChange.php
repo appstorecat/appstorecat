@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'version_id', type: 'integer', nullable: true),
-        new OA\Property(property: 'language', type: 'string', example: 'us'),
+        new OA\Property(property: 'locale', type: 'string', example: 'en-US'),
         new OA\Property(property: 'field_changed', type: 'string', example: 'description'),
         new OA\Property(property: 'old_value', type: 'string', nullable: true),
         new OA\Property(property: 'new_value', type: 'string', nullable: true),
@@ -20,7 +20,7 @@ use OpenApi\Attributes as OA;
     ],
 )]
 #[Fillable([
-    'app_id', 'version_id', 'language', 'field_changed',
+    'app_id', 'version_id', 'locale', 'field_changed',
     'old_value', 'new_value', 'detected_at',
 ])]
 class StoreListingChange extends Model

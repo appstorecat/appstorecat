@@ -10,7 +10,7 @@ interface ConnectorInterface
 
     public function fetchIdentity(App $app, string $country = 'us'): ConnectorResult;
 
-    public function fetchListings(App $app, string $country = 'us', ?string $language = null): ConnectorResult;
+    public function fetchListings(App $app, string $country = 'us', ?string $locale = null): ConnectorResult;
 
     public function fetchMetrics(App $app, string $country = 'us'): ConnectorResult;
 

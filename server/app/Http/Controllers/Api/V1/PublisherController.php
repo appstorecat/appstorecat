@@ -35,7 +35,7 @@ class PublisherController extends BaseController
         parameters: [
             new OA\Parameter(name: 'term', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2)),
             new OA\Parameter(name: 'platform', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
-            new OA\Parameter(name: 'country', in: 'query', required: false, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2, default: 'us')),
+            new OA\Parameter(name: 'country_code', in: 'query', required: false, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2, default: 'us')),
         ],
         responses: [
             new OA\Response(
@@ -49,12 +49,12 @@ class PublisherController extends BaseController
     {
         $term = $request->validated('term');
         $platform = $request->validated('platform');
-        $country = $request->validated('country') ?? 'us';
+        $countryCode = $request->validated('country_code') ?? 'us';
 
         $connector = $platform === 'ios' ? $ios : $android;
 
         try {
-            $results = $connector->fetchSearch($term, 25, $country);
+            $results = $connector->fetchSearch($term, 25, $countryCode);
         } catch (\Throwable $e) {
             Log::warning("{$platform} publisher search failed", ['error' => $e->getMessage()]);
 

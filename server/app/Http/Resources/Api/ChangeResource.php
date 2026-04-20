@@ -22,7 +22,7 @@ use OpenApi\Attributes as OA;
             new OA\Property(property: 'icon_url', type: 'string', nullable: true),
         ], type: 'object'),
         new OA\Property(property: 'version_id', type: 'integer', nullable: true),
-        new OA\Property(property: 'language', type: 'string', example: 'us'),
+        new OA\Property(property: 'locale', type: 'string', example: 'en-US'),
         new OA\Property(property: 'field_changed', type: 'string', example: 'description'),
         new OA\Property(property: 'old_value', type: 'string', nullable: true),
         new OA\Property(property: 'new_value', type: 'string', nullable: true),
@@ -50,7 +50,7 @@ class ChangeResource extends BaseResource
             'previous_version' => $this->resource->version_id
                 ? $this->resource->app?->versions()->where('id', '<', $this->resource->version_id)->orderByDesc('id')->value('version')
                 : null,
-            'language' => $this->resource->language,
+            'locale' => $this->resource->locale,
             'field_changed' => $this->resource->field_changed,
             'old_value' => $this->resource->field_changed === 'screenshots' ? null : $this->resource->old_value,
             'new_value' => $this->resource->field_changed === 'screenshots' ? null : $this->resource->new_value,

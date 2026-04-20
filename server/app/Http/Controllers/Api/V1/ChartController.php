@@ -23,7 +23,7 @@ class ChartController extends BaseController
         parameters: [
             new OA\Parameter(name: 'platform', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'collection', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['top_free', 'top_paid', 'top_grossing'])),
-            new OA\Parameter(name: 'country', in: 'query', required: false, schema: new OA\Schema(type: 'string', default: 'us')),
+            new OA\Parameter(name: 'country_code', in: 'query', required: false, schema: new OA\Schema(type: 'string', default: 'us')),
             new OA\Parameter(name: 'category_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
@@ -35,19 +35,19 @@ class ChartController extends BaseController
         $request->validate([
             'platform' => 'required|in:ios,android',
             'collection' => 'required|in:top_free,top_paid,top_grossing',
-            'country' => 'sometimes|string|max:5',
+            'country_code' => 'sometimes|string|size:2|exists:countries,code',
             'category_id' => 'sometimes|integer|exists:store_categories,id',
         ]);
 
         $platform = $request->input('platform');
         $collection = $request->input('collection');
-        $country = $request->input('country', 'us');
+        $countryCode = $request->input('country_code', 'us');
         // Default to the platform's "All" category when no explicit filter is given.
         $categoryId = $request->input('category_id')
             ? (int) $request->input('category_id')
             : \App\Models\StoreCategory::platform($platform)->whereNull('external_id')->where('type', 'app')->value('id');
 
-        $snapshot = ChartSnapshot::forChart($platform, $collection, $country, $categoryId)
+        $snapshot = ChartSnapshot::forChart($platform, $collection, $countryCode, $categoryId)
             ->orderByDesc('snapshot_date')
             ->orderByDesc('created_at')
             ->first();
@@ -55,9 +55,9 @@ class ChartController extends BaseController
         $isStale = ! $snapshot || ! $snapshot->snapshot_date->isToday();
 
         if ($isStale) {
-            FetchChartSnapshotJob::dispatchSync($platform, $collection, $country, $categoryId);
+            FetchChartSnapshotJob::dispatchSync($platform, $collection, $countryCode, $categoryId);
 
-            $snapshot = ChartSnapshot::forChart($platform, $collection, $country, $categoryId)
+            $snapshot = ChartSnapshot::forChart($platform, $collection, $countryCode, $categoryId)
                 ->orderByDesc('snapshot_date')
                 ->orderByDesc('created_at')
                 ->first();
@@ -73,7 +73,7 @@ class ChartController extends BaseController
 
         $entries = $snapshot->entries()->with(['app.publisher', 'app.category'])->get();
 
-        $previousSnapshot = ChartSnapshot::forChart($platform, $collection, $country, $categoryId)
+        $previousSnapshot = ChartSnapshot::forChart($platform, $collection, $countryCode, $categoryId)
             ->where('snapshot_date', '<', $snapshot->snapshot_date)
             ->orderByDesc('snapshot_date')
             ->first();
@@ -114,7 +114,7 @@ class ChartController extends BaseController
             'updated_at' => $snapshot->created_at->toIso8601String(),
             'platform' => $platform,
             'collection' => $collection,
-            'country' => $country,
+            'country_code' => $countryCode,
             'entries' => $data,
         ]);
     }

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unique(['platform', 'slug', 'type']);
             $table->index(['platform', 'type']);
             $table->index(['platform', 'external_id']);
+            $table->index(['platform', 'parent_id']);
         });
     }
 

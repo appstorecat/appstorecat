@@ -50,7 +50,7 @@ class AppRankingController extends BaseController
             $previous = ChartSnapshot::forChart(
                 $snapshot->platform->slug(),
                 $snapshot->collection->value,
-                $snapshot->country,
+                $snapshot->country_code,
                 $snapshot->category_id,
             )
                 ->where('snapshot_date', '<', $snapshot->snapshot_date)
@@ -71,7 +71,7 @@ class AppRankingController extends BaseController
             };
 
             return [
-                'country' => $snapshot->country,
+                'country_code' => $snapshot->country_code,
                 'collection' => $snapshot->collection->value,
                 'category' => $snapshot->category ? [
                     'id' => $snapshot->category->id,
@@ -84,7 +84,7 @@ class AppRankingController extends BaseController
             ];
         })
             ->sortBy([
-                ['country', 'asc'],
+                ['country_code', 'asc'],
                 ['collection', 'asc'],
                 ['rank', 'asc'],
             ])

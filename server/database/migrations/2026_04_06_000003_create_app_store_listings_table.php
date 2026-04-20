@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('app_id')->constrained('apps')->cascadeOnDelete();
             $table->foreignId('version_id')->nullable()->constrained('app_versions')->nullOnDelete();
-            $table->string('language', 10);
+            $table->string('locale', 10);
             $table->string('title');
             $table->string('subtitle')->nullable();
             $table->text('description');
@@ -26,8 +26,10 @@ return new class extends Migration
             $table->string('checksum');
             $table->timestamps();
 
-            $table->unique(['app_id', 'version_id', 'language'], 'app_store_listings_app_version_lang_unique');
+            $table->unique(['app_id', 'version_id', 'locale'], 'app_store_listings_app_version_locale_unique');
             $table->index('version_id');
+            $table->index(['app_id', 'locale', 'fetched_at']);
+            $table->index('checksum');
         });
     }
 

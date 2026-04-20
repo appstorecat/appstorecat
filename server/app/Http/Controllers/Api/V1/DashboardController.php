@@ -35,7 +35,7 @@ class DashboardController extends BaseController
                                     new OA\Property(property: 'id', type: 'integer'),
                                     new OA\Property(property: 'app_name', type: 'string'),
                                     new OA\Property(property: 'field_changed', type: 'string'),
-                                    new OA\Property(property: 'language', type: 'string'),
+                                    new OA\Property(property: 'locale', type: 'string'),
                                     new OA\Property(property: 'detected_at', type: 'string', format: 'date-time'),
                                 ],
                             ),
@@ -60,7 +60,7 @@ class DashboardController extends BaseController
                 'id' => $c->id,
                 'app_name' => $c->app->name,
                 'field_changed' => $c->field_changed,
-                'locale' => $c->language,
+                'locale' => $c->locale,
                 'detected_at' => $c->detected_at->toIso8601String(),
             ]);
 

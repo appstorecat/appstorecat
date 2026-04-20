@@ -73,7 +73,7 @@ class AppDetailResource extends BaseResource
             'changes' => $this->whenLoaded('storeListingChanges', fn () => $this->resource->storeListingChanges->map(fn ($c) => [
                 'id' => $c->id,
                 'version_id' => $c->version_id,
-                'language' => $c->language,
+                'locale' => $c->locale,
                 'field_changed' => $c->field_changed,
                 'old_value' => $c->field_changed === 'screenshots' ? null : $c->old_value,
                 'new_value' => $c->field_changed === 'screenshots' ? null : $c->new_value,

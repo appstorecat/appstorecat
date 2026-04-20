@@ -94,8 +94,8 @@ class AppSyncer
 
         $result = $this->attempt($attempts, fn () => $connector->fetchIdentity($app, 'us'));
 
-        if (! $result->success && $app->origin_country !== 'us') {
-            $result = $this->attempt($attempts, fn () => $connector->fetchIdentity($app, $app->origin_country));
+        if (! $result->success && $app->origin_country_code !== 'us') {
+            $result = $this->attempt($attempts, fn () => $connector->fetchIdentity($app, $app->origin_country_code));
         }
 
         if (! $result->success) {
@@ -130,7 +130,7 @@ class AppSyncer
         ])->toArray();
 
         $appData['display_name'] = $data['name'] ?? $app->display_name;
-        $appData['display_icon'] = $data['icon_url'] ?? $app->display_icon;
+        $appData['icon_url'] = $data['icon_url'] ?? $app->icon_url;
 
         if (! empty($data['publisher_name']) && ! empty($data['publisher_external_id'])) {
             $publisher = Publisher::firstOrCreate(
@@ -180,8 +180,8 @@ class AppSyncer
         ]);
 
         $done = 0;
-        foreach ($map as $language => $country) {
-            $this->fetchAndSaveListing($app, $version, $country, $language, $syncStatus);
+        foreach ($map as $locale => $country) {
+            $this->fetchAndSaveListing($app, $version, $country, $locale, $syncStatus);
             $done++;
             if ($done % 5 === 0 || $done === count($map)) {
                 $syncStatus->update(['progress_done' => $done]);
@@ -191,7 +191,7 @@ class AppSyncer
         $syncStatus->update(['progress_done' => $done]);
     }
 
-    private function fetchAndSaveListing(App $app, ?AppVersion $version, string $country, string $language, SyncStatus $syncStatus): void
+    private function fetchAndSaveListing(App $app, ?AppVersion $version, string $country, string $locale, SyncStatus $syncStatus): void
     {
         $connector = $this->connector($app);
         $attempts = (int) config('appstorecat.sync.item_retry.initial_attempts', 3);
@@ -199,7 +199,7 @@ class AppSyncer
 
         for ($i = 1; $i <= $attempts; $i++) {
             try {
-                $result = $connector->fetchListings($app, $country, $language);
+                $result = $connector->fetchListings($app, $country, $locale);
                 if ($result->success) {
                     $this->saveListing($app, $result->data, $version);
 
@@ -213,8 +213,8 @@ class AppSyncer
 
         $this->pushFailedItem($syncStatus, [
             'type' => 'listing',
-            'language' => $language,
-            'country' => $country,
+            'locale' => $locale,
+            'country_code' => $country,
             'reason' => $this->classifyError($lastError),
             'retry_count' => 0,
             'last_attempted_at' => now()->toIso8601String(),
@@ -233,10 +233,10 @@ class AppSyncer
             ($data['whats_new'] ?? '').
             json_encode($data['screenshots'] ?? [])
         );
-        $language = $data['language'];
+        $locale = $data['locale'];
 
         $existing = StoreListing::where('app_id', $app->id)
-            ->where('language', $language)
+            ->where('locale', $locale)
             ->orderByDesc('id')
             ->first();
 
@@ -248,7 +248,7 @@ class AppSyncer
             [
                 'app_id' => $app->id,
                 'version_id' => $version?->id,
-                'language' => $language,
+                'locale' => $locale,
             ],
             [
                 'title' => $data['title'] ?? '',
@@ -265,8 +265,8 @@ class AppSyncer
             ],
         );
 
-        if ($listing->icon_url && ! $app->display_icon) {
-            $app->update(['display_icon' => $listing->icon_url]);
+        if ($listing->icon_url && ! $app->icon_url) {
+            $app->update(['icon_url' => $listing->icon_url]);
         }
 
         return $listing;
@@ -325,7 +325,7 @@ class AppSyncer
 
         $this->pushFailedItem($syncStatus, [
             'type' => 'metric',
-            'country' => $country,
+            'country_code' => $country,
             'reason' => $this->classifyError($lastError),
             'retry_count' => 0,
             'last_attempted_at' => now()->toIso8601String(),
@@ -380,7 +380,7 @@ class AppSyncer
         try {
             if ($item['type'] === 'listing') {
                 $connector = $this->connector($app);
-                $result = $connector->fetchListings($app, $item['country'], $item['language']);
+                $result = $connector->fetchListings($app, $item['country_code'], $item['locale']);
                 if ($result->success) {
                     $this->saveListing($app, $result->data, $version);
 
@@ -392,7 +392,7 @@ class AppSyncer
 
             if ($item['type'] === 'metric') {
                 $connector = $this->connector($app);
-                $country = $item['country'];
+                $country = $item['country_code'];
                 $fetchCountry = $country === AppMetric::GLOBAL_COUNTRY ? 'us' : $country;
                 $result = $connector->fetchMetrics($app, $fetchCountry);
                 if ($result->success) {
@@ -431,31 +431,31 @@ class AppSyncer
             return;
         }
 
-        $previousLanguages = StoreListing::where('app_id', $app->id)
+        $previousLocales = StoreListing::where('app_id', $app->id)
             ->where('version_id', $previousVersion->id)
-            ->pluck('language')
+            ->pluck('locale')
             ->toArray();
 
-        $currentLanguages = StoreListing::where('app_id', $app->id)
+        $currentLocales = StoreListing::where('app_id', $app->id)
             ->where('version_id', $currentVersion->id)
-            ->pluck('language')
+            ->pluck('locale')
             ->toArray();
 
-        $added = array_diff($currentLanguages, $previousLanguages);
-        $removed = array_diff($previousLanguages, $currentLanguages);
+        $added = array_diff($currentLocales, $previousLocales);
+        $removed = array_diff($previousLocales, $currentLocales);
 
-        foreach ($added as $language) {
+        foreach ($added as $locale) {
             $listing = StoreListing::where('app_id', $app->id)
                 ->where('version_id', $currentVersion->id)
-                ->where('language', $language)
+                ->where('locale', $locale)
                 ->first();
 
             StoreListingChange::firstOrCreate(
                 [
                     'app_id' => $app->id,
                     'version_id' => $currentVersion->id,
-                    'language' => $language,
-                    'field_changed' => 'language_added',
+                    'locale' => $locale,
+                    'field_changed' => 'locale_added',
                 ],
                 [
                     'old_value' => null,
@@ -465,18 +465,18 @@ class AppSyncer
             );
         }
 
-        foreach ($removed as $language) {
+        foreach ($removed as $locale) {
             $listing = StoreListing::where('app_id', $app->id)
                 ->where('version_id', $previousVersion->id)
-                ->where('language', $language)
+                ->where('locale', $locale)
                 ->first();
 
             StoreListingChange::firstOrCreate(
                 [
                     'app_id' => $app->id,
                     'version_id' => $currentVersion->id,
-                    'language' => $language,
-                    'field_changed' => 'language_removed',
+                    'locale' => $locale,
+                    'field_changed' => 'locale_removed',
                 ],
                 [
                     'old_value' => $listing?->title,
@@ -503,7 +503,7 @@ class AppSyncer
                     [
                         'app_id' => $app->id,
                         'version_id' => $version?->id,
-                        'language' => $existing->language,
+                        'locale' => $existing->locale,
                         'field_changed' => $field,
                     ],
                     [
@@ -518,9 +518,9 @@ class AppSyncer
 
     public function updateVersionDetails(App $app, AppVersion $version): void
     {
-        $defaultLang = $this->defaultLanguageForCountry($app, $app->origin_country ?? 'us');
+        $defaultLocale = $this->defaultLocaleForCountry($app, $app->origin_country_code ?? 'us');
         $listing = StoreListing::where('app_id', $app->id)
-            ->where('language', $defaultLang)
+            ->where('locale', $defaultLocale)
             ->orderByDesc('fetched_at')
             ->first();
 
@@ -536,10 +536,10 @@ class AppSyncer
 
     // ─── Helpers ─────────────────────────────────────────────────
 
-    public function syncListingForCountry(App $app, string $countryCode, ?string $language = null, ?AppVersion $version = null): StoreListing
+    public function syncListingForCountry(App $app, string $countryCode, ?string $locale = null, ?AppVersion $version = null): StoreListing
     {
         $connector = $this->connector($app);
-        $result = $connector->fetchListings($app, $countryCode, $language);
+        $result = $connector->fetchListings($app, $countryCode, $locale);
 
         if (! $result->success) {
             throw new \RuntimeException('Failed to fetch listing for country: '.$countryCode);
@@ -548,7 +548,7 @@ class AppSyncer
         return $this->saveListing($app, $result->data, $version);
     }
 
-    private function defaultLanguageForCountry(App $app, string $countryCode): ?string
+    private function defaultLocaleForCountry(App $app, string $countryCode): ?string
     {
         $country = Country::find($countryCode);
         if (! $country) {

@@ -30,6 +30,7 @@ return new class extends Migration
 
             $table->index(['status', 'next_retry_at']);
             $table->index('completed_at');
+            $table->index('job_id');
         });
     }
 

@@ -25,7 +25,7 @@ class AppSearchController extends BaseController
         parameters: [
             new OA\Parameter(name: 'term', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 100)),
             new OA\Parameter(name: 'platform', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
-            new OA\Parameter(name: 'country', in: 'query', required: false, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2, default: 'us')),
+            new OA\Parameter(name: 'country_code', in: 'query', required: false, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2, default: 'us')),
         ],
         responses: [
             new OA\Response(
@@ -39,12 +39,12 @@ class AppSearchController extends BaseController
     {
         $term = $request->input('term');
         $platform = $request->input('platform');
-        $country = $request->input('country', 'us');
+        $countryCode = $request->input('country_code', 'us');
 
         $connector = $platform === 'ios' ? $ios : $android;
-        $results = $connector->fetchSearch($term, 10, $country);
+        $results = $connector->fetchSearch($term, 10, $countryCode);
 
-        $apps = collect($results)->map(function ($result) use ($platform, $country) {
+        $apps = collect($results)->map(function ($result) use ($platform, $countryCode) {
             return App::discover($platform, $result['app_id'] ?? '', [
                 'name' => $result['name'] ?? '',
                 'developer' => $result['developer'] ?? null,
@@ -52,7 +52,7 @@ class AppSearchController extends BaseController
                 'icon_url' => $result['icon_url'] ?? null,
                 'genre' => $result['genre'] ?? null,
                 'genre_id' => $result['genre_id'] ?? null,
-            ], DiscoverSource::Search, $country);
+            ], DiscoverSource::Search, $countryCode);
         })->filter()->values();
 
         return AppResource::collection($apps);

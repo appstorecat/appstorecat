@@ -13,13 +13,13 @@ return new class extends Migration
             $table->unsignedTinyInteger('platform');
             $table->string('collection', 30);
             $table->foreignId('category_id')->constrained('store_categories')->cascadeOnDelete();
-            $table->string('country', 2)->default('us');
-            $table->foreign('country')->references('code')->on('countries');
+            $table->char('country_code', 2)->default('us');
+            $table->foreign('country_code')->references('code')->on('countries');
             $table->date('snapshot_date');
             $table->timestamps();
 
-            $table->unique(['platform', 'collection', 'country', 'category_id', 'snapshot_date'], 'uniq_snapshot');
-            $table->index(['platform', 'collection', 'country', 'snapshot_date'], 'idx_lookup');
+            $table->unique(['platform', 'collection', 'country_code', 'category_id', 'snapshot_date'], 'uniq_snapshot');
+            $table->index(['platform', 'collection', 'country_code', 'snapshot_date'], 'idx_lookup');
         });
 
         Schema::create('trending_chart_entries', function (Blueprint $table) {
@@ -33,6 +33,7 @@ return new class extends Migration
 
             $table->index(['trending_chart_id', 'rank']);
             $table->index(['app_id', 'trending_chart_id']);
+            $table->index('app_id');
         });
     }
 

@@ -134,8 +134,8 @@ class AppController extends BaseController
         parameters: [
             new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'country', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'tr')),
-            new OA\Parameter(name: 'language', in: 'query', required: false, schema: new OA\Schema(type: 'string', example: 'tr')),
+            new OA\Parameter(name: 'country_code', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'tr')),
+            new OA\Parameter(name: 'locale', in: 'query', required: false, schema: new OA\Schema(type: 'string', example: 'tr')),
         ],
         responses: [
             new OA\Response(response: 200, description: 'Store listing', content: new OA\JsonContent(ref: '#/components/schemas/ListingResource')),
@@ -144,16 +144,16 @@ class AppController extends BaseController
     public function listing(Request $request, string $platform, string $externalId): ListingResource
     {
         $request->validate([
-            'country' => 'required|string|size:2|exists:countries,code',
-            'language' => 'required|string|max:10',
+            'country_code' => 'required|string|size:2|exists:countries,code',
+            'locale' => 'required|string|max:10',
         ]);
 
         $app = $this->resolveApp($platform, $externalId);
-        $language = $request->input('language');
+        $locale = $request->input('locale');
         $latestVersion = $app->versions()->orderByDesc('id')->first();
 
         $existing = StoreListing::where('app_id', $app->id)
-            ->where('language', $language)
+            ->where('locale', $locale)
             ->where('version_id', $latestVersion?->id)
             ->first();
 

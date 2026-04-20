@@ -33,7 +33,7 @@ class KeywordAnalyzer
             return [];
         }
 
-        return $this->analyzeText($text, $listing->language);
+        return $this->analyzeText($text, $listing->locale);
     }
 
     /**

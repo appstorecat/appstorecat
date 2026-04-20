@@ -13,6 +13,8 @@ class CountrySeeder extends Seeder
      * null = platform not available in this country
      */
     private const COUNTRIES = [
+        // Reserved ISO 3166-1 user-assigned code for Android global (non-country-specific) metrics.
+        ['code' => 'zz', 'name' => 'Global', 'ios' => null, 'android' => ['en-US']],
         ['code' => 'af', 'name' => 'Afghanistan', 'ios' => ['en-GB'], 'android' => ['en-US']],
         ['code' => 'al', 'name' => 'Albania', 'ios' => ['en-GB'], 'android' => ['en-US']],
         ['code' => 'dz', 'name' => 'Algeria', 'ios' => ['ar', 'en-GB'], 'android' => ['ar', 'en-US']],

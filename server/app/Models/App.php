@@ -49,9 +49,9 @@ use App\Models\Concerns\HasPlatform;
     ],
 )]
 #[Fillable([
-    'platform', 'external_id',
+    'platform', 'external_id', 'bundle_id',
     'publisher_id', 'category_id',
-    'display_name', 'display_icon', 'origin_country',
+    'display_name', 'icon_url', 'origin_country_code',
     'supported_locales', 'original_release_date', 'is_free',
     'discovered_from', 'discovered_at', 'last_synced_at',
     'is_available',
@@ -147,7 +147,7 @@ class App extends Model
 
     public function displayIcon(): ?string
     {
-        return $this->display_icon;
+        return $this->icon_url;
     }
 
     /**
@@ -164,8 +164,8 @@ class App extends Model
             if (! empty($data['name']) && $app->display_name !== $data['name']) {
                 $updates['display_name'] = $data['name'];
             }
-            if (! empty($data['icon_url']) && $app->display_icon !== $data['icon_url']) {
-                $updates['display_icon'] = $data['icon_url'];
+            if (! empty($data['icon_url']) && $app->icon_url !== $data['icon_url']) {
+                $updates['icon_url'] = $data['icon_url'];
             }
             if ($updates !== []) {
                 $app->update($updates);
@@ -200,8 +200,8 @@ class App extends Model
             'publisher_id' => $publisherId,
             'category_id' => $categoryId,
             'display_name' => $data['name'] ?? null,
-            'display_icon' => $data['icon_url'] ?? null,
-            'origin_country' => $country,
+            'icon_url' => $data['icon_url'] ?? null,
+            'origin_country_code' => $country,
             'is_free' => $data['free'] ?? true,
             'original_release_date' => $data['released'] ?? null,
             'discovered_from' => $source,

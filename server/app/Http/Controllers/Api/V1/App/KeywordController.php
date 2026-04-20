@@ -28,7 +28,7 @@ class KeywordController extends BaseController
         parameters: [
             new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'language', in: 'query', required: false, schema: new OA\Schema(type: 'string', example: 'en-US')),
+            new OA\Parameter(name: 'locale', in: 'query', required: false, schema: new OA\Schema(type: 'string', example: 'en-US')),
             new OA\Parameter(name: 'ngram', in: 'query', required: false, schema: new OA\Schema(type: 'integer', enum: [1, 2, 3], example: 1)),
             new OA\Parameter(name: 'version_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
         ],
@@ -45,12 +45,12 @@ class KeywordController extends BaseController
     {
         $app = $this->resolveApp($platform, $externalId);
 
-        $language = $request->validated('language') ?? 'en-US';
+        $locale = $request->validated('locale') ?? 'en-US';
         $ngram = (int) ($request->validated('ngram') ?? 1);
         $versionIdRaw = $request->validated('version_id') ?? $app->versions()->value('id');
         $versionId = $versionIdRaw !== null ? (int) $versionIdRaw : null;
 
-        $listing = $this->findListing($app->id, $versionId, $language);
+        $listing = $this->findListing($app->id, $versionId, $locale);
 
         if (! $listing) {
             return KeywordDensityResource::collection([]);
@@ -60,7 +60,7 @@ class KeywordController extends BaseController
             ->filter(fn (array $row) => $row['ngram_size'] === $ngram)
             ->sortByDesc('count')
             ->values()
-            ->map(fn (array $row) => array_merge($row, ['language' => $listing->language]))
+            ->map(fn (array $row) => array_merge($row, ['locale' => $listing->locale]))
             ->all();
 
         return KeywordDensityResource::collection($rows);
@@ -77,7 +77,7 @@ class KeywordController extends BaseController
             new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'app_ids', in: 'query', required: true, description: 'App IDs to compare (max 5)', schema: new OA\Schema(type: 'array', items: new OA\Items(type: 'integer'))),
             new OA\Parameter(name: 'version_ids', in: 'query', required: false, description: 'Version ID per app (keyed by app ID)', schema: new OA\Schema(type: 'object', additionalProperties: new OA\AdditionalProperties(type: 'integer'))),
-            new OA\Parameter(name: 'language', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'locale', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'ngram', in: 'query', required: false, schema: new OA\Schema(type: 'integer', enum: [1, 2, 3])),
         ],
         responses: [
@@ -97,7 +97,7 @@ class KeywordController extends BaseController
             ->map(fn ($id) => (int) $id)
             ->values();
 
-        $language = $request->validated('language') ?? 'en-US';
+        $locale = $request->validated('locale') ?? 'en-US';
         $ngram = (int) ($request->validated('ngram') ?? 1);
         $versionIds = $request->validated('version_ids') ?? [];
 
@@ -125,7 +125,7 @@ class KeywordController extends BaseController
             }
             $versionId = (int) $versionIdRaw;
 
-            $listing = $this->findListing($appId, $versionId, $language);
+            $listing = $this->findListing($appId, $versionId, $locale);
             if (! $listing) {
                 continue;
             }
@@ -145,9 +145,9 @@ class KeywordController extends BaseController
         ]);
     }
 
-    private function findListing(int $appId, ?int $versionId, string $language): ?StoreListing
+    private function findListing(int $appId, ?int $versionId, string $locale): ?StoreListing
     {
-        $query = StoreListing::where('app_id', $appId)->where('language', $language);
+        $query = StoreListing::where('app_id', $appId)->where('locale', $locale);
         if ($versionId) {
             $query->where('version_id', $versionId);
         }
