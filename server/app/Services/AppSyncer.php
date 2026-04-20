@@ -50,8 +50,17 @@ class AppSyncer
             'completed_at' => null,
         ])->save();
 
-        // Phase 1 — Identity (critical)
+        // Phase 1 — Identity (critical). If identity fails, syncIdentity
+        // already marks the sync as failed and returns []. Abort the rest of
+        // the pipeline — there's no point running listings/metrics against
+        // an app we cannot resolve. See bug #4 in docs bugs/report_20apr.md.
         $identityData = $this->syncIdentity($app, $syncStatus);
+        if (empty($identityData)) {
+            $app->update(['last_synced_at' => now()]);
+
+            return;
+        }
+
         $version = $this->saveVersion($app, $identityData);
 
         // Phase 2 — Listings (multi-locale on iOS, single on Android fallback-to-locale loop)
