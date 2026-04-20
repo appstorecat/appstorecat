@@ -40,8 +40,6 @@ interface StoreListingTabProps {
   selectedCountry?: string
   selectedVersion: string
   unavailableCountries?: string[]
-  fallbackLocale?: string
-  originCountryCode?: string
 }
 
 function flagUrl(code: string): string {
@@ -57,8 +55,6 @@ export default function StoreListingTab({
   selectedCountry = 'us',
   selectedVersion,
   unavailableCountries = [],
-  fallbackLocale = 'en-US',
-  originCountryCode = 'us',
 }: StoreListingTabProps) {
   const sortedVersions = useMemo(
     () => [...versions].sort((a, b) => b.id - a.id),
@@ -79,18 +75,10 @@ export default function StoreListingTab({
     [filteredListings, selectedLocale],
   )
 
-  const fallbackListing = useMemo(
-    () =>
-      filteredListings.find((l) => l.locale === fallbackLocale) ??
-      filteredListings.find((l) => l.locale.toLowerCase().startsWith(fallbackLocale.toLowerCase().slice(0, 2))) ??
-      filteredListings[0],
-    [filteredListings, fallbackLocale],
-  )
-
-  const currentListing = requestedListing ?? fallbackListing
   const isCountryUnavailable = unavailableCountries.includes(selectedCountry)
-  const isLocaleFallback = !requestedListing && !!currentListing
-  const showFallbackNotice = isCountryUnavailable || isLocaleFallback
+  const isLocaleMissing = !requestedListing
+  const hideContent = isCountryUnavailable || isLocaleMissing
+  const currentListing = hideContent ? undefined : requestedListing
 
   if (listings.length === 0) {
     return (
@@ -105,11 +93,11 @@ export default function StoreListingTab({
   }
 
   const countryLabel = selectedCountry.toUpperCase()
-  const displayedLocale = currentListing?.locale ?? fallbackLocale
+  const storeName = platform === 'ios' ? 'App Store' : 'Play Store'
 
   return (
     <div className="space-y-5">
-      {showFallbackNotice && currentListing && (
+      {hideContent && (
         <div className="overflow-hidden rounded-lg border border-amber-200/60 bg-amber-50/60 dark:border-amber-500/25 dark:bg-amber-500/5">
           <div className="flex items-start gap-3 px-4 py-3">
             <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
@@ -119,12 +107,12 @@ export default function StoreListingTab({
               <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
                 {isCountryUnavailable
                   ? <>App not available in <span className="inline-flex items-center gap-1"><img src={flagUrl(selectedCountry)} alt="" className="inline h-3 w-4 rounded-[1px] object-cover" /> {countryLabel}</span></>
-                  : <>No localized listing for <span className="rounded bg-amber-200/60 px-1 py-0.5 font-mono text-xs dark:bg-amber-500/20">{selectedLocale || 'this locale'}</span></>}
+                  : <>No listing for <span className="rounded bg-amber-200/60 px-1 py-0.5 font-mono text-xs dark:bg-amber-500/20">{selectedLocale || 'this locale'}</span></>}
               </p>
               <p className="text-xs text-amber-800/80 dark:text-amber-300/80">
                 {isCountryUnavailable
-                  ? <>This app is not listed on the {platform === 'ios' ? 'App Store' : 'Play Store'} in {countryLabel}. Showing content from <strong>{displayedLocale}</strong> ({originCountryCode.toUpperCase()} origin) for reference.</>
-                  : <>The app hasn't been localized into {selectedLocale}. Showing content from <strong>{displayedLocale}</strong> instead.</>}
+                  ? <>This app is not listed on the {storeName} in {countryLabel}.</>
+                  : <>The app hasn't been localized into this locale yet.</>}
               </p>
             </div>
           </div>
