@@ -21,12 +21,12 @@ export default function DiscoveryPublishers() {
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm)
   const [platform, setPlatform] = useState<string>('ios')
-  const [country, setCountry] = useState<string>('us')
+  const [countryCode, setCountryCode] = useState<string>('us')
 
   const { data: results, isFetching: searching } = useQuery<PublisherResult[]>({
-    queryKey: ['publisher-search', debouncedSearch, platform, country],
+    queryKey: ['publisher-search', debouncedSearch, platform, countryCode],
     queryFn: () =>
-      axios.get('/publishers/search', { params: { term: debouncedSearch, platform, country } }).then((r) => r.data),
+      axios.get('/publishers/search', { params: { term: debouncedSearch, platform, country_code: countryCode } }).then((r) => r.data),
     enabled: debouncedSearch.length >= 2,
   })
 
@@ -48,7 +48,7 @@ export default function DiscoveryPublishers() {
           />
         </div>
         <PlatformSwitcher value={platform} onChange={setPlatform} />
-        <CountrySelect value={country} onChange={setCountry} className="w-[180px]" />
+        <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
       </div>
 
       {searchTerm.length < 2 && (
