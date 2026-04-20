@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\App;
 
+use App\Enums\Platform;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\App\AppRankingIndexRequest;
 use App\Http\Resources\Api\App\AppRankingResource;
@@ -39,7 +40,7 @@ class AppRankingController extends BaseController
             ->select('trending_chart_entries.*')
             ->join('trending_charts', 'trending_charts.id', '=', 'trending_chart_entries.trending_chart_id')
             ->where('trending_chart_entries.app_id', $app->id)
-            ->where('trending_charts.platform', \App\Enums\Platform::fromSlug($platform)->value)
+            ->where('trending_charts.platform', Platform::fromSlug($platform)->value)
             ->where('trending_charts.snapshot_date', $selectedDate)
             ->with(['snapshot.category'])
             ->get();

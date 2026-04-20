@@ -67,7 +67,6 @@ class GooglePlayConnector implements ConnectorInterface
         ]);
     }
 
-
     public function fetchDeveloperApps(string $developerExternalId): ConnectorResult
     {
         try {

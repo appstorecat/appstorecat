@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AppController extends BaseController
 {
@@ -165,7 +166,7 @@ class AppController extends BaseController
             $this->ensureSyncJob($app);
         }
 
-        throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException(
+        throw new NotFoundHttpException(
             'Listing not yet available for this locale — sync in progress.'
         );
     }
@@ -312,5 +313,4 @@ class AppController extends BaseController
 
         return $app->last_synced_at->lt(now()->subHours((int) $hours));
     }
-
 }

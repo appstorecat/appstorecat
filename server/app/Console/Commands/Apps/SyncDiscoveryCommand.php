@@ -25,16 +25,16 @@ class SyncDiscoveryCommand extends Command
         $apps = $this->findPendingApps($platform);
 
         if ($apps->isEmpty()) {
-            $this->components->info('No untracked apps need syncing.' . ($platform ? " ({$platform})" : ''));
+            $this->components->info('No untracked apps need syncing.'.($platform ? " ({$platform})" : ''));
 
             return self::SUCCESS;
         }
 
         $apps->each(function (App $app) {
-            SyncAppJob::dispatch($app->id)->onQueue('sync-discovery-' . $app->platform->slug());
+            SyncAppJob::dispatch($app->id)->onQueue('sync-discovery-'.$app->platform->slug());
         });
 
-        $this->components->info("Dispatched {$apps->count()} discovery sync jobs." . ($platform ? " ({$platform})" : ''));
+        $this->components->info("Dispatched {$apps->count()} discovery sync jobs.".($platform ? " ({$platform})" : ''));
 
         return self::SUCCESS;
     }

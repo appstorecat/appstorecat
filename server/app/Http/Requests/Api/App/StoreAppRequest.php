@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\App;
 
-use App\Enums\Platform;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(

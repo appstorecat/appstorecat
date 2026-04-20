@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Enums\DiscoverSource;
-use App\Enums\Platform;
 use App\Http\Controllers\Controller;
 use App\Models\App;
 use OpenApi\Attributes as OA;

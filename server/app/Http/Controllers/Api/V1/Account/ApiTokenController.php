@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\V1\Account;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\Account\StoreApiTokenRequest;
 use App\Http\Resources\Api\Account\ApiTokenResource;
-use App\Http\Resources\Api\MessageResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

@@ -26,7 +26,7 @@ class ReconcileCommand extends Command
             })
             ->where(function ($q) use ($now) {
                 $q->whereNull('next_retry_at')
-                  ->orWhere('next_retry_at', '<=', $now);
+                    ->orWhere('next_retry_at', '<=', $now);
             })
             ->where('status', '!=', SyncStatus::STATUS_PROCESSING)
             ->limit($batchSize)

@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Casts\PlatformCast;
 use App\Enums\DiscoverSource;
 use App\Enums\Platform;
+use App\Models\Concerns\HasPlatform;
+use App\Services\StoreCategoryResolver;
 use Carbon\Carbon;
 use Database\Factories\AppFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -14,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use OpenApi\Attributes as OA;
-use App\Models\Concerns\HasPlatform;
 
 /**
  * @property int $id
@@ -58,10 +60,10 @@ use App\Models\Concerns\HasPlatform;
 ])]
 class App extends Model
 {
-    use HasPlatform;
-
     /** @use HasFactory<AppFactory> */
     use HasFactory;
+
+    use HasPlatform;
 
     /**
      * @return BelongsToMany<User, $this>
@@ -186,7 +188,7 @@ class App extends Model
 
         $categoryId = null;
         if (! empty($data['genre_id']) || ! empty($data['genre'])) {
-            $categoryId = app(\App\Services\StoreCategoryResolver::class)->resolveId(
+            $categoryId = app(StoreCategoryResolver::class)->resolveId(
                 $platform,
                 $data['genre_id'] ?? null,
                 $data['genre'] ?? null,
@@ -224,7 +226,7 @@ class App extends Model
     protected function casts(): array
     {
         return [
-            'platform' => \App\Casts\PlatformCast::class,
+            'platform' => PlatformCast::class,
             'supported_locales' => 'array',
             'is_free' => 'boolean',
             'original_release_date' => 'date',

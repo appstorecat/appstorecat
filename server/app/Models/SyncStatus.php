@@ -19,20 +19,31 @@ class SyncStatus extends Model
     protected $table = 'sync_statuses';
 
     public const STATUS_QUEUED = 'queued';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
 
     public const STEP_IDENTITY = 'identity';
+
     public const STEP_LISTINGS = 'listings';
+
     public const STEP_METRICS = 'metrics';
+
     public const STEP_FINALIZE = 'finalize';
+
     public const STEP_RECONCILING = 'reconciling';
 
     public const REASON_HTTP_500 = 'http_500';
+
     public const REASON_HTTP_429 = 'http_429';
+
     public const REASON_TIMEOUT = 'timeout';
+
     public const REASON_EMPTY_RESPONSE = 'empty_response';
+
     public const REASON_NETWORK_ERROR = 'network_error';
 
     /**

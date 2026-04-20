@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\PlatformCast;
 use App\Enums\ChartCollection;
-use App\Enums\Platform;
+use App\Models\Concerns\HasPlatform;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Concerns\HasPlatform;
 
 #[Fillable([
     'platform', 'collection', 'category_id', 'country_code', 'snapshot_date',
@@ -54,7 +54,7 @@ class ChartSnapshot extends Model
     protected function casts(): array
     {
         return [
-            'platform' => \App\Casts\PlatformCast::class,
+            'platform' => PlatformCast::class,
             'collection' => ChartCollection::class,
             'snapshot_date' => 'date',
         ];

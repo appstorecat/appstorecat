@@ -66,12 +66,14 @@ class ReconcileFailedItemsJob implements ShouldBeUnique, ShouldQueue
         foreach ($items as $item) {
             if (($item['permanent_failure'] ?? false) === true) {
                 $updated[] = $item;
+
                 continue;
             }
 
             $nextRetryAt = isset($item['next_retry_at']) ? Carbon::parse($item['next_retry_at']) : $now;
             if ($nextRetryAt->gt($now)) {
                 $updated[] = $item;
+
                 continue;
             }
 

@@ -35,6 +35,7 @@ class SyncDailyChartsCommand extends Command
         foreach ($platforms as $platform) {
             if (! config("appstorecat.charts.{$platform}.daily_sync_enabled")) {
                 $this->components->info("  {$platform}: daily chart sync is disabled.");
+
                 continue;
             }
 

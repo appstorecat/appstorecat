@@ -25,16 +25,16 @@ class SyncTrackedCommand extends Command
         $apps = $this->findPendingApps($platform);
 
         if ($apps->isEmpty()) {
-            $this->components->info('No tracked apps need syncing.' . ($platform ? " ({$platform})" : ''));
+            $this->components->info('No tracked apps need syncing.'.($platform ? " ({$platform})" : ''));
 
             return self::SUCCESS;
         }
 
         $apps->each(function (App $app) {
-            SyncAppJob::dispatch($app->id)->onQueue('sync-tracked-' . $app->platform->slug());
+            SyncAppJob::dispatch($app->id)->onQueue('sync-tracked-'.$app->platform->slug());
         });
 
-        $this->components->info("Dispatched {$apps->count()} tracked sync jobs." . ($platform ? " ({$platform})" : ''));
+        $this->components->info("Dispatched {$apps->count()} tracked sync jobs.".($platform ? " ({$platform})" : ''));
 
         return self::SUCCESS;
     }

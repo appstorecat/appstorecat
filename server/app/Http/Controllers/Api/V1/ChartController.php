@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\BaseController;
 use App\Jobs\Chart\FetchChartSnapshotJob;
 use App\Models\ChartEntry;
 use App\Models\ChartSnapshot;
+use App\Models\StoreCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -45,7 +46,7 @@ class ChartController extends BaseController
         // Default to the platform's "All" category when no explicit filter is given.
         $categoryId = $request->input('category_id')
             ? (int) $request->input('category_id')
-            : \App\Models\StoreCategory::platform($platform)->whereNull('external_id')->where('type', 'app')->value('id');
+            : StoreCategory::platform($platform)->whereNull('external_id')->where('type', 'app')->value('id');
 
         $snapshot = ChartSnapshot::forChart($platform, $collection, $countryCode, $categoryId)
             ->orderByDesc('snapshot_date')

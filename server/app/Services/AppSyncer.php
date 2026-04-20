@@ -16,6 +16,7 @@ use App\Models\Publisher;
 use App\Models\StoreListing;
 use App\Models\StoreListingChange;
 use App\Models\SyncStatus;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -610,7 +611,7 @@ class AppSyncer
         return SyncStatus::REASON_NETWORK_ERROR;
     }
 
-    private function nextRetryAt(int $retryCount): \Carbon\CarbonInterface
+    private function nextRetryAt(int $retryCount): CarbonInterface
     {
         $schedule = config('appstorecat.sync.item_retry.backoff_seconds', [300, 900, 1800, 3600, 7200, 21600, 43200]);
         $index = min($retryCount - 1, count($schedule) - 1);
