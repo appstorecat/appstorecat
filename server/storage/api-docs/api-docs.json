@@ -2232,11 +2232,6 @@
                             "indirect",
                             "aspiration"
                         ]
-                    },
-                    "notes": {
-                        "type": "string",
-                        "example": "Main competitor in the same category",
-                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -2508,10 +2503,6 @@
                     },
                     {
                         "properties": {
-                            "notes": {
-                                "type": "string",
-                                "nullable": true
-                            },
                             "app": {
                                 "$ref": "#/components/schemas/AppResource"
                             }

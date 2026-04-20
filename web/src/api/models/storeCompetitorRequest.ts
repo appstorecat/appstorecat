@@ -10,6 +10,4 @@ import type { StoreCompetitorRequestRelationship } from './storeCompetitorReques
 export interface StoreCompetitorRequest {
   competitor_app_id: number;
   relationship?: StoreCompetitorRequestRelationship;
-  /** @nullable */
-  notes?: string | null;
 }

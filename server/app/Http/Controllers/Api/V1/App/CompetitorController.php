@@ -99,7 +99,6 @@ class CompetitorController extends BaseController
             'app_id' => $app->id,
             'competitor_app_id' => $request->competitor_app_id,
             'relationship' => $request->relationship ?? 'direct',
-            'notes' => $request->notes,
         ]);
 
         $competitor->load('competitorApp.publisher', 'competitorApp.category');

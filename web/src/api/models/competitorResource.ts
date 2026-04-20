@@ -8,8 +8,6 @@
 import type { AppCompetitor } from './appCompetitor';
 import type { AppResource } from './appResource';
 
-export type CompetitorResource = AppCompetitor & ({
-  /** @nullable */
-  notes?: string | null;
+export type CompetitorResource = AppCompetitor & {
   app: AppResource;
-});
+};
