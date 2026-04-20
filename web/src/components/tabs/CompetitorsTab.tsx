@@ -56,6 +56,7 @@ interface CompetitorsTabProps {
 }
 
 interface SearchResult {
+  id: number
   external_id: string
   name: string
   publisher_name: string
@@ -102,19 +103,12 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
   }, [searchQuery, search, selectedExternalId])
 
   const handleSubmit = async () => {
-    if (!selectedExternalId) return
+    const selected = searchResults.find((r) => r.external_id === selectedExternalId)
+    if (!selected) return
     setSubmitting(true)
     try {
-      // First register the competitor app
-      const { data: registeredApp } = await axios.post('/apps', {
-        external_id: selectedExternalId,
-        platform,
-        is_direct: false,
-      })
-
-      // Then add as competitor
       await axios.post(`/apps/${platform}/${externalId}/competitors`, {
-        competitor_app_id: registeredApp.id,
+        competitor_app_id: selected.id,
         relationship,
       })
 
