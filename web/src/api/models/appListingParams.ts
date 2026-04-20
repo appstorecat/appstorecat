@@ -7,6 +7,6 @@
  */
 
 export type AppListingParams = {
-country: string;
-language?: string;
+country_code: string;
+locale?: string;
 };

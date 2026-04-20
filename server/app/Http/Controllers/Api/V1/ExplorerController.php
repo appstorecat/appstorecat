@@ -116,7 +116,7 @@ class ExplorerController extends BaseController
         ]);
 
         $query = App::query()
-            ->whereNotNull('display_icon')
+            ->whereNotNull('icon_url')
             ->with(['publisher', 'category']);
 
         if ($request->filled('platform')) {

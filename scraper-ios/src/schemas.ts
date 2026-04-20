@@ -23,17 +23,15 @@ export const AppIdentitySchema = {
     publisher_url: { type: "string" as const, nullable: true },
     category: { type: "string" as const },
     category_id: { type: "string" as const, nullable: true },
-    content_rating: { type: "string" as const, nullable: true },
     supported_locales: {
       type: "array" as const,
       items: { type: "string" as const },
       nullable: true,
     },
     original_release_date: { type: "string" as const, nullable: true },
-    price_model: { type: "string" as const },
+    is_free: { type: "boolean" as const },
     price: { type: "number" as const, nullable: true },
     currency: { type: "string" as const, nullable: true },
-    store_url: { type: "string" as const, nullable: true },
     version: { type: "string" as const, nullable: true },
     current_version_release_date: { type: "string" as const, nullable: true },
   },
@@ -47,7 +45,6 @@ export const StoreListingSchema = {
     locale: { type: "string" as const },
     title: { type: "string" as const },
     subtitle: { type: "string" as const, nullable: true },
-    short_description: { type: "string" as const, nullable: true },
     description: { type: "string" as const },
     promotional_text: { type: "string" as const, nullable: true },
     whats_new: { type: "string" as const, nullable: true },
@@ -73,33 +70,6 @@ export const AppMetricsSchema = {
     },
     installs_range: { type: "string" as const, nullable: true },
     file_size_bytes: { type: "integer" as const, nullable: true },
-  },
-};
-
-export const AppReviewSchema = {
-  type: "object" as const,
-  properties: {
-    external_id: { type: "string" as const },
-    author: { type: "string" as const, nullable: true },
-    title: { type: "string" as const, nullable: true },
-    body: { type: "string" as const, nullable: true },
-    rating: { type: "integer" as const },
-    review_date: { type: "string" as const, nullable: true },
-    app_version: { type: "string" as const, nullable: true },
-    country_code: { type: "string" as const },
-  },
-  required: ["external_id"],
-};
-
-export const ReviewsResponseSchema = {
-  type: "object" as const,
-  properties: {
-    reviews: { type: "array" as const, items: AppReviewSchema },
-    rating_breakdown: {
-      type: "object" as const,
-      nullable: true,
-      additionalProperties: { type: "integer" as const },
-    },
   },
 };
 
@@ -217,13 +187,11 @@ export interface AppIdentity {
   publisher_url: string | null;
   category: string;
   category_id: string | null;
-  content_rating: string | null;
   supported_locales: string[] | null;
   original_release_date: string | null;
-  price_model: string;
+  is_free: boolean;
   price: number | null;
   currency: string | null;
-  store_url: string | null;
   version: string | null;
   current_version_release_date: string | null;
 }
@@ -233,7 +201,6 @@ export interface StoreListing {
   locale: string;
   title: string;
   subtitle: string | null;
-  short_description: string | null;
   description: string;
   promotional_text: string | null;
   whats_new: string | null;
@@ -251,17 +218,6 @@ export interface AppMetrics {
   rating_breakdown: Record<string, number> | null;
   installs_range: string | null;
   file_size_bytes: number | null;
-}
-
-export interface AppReview {
-  external_id: string;
-  author: string | null;
-  title: string | null;
-  body: string | null;
-  rating: number;
-  review_date: string | null;
-  app_version: string | null;
-  country_code: string;
 }
 
 export interface DeveloperApp {

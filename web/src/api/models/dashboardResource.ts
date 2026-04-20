@@ -6,13 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { DashboardResourceRecentChangesItem } from './dashboardResourceRecentChangesItem';
-import type { DashboardResourceRecentReviewsItem } from './dashboardResourceRecentReviewsItem';
 
 export interface DashboardResource {
   total_apps?: number;
-  total_reviews?: number;
   total_versions?: number;
   total_changes?: number;
-  recent_reviews?: DashboardResourceRecentReviewsItem[];
   recent_changes?: DashboardResourceRecentChangesItem[];
 }

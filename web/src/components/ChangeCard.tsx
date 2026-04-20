@@ -12,7 +12,7 @@ interface ChangeCardProps {
   version?: string | null
   beforeVersion?: string | null
   afterVersion?: string | null
-  language: string
+  locale: string
   fieldChanged: string
   oldValue: string | null
   newValue: string | null
@@ -25,17 +25,17 @@ const fieldLabels: Record<string, string> = {
   subtitle: 'Subtitle',
   description: 'Description',
   whats_new: "What's New",
-  country_added: 'Country Added',
-  country_removed: 'Country Removed',
+  locale_added: 'Locale Added',
+  locale_removed: 'Locale Removed',
 }
 
 
-function formatLanguage(language: string): string {
+function formatLocale(locale: string): string {
   try {
     const display = new Intl.DisplayNames(['en'], { type: 'region' })
-    return display.of(language.toUpperCase()) ?? language
+    return display.of(locale.toUpperCase()) ?? locale
   } catch {
-    return language
+    return locale
   }
 }
 
@@ -55,7 +55,7 @@ export default function ChangeCard({
   version,
   beforeVersion,
   afterVersion,
-  language,
+  locale,
   fieldChanged,
   oldValue,
   newValue,
@@ -67,10 +67,10 @@ export default function ChangeCard({
   const isLong =
     (oldValue && oldValue.length > 200) || (newValue && newValue.length > 200)
   const isLocaleChange =
-    fieldChanged === 'country_added' || fieldChanged === 'country_removed'
+    fieldChanged === 'locale_added' || fieldChanged === 'locale_removed'
 
   const label = fieldLabels[fieldChanged] ?? fieldChanged
-  const displayLanguage = formatLanguage(language)
+  const displayLocale = formatLocale(locale)
 
   return (
     <div className="rounded-lg border p-4">
@@ -106,7 +106,7 @@ export default function ChangeCard({
               >
                 {label}
               </Badge>
-              <span className="text-xs text-muted-foreground">{displayLanguage}</span>
+              <span className="text-xs text-muted-foreground">{displayLocale}</span>
             </div>
           </div>
         </div>
@@ -120,21 +120,21 @@ export default function ChangeCard({
         <div className="mt-3">
           <div
             className={`rounded-md p-2.5 ${
-              fieldChanged === 'country_added'
+              fieldChanged === 'locale_added'
                 ? 'bg-green-500/5'
                 : 'bg-red-500/5'
             }`}
           >
             <span
               className={`text-[10px] font-semibold uppercase ${
-                fieldChanged === 'country_added'
+                fieldChanged === 'locale_added'
                   ? 'text-green-500'
                   : 'text-red-500'
               }`}
             >
-              {fieldChanged === 'country_added'
-                ? `${displayLanguage} added`
-                : `${displayLanguage} removed`}
+              {fieldChanged === 'locale_added'
+                ? `${displayLocale} added`
+                : `${displayLocale} removed`}
             </span>
             {(oldValue || newValue) && (
               <p className="mt-1 text-xs text-muted-foreground">

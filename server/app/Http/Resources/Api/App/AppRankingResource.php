@@ -10,12 +10,12 @@ use OpenApi\Attributes as OA;
 
 /**
  * Expects $resource as array with keys:
- *  country, collection, category, rank, previous_rank, status, snapshot_date.
+ *  country_code, collection, category, rank, previous_rank, status, snapshot_date.
  */
 #[OA\Schema(
     schema: 'AppRankingResource',
     properties: [
-        new OA\Property(property: 'country', type: 'string'),
+        new OA\Property(property: 'country_code', type: 'string'),
         new OA\Property(property: 'collection', type: 'string'),
         new OA\Property(property: 'category', type: 'object', nullable: true, properties: [
             new OA\Property(property: 'id', type: 'integer'),
@@ -32,11 +32,11 @@ class AppRankingResource extends BaseResource
 {
     protected function getResourceData(Request $request): array
     {
-        /** @var array{country:string,collection:string,category:array{id:int,name:string}|null,rank:int,previous_rank:int|null,status:string,snapshot_date:string} $data */
+        /** @var array{country_code:string,collection:string,category:array{id:int,name:string}|null,rank:int,previous_rank:int|null,status:string,snapshot_date:string} $data */
         $data = $this->resource;
 
         return [
-            'country' => $data['country'],
+            'country_code' => $data['country_code'],
             'collection' => $data['collection'],
             'category' => $data['category'],
             'rank' => $data['rank'],

@@ -14,10 +14,16 @@ export interface App {
   platform: Platform;
   external_id: string;
   /** @nullable */
+  display_name?: string | null;
+  /** @nullable */
+  icon_url?: string | null;
+  origin_country_code?: string;
+  /** @nullable */
   supported_locales?: string[] | null;
   /** @nullable */
   original_release_date?: string | null;
   is_free?: boolean;
+  is_available?: boolean;
   publisher?: Publisher | null;
   category?: StoreCategory | null;
   created_at?: string;

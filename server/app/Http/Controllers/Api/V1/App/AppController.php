@@ -10,10 +10,13 @@ use App\Http\Requests\Api\App\StoreAppRequest;
 use App\Http\Resources\Api\App\AppDetailResource;
 use App\Http\Resources\Api\App\AppResource;
 use App\Http\Resources\Api\App\ListingResource;
+use App\Http\Resources\Api\App\SyncStatusResource;
 use App\Jobs\Sync\SyncAppJob;
 use App\Models\App;
 use App\Models\AppCompetitor;
 use App\Models\StoreListing;
+use App\Models\SyncStatus;
+use App\Rules\AppAvailableCountry;
 use App\Services\AppRegistrar;
 use App\Services\AppSyncer;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +24,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AppController extends BaseController
 {
@@ -98,15 +102,15 @@ class AppController extends BaseController
     )]
     public function show(Request $request, string $platform, string $externalId): AppDetailResource
     {
-        $app = $this->resolveOrCreateApp($platform, $externalId);
+        $app = $this->resolveApp($platform, $externalId);
 
         if (! $app->last_synced_at) {
-            $this->syncer->syncAll($app);
+            $this->ensureSyncJob($app);
         } elseif ($this->isStale($app)) {
-            $this->dispatchBackgroundRefresh($app);
+            $this->ensureSyncJob($app);
         }
 
-        $app->refresh()->load(['storeListings', 'versions', 'storeListingChanges']);
+        $app->refresh()->load(['storeListings', 'versions', 'storeListingChanges', 'syncStatus']);
 
         if ($app->isTrackedBy($request->user())) {
             $app->setRelation(
@@ -132,8 +136,8 @@ class AppController extends BaseController
         parameters: [
             new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'country', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'tr')),
-            new OA\Parameter(name: 'language', in: 'query', required: false, schema: new OA\Schema(type: 'string', example: 'tr')),
+            new OA\Parameter(name: 'country_code', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'tr')),
+            new OA\Parameter(name: 'locale', in: 'query', required: false, schema: new OA\Schema(type: 'string', example: 'tr')),
         ],
         responses: [
             new OA\Response(response: 200, description: 'Store listing', content: new OA\JsonContent(ref: '#/components/schemas/ListingResource')),
@@ -142,25 +146,19 @@ class AppController extends BaseController
     public function listing(Request $request, string $platform, string $externalId): ListingResource
     {
         $request->validate([
-            'country' => 'required|string|size:2|exists:countries,code',
-            'language' => 'required|string|max:10',
+            'country_code' => [
+                'required', 'string', 'size:2', 'exists:countries,code',
+                new AppAvailableCountry($platform, $externalId),
+            ],
+            'locale' => 'required|string|max:10',
         ]);
 
         $app = $this->resolveApp($platform, $externalId);
-
-        if (! $app->last_synced_at) {
-            $this->syncer->syncAll($app);
-            $app->refresh();
-        } elseif ($this->isStale($app)) {
-            $this->dispatchBackgroundRefresh($app);
-        }
-
-        $country = $request->input('country');
-        $language = $request->input('language');
+        $locale = $request->input('locale');
         $latestVersion = $app->versions()->orderByDesc('id')->first();
 
         $existing = StoreListing::where('app_id', $app->id)
-            ->where('language', $language)
+            ->where('locale', $locale)
             ->where('version_id', $latestVersion?->id)
             ->first();
 
@@ -168,12 +166,95 @@ class AppController extends BaseController
             return ListingResource::make($existing);
         }
 
-        $listing = $this->syncer->syncListingForCountry($app, $country, $language, $latestVersion);
-        if (config("appstorecat.sync.{$app->platform->slug()}.reviews_enabled")) {
-            $this->syncer->syncReviewsForCountry($app, $country);
+        if (! $app->last_synced_at || $this->isStale($app)) {
+            $this->ensureSyncJob($app);
         }
 
-        return ListingResource::make($listing);
+        throw new NotFoundHttpException(
+            'Listing not yet available for this locale — sync in progress.'
+        );
+    }
+
+    #[OA\Post(
+        path: '/apps/{platform}/{externalId}/sync',
+        summary: 'Trigger a sync job for this app',
+        tags: ['Apps'],
+        operationId: 'syncApp',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
+            new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Sync queued or already in progress', content: new OA\JsonContent(ref: '#/components/schemas/SyncStatusResource')),
+        ],
+    )]
+    public function sync(Request $request, string $platform, string $externalId): SyncStatusResource
+    {
+        $app = $this->resolveApp($platform, $externalId);
+        $this->ensureSyncJob($app);
+
+        $syncStatus = SyncStatus::firstOrCreate(
+            ['app_id' => $app->id],
+            ['status' => SyncStatus::STATUS_QUEUED],
+        );
+
+        return SyncStatusResource::make($syncStatus);
+    }
+
+    #[OA\Get(
+        path: '/apps/{platform}/{externalId}/sync-status',
+        summary: 'Get current sync status for this app',
+        tags: ['Apps'],
+        operationId: 'appSyncStatus',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
+            new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Sync status', content: new OA\JsonContent(ref: '#/components/schemas/SyncStatusResource')),
+        ],
+    )]
+    public function syncStatus(Request $request, string $platform, string $externalId): SyncStatusResource
+    {
+        $app = $this->resolveApp($platform, $externalId);
+        $syncStatus = SyncStatus::firstOrCreate(
+            ['app_id' => $app->id],
+            ['status' => SyncStatus::STATUS_QUEUED],
+        );
+
+        return SyncStatusResource::make($syncStatus);
+    }
+
+    /**
+     * Ensure a sync job is queued. Dispatches a new SyncAppJob unless one is
+     * already being processed — the ShouldBeUnique guard on the job prevents
+     * duplicates in Redis.
+     */
+    private function ensureSyncJob(App $app): void
+    {
+        $status = SyncStatus::firstOrCreate(
+            ['app_id' => $app->id],
+            ['status' => SyncStatus::STATUS_QUEUED],
+        );
+
+        // Only skip dispatch if a worker is actively processing.
+        if ($status->status === SyncStatus::STATUS_PROCESSING) {
+            return;
+        }
+
+        $status->forceFill([
+            'status' => SyncStatus::STATUS_QUEUED,
+            'current_step' => null,
+            'progress_done' => 0,
+            'progress_total' => 0,
+            'error_message' => null,
+            'started_at' => null,
+            'completed_at' => null,
+        ])->save();
+
+        SyncAppJob::dispatch($app->id)->onQueue("sync-on-demand-{$app->platform->slug()}");
     }
 
     #[OA\Post(
@@ -192,7 +273,7 @@ class AppController extends BaseController
     )]
     public function track(Request $request, string $platform, string $externalId): Response
     {
-        $app = $this->resolveOrCreateApp($platform, $externalId);
+        $app = $this->resolveApp($platform, $externalId);
 
         if (! $app->isTrackedBy($request->user())) {
             $request->user()->apps()->attach($app->id);
@@ -235,12 +316,5 @@ class AppController extends BaseController
             : config("appstorecat.sync.{$app->platform->slug()}.discovery_app_refresh_hours", 72);
 
         return $app->last_synced_at->lt(now()->subHours((int) $hours));
-    }
-
-    private function dispatchBackgroundRefresh(App $app): void
-    {
-        // UI-triggered refreshes go to a dedicated on-demand queue so they do not
-        // wait behind the nightly cron backlog on the tracked/discovery queues.
-        SyncAppJob::dispatch($app->id)->onQueue("sync-on-demand-{$app->platform->slug()}");
     }
 }

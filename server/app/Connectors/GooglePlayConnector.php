@@ -38,16 +38,16 @@ class GooglePlayConnector implements ConnectorInterface
         ]);
     }
 
-    public function fetchListings(App $app, string $country = 'us', ?string $language = null): ConnectorResult
+    public function fetchListings(App $app, string $country = 'us', ?string $locale = null): ConnectorResult
     {
         try {
-            $locale = $language ?? $country;
-            $data = $this->get("/apps/{$app->external_id}/listings", ['locale' => $locale, 'country' => $country]);
+            $effectiveLocale = $locale ?? $country;
+            $data = $this->get("/apps/{$app->external_id}/listings", ['locale' => $effectiveLocale, 'country' => $country]);
         } catch (Throwable $e) {
             return ConnectorResult::failure('Google Play fetch failed: '.$e->getMessage());
         }
 
-        return ConnectorResult::success($this->mapListingData($data, $language));
+        return ConnectorResult::success($this->mapListingData($data, $locale));
     }
 
     public function fetchMetrics(App $app, string $country = 'us'): ConnectorResult
@@ -64,37 +64,6 @@ class GooglePlayConnector implements ConnectorInterface
             'rating_breakdown' => $data['rating_breakdown'] ?? null,
             'installs_range' => $data['installs_range'] ?? null,
             'file_size_bytes' => $data['file_size_bytes'] ?? null,
-        ]);
-    }
-
-    public function fetchReviews(App $app, string $country = 'us', int $page = 1): ConnectorResult
-    {
-        try {
-            $data = $this->get("/apps/{$app->external_id}/reviews", [
-                'country' => $country,
-                'limit' => 200,
-            ]);
-        } catch (Throwable $e) {
-            return ConnectorResult::failure('Google Play review fetch failed: '.$e->getMessage());
-        }
-
-        $mapped = [];
-        foreach ($data['reviews'] ?? [] as $review) {
-            $mapped[] = [
-                'external_id' => $review['external_id'] ?? '',
-                'author' => $review['author'] ?? null,
-                'title' => $review['title'] ?? null,
-                'body' => $review['body'] ?? null,
-                'rating' => $review['rating'] ?? 0,
-                'review_date' => $review['review_date'] ?? null,
-                'app_version' => $review['app_version'] ?? null,
-                'country_code' => $country,
-            ];
-        }
-
-        return ConnectorResult::success([
-            'reviews' => $mapped,
-            'rating_breakdown' => $data['rating_breakdown'] ?? null,
         ]);
     }
 
@@ -147,7 +116,7 @@ class GooglePlayConnector implements ConnectorInterface
         return 'google_play';
     }
 
-    private function mapListingData(array $data, ?string $language = null): array
+    private function mapListingData(array $data, ?string $locale = null): array
     {
         $description = $data['description'] ?? '';
         $screenshots = [];
@@ -162,10 +131,11 @@ class GooglePlayConnector implements ConnectorInterface
 
         return [
             'platform' => 'android',
-            'language' => $language,
+            'locale' => $locale,
             'title' => $data['title'] ?? '',
             'subtitle' => $data['subtitle'] ?? null,
             'description' => $description,
+            'promotional_text' => $data['promotional_text'] ?? null,
             'whats_new' => $data['whats_new'] ?? null,
             'icon_url' => $data['icon_url'] ?? null,
             'screenshots' => $screenshots,

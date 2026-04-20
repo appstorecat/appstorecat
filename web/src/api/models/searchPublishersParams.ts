@@ -17,5 +17,5 @@ platform: SearchPublishersPlatform;
  * @minLength 2
  * @maxLength 2
  */
-country?: string;
+country_code?: string;
 };

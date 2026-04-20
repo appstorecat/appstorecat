@@ -30,13 +30,13 @@ export default function DiscoveryApps() {
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm)
   const [platform, setPlatform] = useState<string>('ios')
-  const [country, setCountry] = useState<string>('us')
+  const [countryCode, setCountryCode] = useState<string>('us')
   const [tracking, setTracking] = useState<Set<string>>(new Set())
 
   const { data: searchResults, isFetching: searching } = useQuery<SearchApp[]>({
-    queryKey: ['app-search', debouncedSearch, platform, country],
+    queryKey: ['app-search', debouncedSearch, platform, countryCode],
     queryFn: () =>
-      axios.get('/apps/search', { params: { term: debouncedSearch, platform, country } }).then((r) => r.data),
+      axios.get('/apps/search', { params: { term: debouncedSearch, platform, country_code: countryCode } }).then((r) => r.data),
     enabled: debouncedSearch.length >= 2,
   })
 
@@ -77,7 +77,7 @@ export default function DiscoveryApps() {
           />
         </div>
         <PlatformSwitcher value={platform} onChange={setPlatform} />
-        <CountrySelect value={country} onChange={setCountry} className="w-[180px]" />
+        <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
       </div>
 
       {searchTerm.length < 2 && (

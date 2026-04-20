@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\Platform;
+use App\Casts\PlatformCast;
+use App\Models\Concerns\HasPlatform;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use OpenApi\Attributes as OA;
-use App\Models\Concerns\HasPlatform;
 
 #[OA\Schema(
     schema: 'Publisher',
@@ -58,7 +58,7 @@ class Publisher extends Model
     protected function casts(): array
     {
         return [
-            'platform' => \App\Casts\PlatformCast::class,
+            'platform' => PlatformCast::class,
         ];
     }
 }

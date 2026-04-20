@@ -12,19 +12,14 @@ use OpenApi\Attributes as OA;
 /** @mixin App */
 #[OA\Schema(
     schema: 'AppResource',
-    required: ['id', 'name', 'platform', 'external_id', 'created_at'],
+    allOf: [new OA\Schema(ref: '#/components/schemas/App')],
+    required: ['name'],
     properties: [
-        new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'name', type: 'string', example: 'Instagram'),
-        new OA\Property(property: 'platform', ref: '#/components/schemas/Platform'),
-        new OA\Property(property: 'external_id', type: 'string', example: '389801252'),
-        new OA\Property(property: 'publisher', ref: '#/components/schemas/Publisher', nullable: true),
-        new OA\Property(property: 'category', ref: '#/components/schemas/StoreCategory', nullable: true),
-        new OA\Property(property: 'icon_url', type: 'string', nullable: true),
         new OA\Property(property: 'rating', type: 'number', format: 'float', nullable: true, example: 4.68),
         new OA\Property(property: 'rating_count', type: 'integer', nullable: true, example: 31),
         new OA\Property(property: 'version', type: 'string', nullable: true, example: '1.2.4'),
-        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'is_tracked', type: 'boolean', example: false),
     ],
 )]
 class AppResource extends BaseResource

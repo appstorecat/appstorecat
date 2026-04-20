@@ -55,7 +55,7 @@ export default function AppChanges() {
               iconUrl={change.app?.icon_url}
               beforeVersion={change.previous_version}
               afterVersion={change.version}
-              language={change.language}
+              locale={change.locale}
               fieldChanged={change.field_changed}
               oldValue={change.old_value}
               newValue={change.new_value}

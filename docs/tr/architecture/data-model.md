@@ -36,8 +36,9 @@ Merkezi varlik. Her kayit, belirli bir platformdaki benzersiz bir uygulamayi tem
 | `publisher_id` | FK | publishers tablosuna baglanti |
 | `category_id` | FK | store_categories tablosuna baglanti |
 | `display_name` | string | Onbellekte tutulan uygulama adi (varsayilan dilden) |
-| `display_icon` | string | Onbellekte tutulan ikon URL'si |
-| `origin_country` | string | Uygulamanin ilk bulundugu ulke |
+| `icon_url` | text | Onbellekte tutulan ikon URL'si |
+| `bundle_id` | string, nullable | iOS bundle kimligi (`com.example.app`) |
+| `origin_country_code` | char(2) | Uygulamanin ilk bulundugu ulke (FK `countries.code`) |
 | `supported_locales` | json | Uygulamanin destekledigi dil kodlari dizisi |
 | `original_release_date` | date | Ilk yayin tarihi |
 | `is_free` | boolean | Ucretsiz veya ucretli |
@@ -50,13 +51,13 @@ Merkezi varlik. Her kayit, belirli bir platformdaki benzersiz bir uygulamayi tem
 
 ### app_store_listings
 
-Dil bazinda magaza listesi verileri. Uygulama basina dil basina bir kayit.
+Locale bazinda magaza listesi verileri. Uygulama basina surum basina locale basina bir kayit.
 
 | Sutun | Tip | Aciklama |
 |-------|-----|----------|
 | `app_id` | FK | apps tablosuna baglanti |
 | `version_id` | FK | app_versions tablosuna baglanti (nullable) |
-| `language` | string | Dil kodu (ornegin `en-US`, `tr`) |
+| `locale` | varchar(10) | BCP-47 locale kodu (ornegin `en-US`, `tr`) |
 | `title` | string | Bu dildeki uygulama basligi |
 | `subtitle` | string | Uygulama alt basligi (yalnizca iOS) |
 | `description` | text | Tam aciklama |
@@ -69,7 +70,7 @@ Dil bazinda magaza listesi verileri. Uygulama basina dil basina bir kayit.
 | `fetched_at` | datetime | Bu listenin alinma zamani |
 | `checksum` | string | Degisiklik tespiti icin hash |
 
-**Benzersizlik kisitlamasi:** `(app_id, language)`
+**Benzersizlik kisitlamasi:** `(app_id, version_id, locale)`
 
 ### app_versions
 
@@ -129,8 +130,8 @@ Magaza listelerinde tespit edilen degisiklikleri takip eder.
 |-------|-----|----------|
 | `app_id` | FK | apps tablosuna baglanti |
 | `version_id` | FK | app_versions tablosuna baglanti (nullable) |
-| `language` | string | Dil kodu |
-| `field_changed` | string | `title`, `subtitle`, `description`, `whats_new`, `screenshots`, `locale_removed` |
+| `locale` | varchar(10) | BCP-47 locale kodu |
+| `field_changed` | string | `title`, `subtitle`, `description`, `whats_new`, `screenshots`, `locale_added`, `locale_removed` |
 | `old_value` | text | Onceki deger |
 | `new_value` | text | Yeni deger |
 | `detected_at` | datetime | Degisikligin tespit edildigi zaman |

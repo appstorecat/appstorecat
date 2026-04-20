@@ -12,10 +12,11 @@ use OpenApi\Attributes as OA;
  * @property int $id
  * @property int $app_id
  * @property int|null $version_id
- * @property string $language
+ * @property string $locale
  * @property string $title
  * @property string|null $subtitle
  * @property string $description
+ * @property string|null $promotional_text
  * @property string|null $whats_new
  * @property string|null $icon_url
  * @property array|null $screenshots
@@ -29,17 +30,30 @@ use OpenApi\Attributes as OA;
  */
 #[OA\Schema(
     schema: 'StoreListing',
-    required: ['id', 'language'],
+    required: ['id', 'locale'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'version_id', type: 'integer', nullable: true),
-        new OA\Property(property: 'language', type: 'string', example: 'tr'),
+        new OA\Property(property: 'locale', type: 'string', example: 'tr'),
         new OA\Property(property: 'title', type: 'string', example: 'Instagram'),
         new OA\Property(property: 'subtitle', type: 'string', nullable: true, example: 'Photos & Videos'),
         new OA\Property(property: 'description', type: 'string'),
+        new OA\Property(property: 'promotional_text', type: 'string', nullable: true),
         new OA\Property(property: 'whats_new', type: 'string', nullable: true),
         new OA\Property(property: 'icon_url', type: 'string', nullable: true),
-        new OA\Property(property: 'screenshots', type: 'array', items: new OA\Items(type: 'string'), nullable: true),
+        new OA\Property(
+            property: 'screenshots',
+            type: 'array',
+            nullable: true,
+            items: new OA\Items(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'url', type: 'string'),
+                    new OA\Property(property: 'device_type', type: 'string', example: 'iphone'),
+                    new OA\Property(property: 'order', type: 'integer'),
+                ],
+            ),
+        ),
         new OA\Property(property: 'price', type: 'number', format: 'float', example: 6.99),
         new OA\Property(property: 'currency', type: 'string', nullable: true, example: 'USD'),
         new OA\Property(property: 'video_url', type: 'string', nullable: true),
@@ -47,8 +61,8 @@ use OpenApi\Attributes as OA;
     ],
 )]
 #[Fillable([
-    'app_id', 'version_id', 'language', 'title', 'subtitle',
-    'description', 'whats_new',
+    'app_id', 'version_id', 'locale', 'title', 'subtitle',
+    'description', 'promotional_text', 'whats_new',
     'screenshots', 'icon_url', 'video_url',
     'price', 'currency',
     'fetched_at', 'checksum',

@@ -15,8 +15,8 @@ return new class extends Migration
             $table->foreignId('publisher_id')->nullable()->constrained('publishers')->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained('store_categories')->nullOnDelete();
             $table->string('display_name')->nullable();
-            $table->text('display_icon')->nullable();
-            $table->string('origin_country', 2)->default('us');
+            $table->text('icon_url')->nullable();
+            $table->char('origin_country_code', 2)->default('us');
             $table->json('supported_locales')->nullable();
             $table->date('original_release_date')->nullable();
             $table->boolean('is_free')->default(true);
@@ -27,6 +27,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['platform', 'external_id']);
+            $table->index('last_synced_at');
+            $table->index('discovered_from');
+            $table->index(['platform', 'is_available', 'last_synced_at']);
+
+            $table->foreign('origin_country_code')
+                ->references('code')->on('countries')
+                ->cascadeOnUpdate()->restrictOnDelete();
         });
     }
 

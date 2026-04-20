@@ -16,7 +16,7 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'app_ids', type: 'array', items: new OA\Items(type: 'integer'), example: [2, 3]),
         new OA\Property(property: 'version_ids', type: 'object', additionalProperties: new OA\AdditionalProperties(type: 'integer'), example: ['2' => 5, '3' => 8]),
-        new OA\Property(property: 'language', type: 'string', example: 'us'),
+        new OA\Property(property: 'locale', type: 'string', example: 'en-US'),
         new OA\Property(property: 'ngram', type: 'integer', enum: [1, 2, 3, 4], example: 1),
     ],
 )]
@@ -43,7 +43,7 @@ class KeywordCompareRequest extends FormRequest
             'app_ids.*' => ['required', 'integer', Rule::in($competitorAppIds)],
             'version_ids' => ['sometimes', 'array'],
             'version_ids.*' => ['integer', 'exists:app_versions,id'],
-            'language' => ['sometimes', 'nullable', 'string', 'max:10'],
+            'locale' => ['sometimes', 'nullable', 'string', 'max:10'],
             'ngram' => ['sometimes', 'nullable', 'integer', 'in:1,2,3,4'],
         ];
     }

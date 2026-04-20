@@ -6,17 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ChangeResourceApp } from './changeResourceApp';
+import type { StoreListingChange } from './storeListingChange';
 
-export interface ChangeResource {
-  id: number;
+export type ChangeResource = StoreListingChange & ({
+  /** @nullable */
   app?: ChangeResourceApp;
   /** @nullable */
-  version_id?: number | null;
-  language?: string;
-  field_changed: string;
+  version?: string | null;
   /** @nullable */
-  old_value?: string | null;
-  /** @nullable */
-  new_value?: string | null;
-  detected_at: string;
-}
+  previous_version?: string | null;
+});

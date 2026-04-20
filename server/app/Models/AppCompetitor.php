@@ -10,11 +10,14 @@ use OpenApi\Attributes as OA;
 
 #[OA\Schema(
     schema: 'AppCompetitor',
+    required: ['id', 'app_id', 'competitor_app_id', 'relationship'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'app_id', type: 'integer'),
         new OA\Property(property: 'competitor_app_id', type: 'integer'),
         new OA\Property(property: 'relationship', ref: '#/components/schemas/CompetitorRelationship'),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'updated_at', type: 'string', format: 'date-time'),
     ],
 )]
 #[Fillable([

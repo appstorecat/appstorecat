@@ -34,7 +34,7 @@ function PlatformIcon({ platform, className }: { platform: string; className?: s
 export default function PublishersIndex() {
   const [searchTerm, setSearchTerm] = useState('')
   const [platform, setPlatform] = useState<string>('ios')
-  const [country, setCountry] = useState<string>('us')
+  const [countryCode, setCountryCode] = useState<string>('us')
 
   const { data: publishers, isLoading, isError, refetch } = useQuery<PublisherData[]>({
     queryKey: ['publishers'],
@@ -42,9 +42,9 @@ export default function PublishersIndex() {
   })
 
   const { data: searchResults, isFetching: searching } = useQuery<SearchResult[]>({
-    queryKey: ['developer-search', searchTerm, platform, country],
+    queryKey: ['developer-search', searchTerm, platform, countryCode],
     queryFn: () =>
-      axios.get('/publishers/search', { params: { term: searchTerm, platform, country } }).then((r) => r.data),
+      axios.get('/publishers/search', { params: { term: searchTerm, platform, country_code: countryCode } }).then((r) => r.data),
     enabled: searchTerm.length >= 2,
   })
 
@@ -76,7 +76,7 @@ export default function PublishersIndex() {
           />
         </div>
         <PlatformSwitcher value={platform} onChange={setPlatform} />
-        <CountrySelect value={country} onChange={setCountry} className="w-[180px]" />
+        <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
       </div>
 
       {/* Search results */}

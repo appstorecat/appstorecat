@@ -8,7 +8,7 @@
 import type { AppKeywordsNgram } from './appKeywordsNgram';
 
 export type AppKeywordsParams = {
-language?: string;
+locale?: string;
 ngram?: AppKeywordsNgram;
 version_id?: number;
 };

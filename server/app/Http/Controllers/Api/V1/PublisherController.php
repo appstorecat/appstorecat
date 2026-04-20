@@ -35,7 +35,7 @@ class PublisherController extends BaseController
         parameters: [
             new OA\Parameter(name: 'term', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2)),
             new OA\Parameter(name: 'platform', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
-            new OA\Parameter(name: 'country', in: 'query', required: false, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2, default: 'us')),
+            new OA\Parameter(name: 'country_code', in: 'query', required: false, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2, default: 'us')),
         ],
         responses: [
             new OA\Response(
@@ -49,12 +49,12 @@ class PublisherController extends BaseController
     {
         $term = $request->validated('term');
         $platform = $request->validated('platform');
-        $country = $request->validated('country') ?? 'us';
+        $countryCode = $request->validated('country_code') ?? 'us';
 
         $connector = $platform === 'ios' ? $ios : $android;
 
         try {
-            $results = $connector->fetchSearch($term, 25, $country);
+            $results = $connector->fetchSearch($term, 25, $countryCode);
         } catch (\Throwable $e) {
             Log::warning("{$platform} publisher search failed", ['error' => $e->getMessage()]);
 
@@ -113,15 +113,9 @@ class PublisherController extends BaseController
     )]
     public function show(Request $request, string $platform, string $externalId): PublisherDetailResource
     {
-        $publisher = Publisher::platform($platform)->where('external_id', $externalId)->first();
-
-        if (! $publisher) {
-            $name = $request->query('name', $externalId);
-            $placeholder = new Publisher(['name' => $name, 'external_id' => $externalId, 'platform' => $platform]);
-            $placeholder->setRelation('trackedApps', collect());
-
-            return PublisherDetailResource::make($placeholder);
-        }
+        $publisher = Publisher::platform($platform)
+            ->where('external_id', $externalId)
+            ->firstOr(fn () => abort(404, 'Publisher not found.'));
 
         $userAppIds = $request->user()->apps()->pluck('apps.id');
         $publisher->setRelation(
@@ -157,6 +151,14 @@ class PublisherController extends BaseController
     public function storeApps(Request $request, string $platform, string $externalId, ITunesLookupConnector $ios, GooglePlayConnector $android): AnonymousResourceCollection
     {
         $platformEnum = Platform::fromSlug($platform);
+
+        // Publisher must already exist (discovered via publisher search or
+        // a tracked app's identity sync). Prevents unverified IDs from
+        // hitting the scraper and polluting the publishers table.
+        $publisher = Publisher::platform($platform)
+            ->where('external_id', $externalId)
+            ->firstOr(fn () => abort(404, 'Publisher not found.'));
+
         $connector = $platformEnum === Platform::Ios ? $ios : $android;
         $result = $connector->fetchDeveloperApps($externalId);
 
@@ -165,9 +167,6 @@ class PublisherController extends BaseController
         }
 
         $userAppIds = $request->user()->apps()->pluck('apps.external_id')->toArray();
-
-        $publisherName = $request->query('name', $externalId);
-        $publisher = Publisher::findOrCreateByName($publisherName, $platform, $externalId);
 
         $apps = collect($result->data['apps'] ?? [])->map(function ($a) use ($platform, $userAppIds, $publisher) {
             App::discover($platform, $a['external_id'], [

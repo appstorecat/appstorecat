@@ -41,9 +41,9 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 |-------|----------|----------|
 | GET | `/apps` | Takip edilen uygulamalari listele (`?platform=ios\|android`) |
 | POST | `/apps` | Yeni bir uygulamayi kaydet ve takip et |
-| GET | `/apps/search` | Magazalarda uygulama ara (`?term=X&platform=ios&country=us`) |
+| GET | `/apps/search` | Magazalarda uygulama ara (`?term=X&platform=ios&country_code=us`) |
 | GET | `/apps/{platform}/{externalId}` | Uygulama detaylarini getir |
-| GET | `/apps/{platform}/{externalId}/listing` | Magaza listesini getir (`?country=us&language=en-US`) |
+| GET | `/apps/{platform}/{externalId}/listing` | Magaza listesini getir (`?country_code=us&locale=en-US`) |
 | GET | `/apps/{platform}/{externalId}/rankings` | Secilen gun icin uygulamanin liste siralamalari (`?date=YYYY-MM-DD`) |
 | POST | `/apps/{platform}/{externalId}/track` | Bir uygulamayi takip et |
 | DELETE | `/apps/{platform}/{externalId}/track` | Bir uygulamanin takibini birak |
@@ -63,8 +63,8 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
-| GET | `/apps/{platform}/{externalId}/keywords` | Anahtar kelime yogunlugu (`?language=en-US&ngram=2`) — mevcut liste uzerinden talep uzerine hesaplanir |
-| GET | `/apps/{platform}/{externalId}/keywords/compare` | Anahtar kelimeleri karsilastir (`?app_ids=1,2,3&language=en`) |
+| GET | `/apps/{platform}/{externalId}/keywords` | Anahtar kelime yogunlugu (`?locale=en-US&ngram=2`) — mevcut liste uzerinden talep uzerine hesaplanir |
+| GET | `/apps/{platform}/{externalId}/keywords/compare` | Anahtar kelimeleri karsilastir (`?app_ids=1,2,3&locale=en-US`) |
 
 ## Yorumlar
 
@@ -84,7 +84,7 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
-| GET | `/charts` | Siralama listeleri (`?platform=ios&collection=top_free&country=us&category_id=X`) |
+| GET | `/charts` | Siralama listeleri (`?platform=ios&collection=top_free&country_code=us&category_id=X`) |
 
 ## Kesif
 
@@ -104,7 +104,7 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
-| GET | `/publishers/search` | Yayinci ara (`?term=X&platform=ios&country=us`) |
+| GET | `/publishers/search` | Yayinci ara (`?term=X&platform=ios&country_code=us`) |
 | GET | `/publishers` | Takip edilen uygulamalardaki yayincilari listele |
 | GET | `/publishers/{platform}/{externalId}` | Yayinci detaylari |
 | GET | `/publishers/{platform}/{externalId}/store-apps` | Yayincinin magaza uygulamalari |

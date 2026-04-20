@@ -11,6 +11,6 @@ import type { GetChartsPlatform } from './getChartsPlatform';
 export type GetChartsParams = {
 platform: GetChartsPlatform;
 collection: GetChartsCollection;
-country?: string;
+country_code?: string;
 category_id?: number;
 };

@@ -11,6 +11,6 @@ import type { KeywordCompareRequestVersionIds } from './keywordCompareRequestVer
 export interface KeywordCompareRequest {
   app_ids: number[];
   version_ids?: KeywordCompareRequestVersionIds;
-  language?: string;
+  locale?: string;
   ngram?: KeywordCompareRequestNgram;
 }

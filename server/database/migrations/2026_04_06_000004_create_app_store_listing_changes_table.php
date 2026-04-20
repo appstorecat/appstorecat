@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('app_id')->constrained('apps')->cascadeOnDelete();
             $table->foreignId('version_id')->nullable()->constrained('app_versions')->nullOnDelete();
-            $table->string('language', 10);
+            $table->string('locale', 10);
             $table->string('field_changed');
             $table->text('old_value')->nullable();
             $table->text('new_value')->nullable();
@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['app_id', 'detected_at']);
+            $table->index(['app_id', 'field_changed', 'detected_at']);
             $table->index('version_id');
         });
     }

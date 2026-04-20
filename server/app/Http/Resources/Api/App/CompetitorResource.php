@@ -12,13 +12,10 @@ use OpenApi\Attributes as OA;
 /** @mixin AppCompetitor */
 #[OA\Schema(
     schema: 'CompetitorResource',
-    required: ['id', 'relationship', 'app'],
+    allOf: [new OA\Schema(ref: '#/components/schemas/AppCompetitor')],
+    required: ['app'],
     properties: [
-        new OA\Property(property: 'id', type: 'integer', example: 1),
-        new OA\Property(property: 'relationship', ref: '#/components/schemas/CompetitorRelationship'),
-        new OA\Property(property: 'notes', type: 'string', nullable: true),
         new OA\Property(property: 'app', ref: '#/components/schemas/AppResource'),
-        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
     ],
 )]
 class CompetitorResource extends BaseResource
@@ -28,7 +25,6 @@ class CompetitorResource extends BaseResource
         return [
             'id' => $this->resource->id,
             'relationship' => $this->resource->relationship,
-            'notes' => $this->resource->notes,
             'app' => new AppResource($this->resource->competitorApp),
             'created_at' => $this->formatTimestamp($this->resource->created_at),
         ];

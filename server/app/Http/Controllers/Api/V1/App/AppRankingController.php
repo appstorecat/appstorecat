@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\App;
 
+use App\Enums\Platform;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\App\AppRankingIndexRequest;
 use App\Http\Resources\Api\App\AppRankingResource;
@@ -39,7 +40,7 @@ class AppRankingController extends BaseController
             ->select('trending_chart_entries.*')
             ->join('trending_charts', 'trending_charts.id', '=', 'trending_chart_entries.trending_chart_id')
             ->where('trending_chart_entries.app_id', $app->id)
-            ->where('trending_charts.platform', \App\Enums\Platform::fromSlug($platform)->value)
+            ->where('trending_charts.platform', Platform::fromSlug($platform)->value)
             ->where('trending_charts.snapshot_date', $selectedDate)
             ->with(['snapshot.category'])
             ->get();
@@ -50,7 +51,7 @@ class AppRankingController extends BaseController
             $previous = ChartSnapshot::forChart(
                 $snapshot->platform->slug(),
                 $snapshot->collection->value,
-                $snapshot->country,
+                $snapshot->country_code,
                 $snapshot->category_id,
             )
                 ->where('snapshot_date', '<', $snapshot->snapshot_date)
@@ -71,7 +72,7 @@ class AppRankingController extends BaseController
             };
 
             return [
-                'country' => $snapshot->country,
+                'country_code' => $snapshot->country_code,
                 'collection' => $snapshot->collection->value,
                 'category' => $snapshot->category ? [
                     'id' => $snapshot->category->id,
@@ -84,7 +85,7 @@ class AppRankingController extends BaseController
             ];
         })
             ->sortBy([
-                ['country', 'asc'],
+                ['country_code', 'asc'],
                 ['collection', 'asc'],
                 ['rank', 'asc'],
             ])

@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Added
 - Open-source documentation restructuring
 - Job performance logging for queue monitoring
+- `apps.bundle_id` column for iOS bundle identifiers (populated lazily)
+- FK `apps.origin_country_code` → `countries.code`
+- FK `app_metrics.country_code` → `countries.code` (tightened from VARCHAR(10) to CHAR(2))
+- Indexes on `apps.last_synced_at`, `apps.discovered_from`, composite `(platform, is_available, last_synced_at)`; `app_store_listings(app_id, locale, fetched_at)` and `.checksum`; `app_store_listing_changes(app_id, field_changed, detected_at)`; `app_versions.release_date` and `(app_id, release_date)`; `store_categories(platform, parent_id)`; `trending_chart_entries.app_id`; `sync_statuses.job_id`
+- `Country` row `zz` (Global) to host Android metrics that are not country-specific
+
+### Changed
+- Renamed columns for naming consistency: `apps.origin_country` → `origin_country_code`, `apps.display_icon` → `icon_url`, `app_store_listings.language` → `locale`, `app_store_listing_changes.language` → `locale`, `trending_charts.country` → `country_code`
+- API query parameters / response keys aligned to new names: `?country=` → `?country_code=`, `?language=` → `?locale=`
+- `AppMetric::GLOBAL_COUNTRY` from `'GLOBAL'` to ISO 3166 user-assigned `'zz'`
+- `locale_added` / `locale_removed` replace `language_added` / `language_removed` in `StoreListingChange.field_changed`
 
 ### Fixed
 - Chart fetch exceptions now always propagate for retry and failed_jobs tracking

@@ -7,7 +7,6 @@ import store from "app-store-scraper";
 import type {
   AppIdentity,
   AppMetrics,
-  AppReview,
   ChartEntry,
   DeveloperApp,
   Screenshot,
@@ -35,6 +34,19 @@ async function scrapeAppStorePage(
     rating_breakdown: null as Record<string, number> | null,
   };
 
+  const warn = (reason: string, extra: Record<string, unknown> = {}) => {
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        source: "scrapeAppStorePage",
+        track_id: trackId,
+        country,
+        reason,
+        ...extra,
+      })
+    );
+  };
+
   try {
     const url = `https://apps.apple.com/${country}/app/id${trackId}`;
     const response = await fetch(url, {
@@ -45,20 +57,32 @@ async function scrapeAppStorePage(
       },
     });
 
-    if (!response.ok) return result;
+    if (!response.ok) {
+      warn("http_not_ok", { status: response.status });
+      return result;
+    }
 
     const html = await response.text();
     const match = html.match(
       /<script[^>]*id="serialized-server-data"[^>]*>(.+?)<\/script>/s
     );
-    if (!match) return result;
+    if (!match) {
+      warn("serialized_server_data_missing");
+      return result;
+    }
 
     const serverData = JSON.parse(match[1].trim());
-    if (!serverData) return result;
+    if (!serverData) {
+      warn("serialized_server_data_empty");
+      return result;
+    }
 
     const appData =
       serverData?.data?.[0]?.data ?? serverData?.[0]?.data ?? {};
-    if (!appData || Object.keys(appData).length === 0) return result;
+    if (!appData || Object.keys(appData).length === 0) {
+      warn("app_data_empty");
+      return result;
+    }
 
     // Subtitle
     result.subtitle = appData?.lockup?.subtitle ?? null;
@@ -103,9 +127,13 @@ async function scrapeAppStorePage(
 
     // Rating breakdown
     const ratingsItems = mapping?.productRatings?.items ?? [];
-    if (ratingsItems.length > 0) {
+    if (ratingsItems.length === 0) {
+      warn("product_ratings_missing");
+    } else {
       const counts = ratingsItems[0]?.ratingCounts;
-      if (counts && counts.length === 5) {
+      if (!counts || counts.length !== 5) {
+        warn("rating_counts_malformed", { length: counts?.length ?? null });
+      } else {
         result.rating_breakdown = {
           "5": counts[0],
           "4": counts[1],
@@ -115,8 +143,11 @@ async function scrapeAppStorePage(
         };
       }
     }
-  } catch {
-    // Silently fail — web scraping is a best-effort fallback
+  } catch (err) {
+    // Web scraping is a best-effort fallback; log and return whatever we got.
+    warn("exception", {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 
   return result;
@@ -135,15 +166,13 @@ export async function fetchIdentity(appId: string, country: string = "us", lang?
     publisher_url: info.developerUrl || null,
     category: info.primaryGenre || "",
     category_id: info.primaryGenreId != null ? String(info.primaryGenreId) : null,
-    content_rating: info.contentRating || null,
     supported_locales: info.languages || null,
     original_release_date: info.released
       ? new Date(info.released).toISOString().slice(0, 10)
       : null,
-    price_model: info.free ? "free" : "paid",
+    is_free: info.free ?? true,
     price: info.price ?? 0,
     currency: info.currency ?? null,
-    store_url: info.url || null,
     version: info.version || `ag.${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
     current_version_release_date: info.currentVersionReleaseDate
       ? new Date(info.currentVersionReleaseDate).toISOString().slice(0, 10)
@@ -191,10 +220,9 @@ export async function fetchListing(
     locale: lang || country,
     title: info.title || "",
     subtitle: info.subtitle || webData.subtitle || null,
-    short_description: null,
     description,
     promotional_text: info.promotionalText || null,
-    whats_new: info.releaseNotes || "Bug fixes and performance improvements.",
+    whats_new: info.releaseNotes || null,
     icon_url: info.icon || null,
     screenshots: finalScreenshots,
     video_url: info.videoUrl || webData.video_url || null,
@@ -246,6 +274,21 @@ export async function fetchMetrics(appId: string, country: string = "us", lang?:
     ratingBreakdown = webData.rating_breakdown;
   }
 
+  if (!ratingBreakdown && (info.reviews ?? 0) > 0) {
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        source: "fetchMetrics",
+        track_id: appId,
+        country,
+        reason: "rating_breakdown_missing_both_sources",
+        rating_count: info.reviews ?? 0,
+        has_histogram: Boolean(info.histogram),
+        has_web_breakdown: Boolean(webData.rating_breakdown),
+      })
+    );
+  }
+
   return {
     rating: info.score || 0,
     rating_count: info.reviews || 0,
@@ -253,35 +296,6 @@ export async function fetchMetrics(appId: string, country: string = "us", lang?:
     installs_range: null,
     file_size_bytes: info.size ? Number(info.size) : null,
   };
-}
-
-export async function fetchReviews(
-  appId: string,
-  country: string = "us",
-  page: number = 1
-): Promise<{
-  reviews: AppReview[];
-  rating_breakdown: Record<string, number> | null;
-}> {
-  const reviewData = await store.reviews({
-    id: Number(appId),
-    country,
-    page,
-    sort: store.sort.RECENT,
-  });
-
-  const reviews: AppReview[] = reviewData.map((r: any) => ({
-    external_id: String(r.id),
-    author: r.userName || null,
-    title: r.title || null,
-    body: r.text || null,
-    rating: r.score || 0,
-    review_date: r.date ? new Date(r.date).toISOString().slice(0, 10) : null,
-    app_version: r.version || null,
-    country_code: country.toUpperCase(),
-  }));
-
-  return { reviews, rating_breakdown: null };
 }
 
 export async function fetchDeveloperApps(

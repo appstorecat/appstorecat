@@ -35,13 +35,14 @@ class SyncDailyChartsCommand extends Command
         foreach ($platforms as $platform) {
             if (! config("appstorecat.charts.{$platform}.daily_sync_enabled")) {
                 $this->components->info("  {$platform}: daily chart sync is disabled.");
+
                 continue;
             }
 
             $existingSnapshots = ChartSnapshot::platform($platform)
                 ->where('snapshot_date', $today)
                 ->get()
-                ->map(fn ($s) => "{$s->collection->value}:{$s->country}:{$s->category_id}")
+                ->map(fn ($s) => "{$s->collection->value}:{$s->country_code}:{$s->category_id}")
                 ->flip();
 
             $countries = Country::activeForPlatform($platform)

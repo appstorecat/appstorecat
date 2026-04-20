@@ -11,7 +11,7 @@ type RankStatus = AppRankingResourceStatus
 type Collection = 'top_free' | 'top_paid' | 'top_grossing'
 
 type CurrentRanking = AppRankingResource & {
-  country: string
+  country_code: string
   collection: Collection
   rank: number
   status: RankStatus
@@ -98,8 +98,8 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
     for (const row of filteredRows) {
       const categoryId = row.category ? String(row.category.id) : 'overall'
       const key = `${row.collection}|${categoryId}`
-      if (!byCountry.has(row.country)) byCountry.set(row.country, {})
-      byCountry.get(row.country)![key] = row
+      if (!byCountry.has(row.country_code)) byCountry.set(row.country_code, {})
+      byCountry.get(row.country_code)![key] = row
     }
     const entries = Array.from(byCountry.entries()).map(([code, cols]) => {
       const ranks = Object.values(cols)

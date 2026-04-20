@@ -7,16 +7,20 @@ from datetime import date
 import requests
 from gplay_scraper import GPlayScraper
 
+logger = logging.getLogger(__name__)
+
+
+class AppNotFoundError(Exception):
+    """Raised when gplay-scraper cannot find the requested app in this storefront."""
+
 from .schemas import (
     AppIdentity,
     AppMetrics,
-    AppReview,
     ChartEntry,
     ChartResponse,
     DeveloperApp,
     DeveloperAppsResponse,
     LocalizedListingsResponse,
-    ReviewsResponse,
     Screenshot,
     SearchResponse,
     SearchResult,
@@ -31,8 +35,6 @@ ALL_APP_FIELDS = [
     "developer", "developerId", "developerEmail", "developerWebsite",
     "permissions", "dataSafety", "appUrl", "whatsNew",
 ]
-
-REVIEW_FIELDS = ["reviewId", "userName", "content", "score", "at", "reviewCreatedVersion"]
 
 SEARCH_FIELDS = ["appId", "title", "developer", "developerId", "icon", "score", "free", "price", "currency", "version"]
 
@@ -61,9 +63,12 @@ def fetch_identity(app_id: str, country: str = "us") -> AppIdentity:
     """Fetch app identity/details from Google Play."""
     info = scraper.app_get_fields(app_id, [
         "appId", "title", "developer", "developerId", "developerWebsite",
-        "genre", "genreId", "contentRating", "released", "lastUpdated", "free",
-        "appUrl", "version", "price", "currency",
+        "genre", "genreId", "released", "lastUpdated", "free",
+        "version", "price", "currency",
     ], country=country)
+
+    if not info:
+        raise AppNotFoundError(f"App not found: {app_id} in {country}")
 
     version = info.get("version")
     if not version or version == "Varies with device":
@@ -77,13 +82,11 @@ def fetch_identity(app_id: str, country: str = "us") -> AppIdentity:
         publisher_url=info.get("developerWebsite"),
         category=info.get("genre", ""),
         category_id=info.get("genreId"),
-        content_rating=info.get("contentRating"),
         supported_locales=None,
         original_release_date=info.get("released"),
-        price_model="free" if info.get("free", True) else "paid",
+        is_free=info.get("free", True),
         price=info.get("price", 0) or 0,
         currency=info.get("currency"),
-        store_url=info.get("appUrl"),
         version=version,
         current_version_release_date=info.get("lastUpdated") or date.today().isoformat(),
     )
@@ -96,6 +99,9 @@ def fetch_listing(app_id: str, locale: str = "en", country: str = "us") -> Store
         "screenshots", "video", "price", "free", "currency",
     ], lang=locale, country=country)
 
+    if not info:
+        raise AppNotFoundError(f"App not found: {app_id} in {country}/{locale}")
+
     screenshots = []
     for i, url in enumerate(info.get("screenshots", []) or []):
         screenshots.append(Screenshot(url=url, device_type="phone", order=i))
@@ -106,15 +112,15 @@ def fetch_listing(app_id: str, locale: str = "en", country: str = "us") -> Store
     if isinstance(whats_new, list):
         whats_new = "\n".join(whats_new)
     if not whats_new:
-        whats_new = "Bug fixes and performance improvements."
+        whats_new = None
 
     return StoreListing(
         platform="android",
         locale=locale,
         title=info.get("title", ""),
         subtitle=info.get("summary"),
-        short_description=info.get("summary"),
         description=description,
+        promotional_text=None,
         whats_new=whats_new,
         icon_url=info.get("icon"),
         screenshots=screenshots,
@@ -135,7 +141,11 @@ def fetch_localized_listings(
         try:
             listing = fetch_listing(app_id, locale=locale)
             listings.append(listing)
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "fetch_localized_listings: locale failed",
+                extra={"app_id": app_id, "locale": locale, "reason": str(exc)},
+            )
             continue
 
     return LocalizedListingsResponse(listings=listings)
@@ -146,6 +156,9 @@ def fetch_metrics(app_id: str, country: str = "us") -> AppMetrics:
     info = scraper.app_get_fields(app_id, [
         "score", "ratings", "histogram", "realInstalls", "minInstalls",
     ], country=country)
+
+    if not info:
+        raise AppNotFoundError(f"App not found: {app_id} in {country}")
 
     installs = info.get("realInstalls") or info.get("minInstalls")
     installs_range = f"{installs:,}+" if installs else None
@@ -160,6 +173,16 @@ def fetch_metrics(app_id: str, country: str = "us") -> AppMetrics:
             "2": histogram[1],
             "1": histogram[0],
         }
+    elif (info.get("ratings") or 0) > 0:
+        logger.warning(
+            "fetch_metrics: rating_breakdown missing despite non-zero ratings",
+            extra={
+                "app_id": app_id,
+                "country": country,
+                "rating_count": info.get("ratings"),
+                "histogram_len": len(histogram) if histogram else 0,
+            },
+        )
 
     return AppMetrics(
         rating=info.get("score", 0) or 0,
@@ -167,34 +190,6 @@ def fetch_metrics(app_id: str, country: str = "us") -> AppMetrics:
         rating_breakdown=rating_breakdown,
         installs_range=installs_range,
     )
-
-
-def fetch_reviews(
-    app_id: str, country: str = "us", count: int = 200
-) -> ReviewsResponse:
-    """Fetch app reviews."""
-    review_list = scraper.reviews_get_fields(app_id, REVIEW_FIELDS)
-
-    mapped = []
-    for r in (review_list or [])[:count]:
-        review_date = r.get("at", "")
-        if review_date and "T" in str(review_date):
-            review_date = str(review_date)[:10]
-
-        mapped.append(
-            AppReview(
-                external_id=r.get("reviewId", ""),
-                author=r.get("userName"),
-                title=None,
-                body=r.get("content"),
-                rating=r.get("score", 0),
-                review_date=review_date,
-                app_version=r.get("reviewCreatedVersion"),
-                country_code=country.upper(),
-            )
-        )
-
-    return ReviewsResponse(reviews=mapped)
 
 
 def _scrape_developer_page(developer_id: str) -> list[str]:
@@ -205,11 +200,18 @@ def _scrape_developer_page(developer_id: str) -> list[str]:
     try:
         resp = requests.get(url, headers=headers, timeout=15)
         if resp.status_code != 200:
+            logger.warning(
+                "_scrape_developer_page: non-200",
+                extra={"developer_id": developer_id, "status": resp.status_code},
+            )
             return []
         app_ids = re.findall(r"details\?id=([a-zA-Z0-9._]+)", resp.text)
         return list(dict.fromkeys(app_ids))
     except Exception as e:
-        logging.warning(f"Developer page scrape failed: {e}")
+        logger.warning(
+            "_scrape_developer_page: exception",
+            extra={"developer_id": developer_id, "reason": str(e)},
+        )
         return []
 
 
@@ -222,6 +224,10 @@ def fetch_developer_apps(developer_id: str) -> DeveloperAppsResponse:
         try:
             info = scraper.app_get_fields(app_id, DEVELOPER_FIELDS + ["free"])
             if not info:
+                logger.warning(
+                    "fetch_developer_apps: empty info",
+                    extra={"developer_id": developer_id, "app_id": app_id},
+                )
                 continue
             apps.append(
                 DeveloperApp(
@@ -237,7 +243,15 @@ def fetch_developer_apps(developer_id: str) -> DeveloperAppsResponse:
                     category_id=info.get("genreId"),
                 )
             )
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "fetch_developer_apps: enrichment failed",
+                extra={
+                    "developer_id": developer_id,
+                    "app_id": app_id,
+                    "reason": str(exc),
+                },
+            )
             continue
 
     return DeveloperAppsResponse(apps=apps)

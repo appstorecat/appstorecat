@@ -18,6 +18,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['app_id', 'version']);
+            $table->index('release_date');
+            $table->index(['app_id', 'release_date']);
         });
     }
 
