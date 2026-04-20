@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import axios from '@/lib/axios'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -39,6 +39,15 @@ export default function CountrySelect({ value, onChange, className, disabledCode
   const selected = countries?.find((c) => c.code === value)
   const disabledSet = new Set(disabledCodes ?? [])
 
+  // Available countries first (A-Z), then disabled ones (A-Z).
+  const orderedCountries = useMemo(() => {
+    if (!countries) return []
+    const byName = (a: Country, b: Country) => a.name.localeCompare(b.name)
+    const available = countries.filter((c) => !disabledSet.has(c.code)).sort(byName)
+    const disabled = countries.filter((c) => disabledSet.has(c.code)).sort(byName)
+    return [...available, ...disabled]
+  }, [countries, disabledSet])
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger render={
@@ -56,7 +65,7 @@ export default function CountrySelect({ value, onChange, className, disabledCode
           <CommandList>
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup>
-              {countries?.map((c) => {
+              {orderedCountries.map((c) => {
                 const isDisabled = disabledSet.has(c.code)
                 return (
                   <CommandItem
