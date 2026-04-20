@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\DiscoverSource;
 use App\Http\Controllers\Controller;
 use App\Models\App;
 use OpenApi\Attributes as OA;
@@ -32,12 +31,6 @@ abstract class BaseController extends Controller
         return App::platform($platform)
             ->where('external_id', $externalId)
             ->firstOrFail();
-    }
-
-    protected function resolveOrCreateApp(string $platform, string $externalId): App
-    {
-        return App::discover($platform, $externalId, [], DiscoverSource::DirectVisit)
-            ?? abort(404, 'App not found and discovery is disabled.');
     }
 
     protected function absoluteUrl(?string $url): ?string

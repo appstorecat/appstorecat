@@ -102,7 +102,7 @@ class AppController extends BaseController
     )]
     public function show(Request $request, string $platform, string $externalId): AppDetailResource
     {
-        $app = $this->resolveOrCreateApp($platform, $externalId);
+        $app = $this->resolveApp($platform, $externalId);
 
         if (! $app->last_synced_at) {
             $this->ensureSyncJob($app);
@@ -191,7 +191,7 @@ class AppController extends BaseController
     )]
     public function sync(Request $request, string $platform, string $externalId): SyncStatusResource
     {
-        $app = $this->resolveOrCreateApp($platform, $externalId);
+        $app = $this->resolveApp($platform, $externalId);
         $this->ensureSyncJob($app);
 
         $syncStatus = SyncStatus::firstOrCreate(
@@ -273,7 +273,7 @@ class AppController extends BaseController
     )]
     public function track(Request $request, string $platform, string $externalId): Response
     {
-        $app = $this->resolveOrCreateApp($platform, $externalId);
+        $app = $this->resolveApp($platform, $externalId);
 
         if (! $app->isTrackedBy($request->user())) {
             $request->user()->apps()->attach($app->id);

@@ -113,15 +113,9 @@ class PublisherController extends BaseController
     )]
     public function show(Request $request, string $platform, string $externalId): PublisherDetailResource
     {
-        $publisher = Publisher::platform($platform)->where('external_id', $externalId)->first();
-
-        if (! $publisher) {
-            $name = $request->query('name', $externalId);
-            $placeholder = new Publisher(['name' => $name, 'external_id' => $externalId, 'platform' => $platform]);
-            $placeholder->setRelation('trackedApps', collect());
-
-            return PublisherDetailResource::make($placeholder);
-        }
+        $publisher = Publisher::platform($platform)
+            ->where('external_id', $externalId)
+            ->firstOr(fn () => abort(404, 'Publisher not found.'));
 
         $userAppIds = $request->user()->apps()->pluck('apps.id');
         $publisher->setRelation(
@@ -157,6 +151,14 @@ class PublisherController extends BaseController
     public function storeApps(Request $request, string $platform, string $externalId, ITunesLookupConnector $ios, GooglePlayConnector $android): AnonymousResourceCollection
     {
         $platformEnum = Platform::fromSlug($platform);
+
+        // Publisher must already exist (discovered via publisher search or
+        // a tracked app's identity sync). Prevents unverified IDs from
+        // hitting the scraper and polluting the publishers table.
+        $publisher = Publisher::platform($platform)
+            ->where('external_id', $externalId)
+            ->firstOr(fn () => abort(404, 'Publisher not found.'));
+
         $connector = $platformEnum === Platform::Ios ? $ios : $android;
         $result = $connector->fetchDeveloperApps($externalId);
 
@@ -165,9 +167,6 @@ class PublisherController extends BaseController
         }
 
         $userAppIds = $request->user()->apps()->pluck('apps.external_id')->toArray();
-
-        $publisherName = $request->query('name', $externalId);
-        $publisher = Publisher::findOrCreateByName($publisherName, $platform, $externalId);
 
         $apps = collect($result->data['apps'] ?? [])->map(function ($a) use ($platform, $userAppIds, $publisher) {
             App::discover($platform, $a['external_id'], [
