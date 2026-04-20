@@ -21,7 +21,7 @@ endif
 .PHONY: setup dev down restart logs ps build \
         dev-server dev-web dev-android dev-ios \
         install key artisan composer tinker shell npm \
-        test test-server test-android test-ios lint pint lint-web \
+        lint pint lint-web \
         swagger api-generate api \
         logs-server logs-web logs-android logs-ios \
         mysql redis-cli \
@@ -157,23 +157,6 @@ pint:
 ## ESLint (web)
 lint-web:
 	$(WEB) npx eslint .
-
-# ─── Tests ────────────────────────────────────────────────────
-
-## Run all tests
-test: test-server test-android test-ios
-
-## Server tests (Pest)
-test-server:
-	$(SERVER) php artisan test
-
-## Google Play scraper tests (pytest)
-test-android:
-	docker compose exec appstorecat-scraper-android pytest
-
-## App Store scraper tests (vitest)
-test-ios:
-	docker compose exec appstorecat-scraper-ios npm test
 
 # ─── Logs ─────────────────────────────────────────────────────
 
