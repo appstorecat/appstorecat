@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Search, Smartphone } from 'lucide-react'
@@ -19,21 +19,17 @@ export default function AppsIndex() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const platform = parsePlatform(searchParams.get('platform'))
-  const urlSearch = searchParams.get('search') ?? ''
-
-  const [searchTerm, setSearchTerm] = useState(urlSearch)
+  const searchTerm = searchParams.get('search') ?? ''
   const debouncedSearch = useDebounce(searchTerm)
 
-  // Keep the URL in sync with the debounced search term.
-  useEffect(() => {
+  const setSearchTerm = (value: string) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
-      const trimmed = debouncedSearch.trim()
-      if (trimmed) next.set('search', trimmed)
+      if (value) next.set('search', value)
       else next.delete('search')
       return next
     }, { replace: true })
-  }, [debouncedSearch, setSearchParams])
+  }
 
   const setPlatform = (value: PlatformFilter) => {
     setSearchParams((prev) => {
@@ -51,18 +47,10 @@ export default function AppsIndex() {
     return params
   }, [platform, debouncedSearch])
 
-  const { data: apps, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data: apps, isError, refetch, isFetching } = useQuery<Record<string, unknown>[]>({
     queryKey: ['apps', platform, debouncedSearch],
     queryFn: () => axios.get('/apps', { params: queryParams }).then((r) => r.data),
   })
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    )
-  }
 
   if (isError) {
     return <QueryError message="Failed to load apps." onRetry={() => refetch()} />
@@ -77,7 +65,7 @@ export default function AppsIndex() {
         <h1 className="text-2xl font-bold tracking-tight">Apps</h1>
         <p className="text-sm text-muted-foreground">
           {hasFilters
-            ? `${count} result${count === 1 ? '' : 's'} ${isFetching ? '…' : ''}`
+            ? `${count} result${count === 1 ? '' : 's'}${isFetching ? ' …' : ''}`
             : `Your tracked apps (${count})`}
         </p>
       </div>
