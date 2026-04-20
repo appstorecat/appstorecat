@@ -16,6 +16,7 @@ use App\Models\App;
 use App\Models\AppCompetitor;
 use App\Models\StoreListing;
 use App\Models\SyncStatus;
+use App\Rules\AppAvailableCountry;
 use App\Services\AppRegistrar;
 use App\Services\AppSyncer;
 use Illuminate\Http\JsonResponse;
@@ -145,7 +146,10 @@ class AppController extends BaseController
     public function listing(Request $request, string $platform, string $externalId): ListingResource
     {
         $request->validate([
-            'country_code' => 'required|string|size:2|exists:countries,code',
+            'country_code' => [
+                'required', 'string', 'size:2', 'exists:countries,code',
+                new AppAvailableCountry($platform, $externalId),
+            ],
             'locale' => 'required|string|max:10',
         ]);
 

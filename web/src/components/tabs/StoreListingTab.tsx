@@ -20,7 +20,6 @@ interface StoreListingData {
   screenshots: Screenshot[]
   video_url: string | null
   fetched_at: string
-  is_available?: boolean
 }
 
 interface AppVersionData {
@@ -40,9 +39,10 @@ interface StoreListingTabProps {
   selectedLocale: string
   selectedCountry?: string
   selectedVersion: string
+  unavailableCountries?: string[]
 }
 
-export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedCountry = 'us', selectedVersion }: StoreListingTabProps) {
+export default function StoreListingTab({ listings, versions, platform, externalId, selectedLocale, selectedCountry = 'us', selectedVersion, unavailableCountries = [] }: StoreListingTabProps) {
   const sortedVersions = useMemo(
     () => [...versions].sort((a, b) => b.id - a.id),
     [versions],
@@ -63,7 +63,7 @@ export default function StoreListingTab({ listings, versions, platform, external
   )
 
   const currentListing = requestedListing ?? filteredListings[0]
-  const isUnavailable = !!requestedListing && requestedListing.is_available === false
+  const isCountryUnavailable = unavailableCountries.includes(selectedCountry)
   const isFallback = !requestedListing && !!currentListing
 
   if (listings.length === 0) {
@@ -75,8 +75,8 @@ export default function StoreListingTab({ listings, versions, platform, external
     )
   }
 
-  const localeLabel = selectedLocale || 'this locale'
-  const dim = isUnavailable ? 'opacity-60 pointer-events-none select-none' : ''
+  const countryLabel = selectedCountry.toUpperCase()
+  const dim = isCountryUnavailable ? 'opacity-60 pointer-events-none select-none' : ''
 
   return (
     <div className="space-y-3">
@@ -103,18 +103,18 @@ export default function StoreListingTab({ listings, versions, platform, external
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-lg font-semibold leading-tight">{currentListing.title}</h3>
-                {isUnavailable && (
+                {isCountryUnavailable && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-                    Not localized for {localeLabel}
+                    Not on {countryLabel} store
                   </span>
                 )}
               </div>
               {currentListing.subtitle && (
                 <p className="mt-0.5 text-sm text-muted-foreground">{currentListing.subtitle}</p>
               )}
-              {isUnavailable && (
+              {isCountryUnavailable && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  The publisher hasn't localized this listing. Values below are cloned from the origin storefront for reference.
+                  This app is not listed on the App Store in {countryLabel}. Content shown is from another storefront for reference.
                 </p>
               )}
             </div>

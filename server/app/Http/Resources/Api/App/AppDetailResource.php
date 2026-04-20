@@ -6,6 +6,7 @@ namespace App\Http\Resources\Api\App;
 
 use App\Http\Resources\Api\BaseResource;
 use App\Models\App;
+use App\Models\AppMetric;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -21,6 +22,12 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'version', type: 'string', nullable: true, example: '1.2.4'),
         new OA\Property(property: 'file_size_bytes', type: 'integer', nullable: true, example: 73822208),
         new OA\Property(property: 'is_tracked', type: 'boolean', example: false),
+        new OA\Property(
+            property: 'unavailable_countries',
+            type: 'array',
+            description: 'Country codes where this app is not listed on the store.',
+            items: new OA\Items(type: 'string', example: 'ru'),
+        ),
         new OA\Property(property: 'listings', type: 'array', items: new OA\Items(ref: '#/components/schemas/ListingResource')),
         new OA\Property(property: 'versions', type: 'array', items: new OA\Items(ref: '#/components/schemas/VersionResource')),
         new OA\Property(property: 'changes', type: 'array', items: new OA\Items(ref: '#/components/schemas/StoreListingChange')),
@@ -33,6 +40,7 @@ class AppDetailResource extends BaseResource
     {
         $latestMetric = $this->resource->metrics()->orderByDesc('date')->first();
         $latestVersion = $this->resource->versions()->latest()->first();
+        $unavailableCountries = $this->latestUnavailableCountries();
 
         return [
             'id' => $this->resource->id,
@@ -74,7 +82,31 @@ class AppDetailResource extends BaseResource
             'competitors' => CompetitorResource::collection($this->whenLoaded('competitors')),
             'is_available' => $this->resource->is_available,
             'is_tracked' => $request->user() ? $this->resource->isTrackedBy($request->user()) : false,
+            'unavailable_countries' => $unavailableCountries,
         ];
+    }
+
+    /**
+     * Country codes flagged unavailable in the most recent metric row per country.
+     *
+     * @return array<int, string>
+     */
+    private function latestUnavailableCountries(): array
+    {
+        $appId = $this->resource->id;
+
+        $latestIds = AppMetric::query()
+            ->selectRaw('MAX(id) as id')
+            ->where('app_id', $appId)
+            ->groupBy('country_code')
+            ->pluck('id');
+
+        return AppMetric::query()
+            ->whereIn('id', $latestIds)
+            ->where('is_available', false)
+            ->orderBy('country_code')
+            ->pluck('country_code')
+            ->all();
     }
 
     protected function getDefaultMessage(): string

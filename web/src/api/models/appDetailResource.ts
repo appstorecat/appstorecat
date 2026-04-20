@@ -22,6 +22,8 @@ export type AppDetailResource = App & ({
   /** @nullable */
   file_size_bytes?: number | null;
   is_tracked?: boolean;
+  /** Country codes where this app is not listed on the store. */
+  unavailable_countries?: string[];
   listings?: ListingResource[];
   versions?: VersionResource[];
   changes?: StoreListingChange[];

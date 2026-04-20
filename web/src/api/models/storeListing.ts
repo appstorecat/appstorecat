@@ -30,5 +30,4 @@ export interface StoreListing {
   /** @nullable */
   video_url?: string | null;
   fetched_at?: string;
-  is_available?: boolean;
 }

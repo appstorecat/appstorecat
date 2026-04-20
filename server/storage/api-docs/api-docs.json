@@ -2372,6 +2372,14 @@
                                 "type": "boolean",
                                 "example": false
                             },
+                            "unavailable_countries": {
+                                "description": "Country codes where this app is not listed on the store.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "example": "ru"
+                                }
+                            },
                             "listings": {
                                 "type": "array",
                                 "items": {
@@ -3242,10 +3250,6 @@
                     "fetched_at": {
                         "type": "string",
                         "format": "date-time"
-                    },
-                    "is_available": {
-                        "type": "boolean",
-                        "example": true
                     }
                 },
                 "type": "object"

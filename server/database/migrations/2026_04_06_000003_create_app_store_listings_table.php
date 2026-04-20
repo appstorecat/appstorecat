@@ -25,14 +25,12 @@ return new class extends Migration
             $table->string('currency', 3)->nullable();
             $table->timestamp('fetched_at');
             $table->string('checksum');
-            $table->boolean('is_available')->default(true);
             $table->timestamps();
 
             $table->unique(['app_id', 'version_id', 'locale'], 'app_store_listings_app_version_locale_unique');
             $table->index('version_id');
             $table->index(['app_id', 'locale', 'fetched_at']);
             $table->index('checksum');
-            $table->index(['app_id', 'is_available']);
         });
     }
 

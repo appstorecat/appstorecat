@@ -252,7 +252,12 @@ export default function AppsShow() {
 
           {(app.listings?.length > 0 || app.versions?.length > 0) && (
             <div className="flex items-center gap-2">
-              <CountrySelect value={selectedCountry} onChange={setSelectedCountry} className="w-[160px]" />
+              <CountrySelect
+                value={selectedCountry}
+                onChange={setSelectedCountry}
+                className="w-[160px]"
+                disabledCodes={app.unavailable_countries ?? []}
+              />
               {localesForCountry.length > 1 && (
                 <LanguageSelect
                   languages={localesForCountry}
@@ -336,6 +341,7 @@ export default function AppsShow() {
                     selectedLocale={effectiveLocale}
                     selectedCountry={selectedCountry}
                     selectedVersion={selectedVersion}
+                    unavailableCountries={app.unavailable_countries ?? []}
                   />
                 )}
                 {activeTab === 'competitors' && (
