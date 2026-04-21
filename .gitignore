@@ -47,3 +47,6 @@
 # App Store Scraper
 /scraper-ios/node_modules
 /scraper-ios/dist
+
+# Socials launch kit (private)
+/socials/
