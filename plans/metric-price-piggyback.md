@@ -1,145 +1,129 @@
-# Plan: Metric price/currency piggyback from listings
+# Plan: `app_metrics.price` / `currency` alanlarını doldur
 
-**Status:** Backlog — deferred
-**Related bug:** Bug #5 in `report_20apr.md` (20 Apr 2026)
-**Related table:** `app_metrics.price`, `app_metrics.currency`
+**Durum:** Backlog
+**İlgili tablo:** `app_metrics.price`, `app_metrics.currency`
 
-## Context
+## Sorun
 
-`app_metrics.price` and `app_metrics.currency` columns exist and are
-per-country/per-date, but they are **never populated**. A current audit
-shows 226/226 metric rows have `price = NULL`.
+`app_metrics` tablosundaki `price` ve `currency` kolonları şu anda %100
+`NULL`. Kolonlar var, migration çoktan atılmış, ama hiçbir sync akışı bu
+iki alanı yazmıyor.
 
-Root cause (two parts):
+## Kök sebep
 
-1. The scraper's `/apps/:id/metrics` endpoint does not include price or
-   currency in its response:
-   ```json
-   { "rating": ..., "rating_count": ..., "rating_breakdown": ..., "file_size_bytes": ... }
-   ```
-2. The `/apps/:id/listings` endpoint **does** carry `price` and
-   `currency` per storefront, but `AppSyncer::saveMetric` only reads
-   from the metrics response. The planned listing→metric piggyback was
-   never implemented.
+### iOS tarafı
 
-## Goal
+scraper-ios'un iki farklı handler'ı **aynı** iTunes `/lookup` endpoint'ine
+gidiyor:
 
-Populate `app_metrics.price` and `app_metrics.currency` without adding
-extra scraper calls. Reuse the per-country listing price that the
-listings phase already captures.
+- `fetchListing` (`scraper-ios/src/scraper.ts:183`) → `store.app(opts)`
+  çağırıp response'tan `price` + `currency` **dahil** tüm alanları çıkarıyor.
+- `fetchMetrics` (`scraper-ios/src/scraper.ts:253`) → **aynı** `store.app(opts)`
+  çağrısını yapıyor, ama response'tan sadece rating/histogram/file_size
+  alıyor; `price` ve `currency` atılıyor.
 
-## Out of scope
+Yani veri iTunes'dan zaten geliyor — sadece metrics handler'ı bu iki alanı
+response'a koymuyor.
 
-- Price history over time (already covered — `app_metrics` is daily).
-- Multi-currency normalization (e.g. converting to USD).
-- Scraper-side changes — the metrics endpoint contract stays as is.
+### Android tarafı
 
-## Approach
+gplay-scraper'ın metrics endpoint'i gerçekten price döndürmüyor (Google Play
+detail API'sinin yapısı farklı). Fakat listings endpoint'i döndürüyor ve
+Laravel zaten `app_store_listings.price` / `currency` kolonlarına yazıyor.
 
-### Option A — pass price/currency into `saveMetric` from the listings phase
+## Hedef
 
-The listings phase runs before the metrics phase
-(`syncListingsPhase` → `syncMetricsPhase`). The per-country price is
-captured in `app_store_listings.price` / `app_store_listings.currency`
-keyed by `(app_id, version_id, locale)`.
+`app_metrics.price` ve `app_metrics.currency` alanlarını her sync'te
+doldur, hiçbir ek scraper çağrısı eklemeden.
 
-During `fetchAndSaveMetric(country)`, look up the most recent listing
-for this app+country combination and pipe its price/currency into the
-`saveMetric` payload:
+## Yaklaşım
+
+### iOS — scraper tek satır fix
+
+`scraper-ios/src/scraper.ts` içindeki `fetchMetrics` fonksiyonuna iki satır
+ekle:
+
+```ts
+return {
+  rating: info.score ?? null,
+  rating_count: info.reviews ?? null,
+  rating_breakdown: ratingBreakdown,
+  file_size_bytes: ...,
+  price: info.price ?? 0,         // yeni
+  currency: info.currency ?? null, // yeni
+};
+```
+
+`scraper-ios/src/schemas.ts` içindeki `AppMetrics` şemasına da `price` +
+`currency` alanlarını ekle.
+
+Laravel tarafında `saveMetric` çağrısı zaten `$data['price']` /
+`$data['currency']` bekleyecek şekilde yazılabilir durumda — sadece saveMetric
+gövdesinde bu iki alan `$data`'dan okunup yazılıyor mu kontrol et. Eğer
+yoksa oraya da iki satır ekle.
+
+### Android — listings'ten piggyback
+
+`AppSyncer::fetchAndSaveMetric` Android için çağrıldığında (tek bir `zz` satırı)
+en son `app_store_listings` satırındaki `price` / `currency` değerlerini
+okuyup `saveMetric`'e ver. Android'in listings fazı metrics fazından önce
+çalıştığı için veri hazır olacak.
 
 ```php
-private function fetchAndSaveMetric(App $app, ?AppVersion $version, string $country, SyncStatus $syncStatus): void
-{
-    // ... existing attempt loop ...
-
-    if ($result->success) {
-        $data = $result->data;
-
-        // Piggyback per-country price from the matching listing captured
-        // in the prior phase. Fall back to null if no listing exists
-        // (e.g. country is unavailable, scraper 404'd).
-        [$price, $currency] = $this->lookupListingPrice($app, $version, $country);
-        $data['price'] = $price;
-        $data['currency'] = $currency;
-
-        $this->saveMetric($app, $version, $country, $data);
-        return;
-    }
-}
-
-private function lookupListingPrice(App $app, ?AppVersion $version, string $country): array
-{
-    $locale = $this->defaultLocaleForCountry($app, $country) ?? 'en-US';
-
+if ($app->isAndroid()) {
     $listing = StoreListing::where('app_id', $app->id)
-        ->when($version, fn ($q) => $q->where('version_id', $version->id))
-        ->where('locale', $locale)
         ->orderByDesc('fetched_at')
         ->first(['price', 'currency']);
-
-    return [$listing?->price, $listing?->currency];
+    $data['price'] = $listing?->price;
+    $data['currency'] = $listing?->currency;
 }
 ```
 
-### Option B — connector-level enrichment
+## Kapsam dışı
 
-Change `ITunesLookupConnector::fetchMetrics` to also fetch listings in
-parallel and merge price/currency into the metric payload. Adds an
-extra scraper call per country, doubling the metric-phase load. **Not
-recommended** — Option A is free in scraper budget.
+- USD normalizasyonu / çapraz kur çevirisi.
+- Fiyat geçmişi analizi (`app_metrics` zaten günlük, tarih boyutu var).
+- `fetchListing` ve `fetchMetrics`'in aynı upstream'e gitmesi kaynaklı
+  potansiyel çift çağrı ayıklaması — bu ayrı bir refactor konusu, bu planın
+  kapsamında değil.
 
-## Tricky edges
+## İnce noktalar
 
-1. **`country_code = 'zz'` (Android global)** — Android metrics aren't
-   per-country. The Android connector still doesn't populate
-   price/currency in metric responses, but the listing is captured once
-   at the app level and its price/currency can be piggybacked onto the
-   single `zz` row.
-2. **Listing not yet captured** — if the listings phase failed for this
-   country's default locale (country-wide 404), the lookup returns
-   null. Leave price null — accurate.
-3. **Listing version mismatch** — `app_versions` row may be created
-   after saveMetric in edge cases (race with saveVersion). Guard with
-   `when($version, ...)` and fall back to latest listing regardless of
-   version.
-4. **Default locale resolution** — `defaultLocaleForCountry()` already
-   exists on `AppSyncer`; reuse it. For Android pass `'zz'` through to
-   the app's origin locale.
+1. **Ücretsiz app'ler**: `price = 0`, `currency = 'USD'` gibi değerler
+   geçerli. NULL sadece "app o ülkede yok" durumunda kalmalı.
+2. **Ülke yok (404)**: scraper zaten boş dönüyor, `saveMetric` bunu
+   `isAvailable: false` ile yazıyor. O satırlarda `price = NULL` kalması
+   doğru.
+3. **Android `zz`**: tek global satır, en son listing'in fiyatı yeterli
+   — locale bazında ayrıştırmaya gerek yok.
 
-## Migration path
+## Doğrulama
 
-No schema change. `app_metrics.price` is already nullable (see bug 1.1
-fix, migration `2026_04_06_000005_...`).
-
-## Verification plan
-
-1. Track ChatGPT iOS (known storefronts with paid-currency variance:
-   US→USD, TR→TRY, GB→GBP).
-2. Run a fresh sync.
-3. Assert:
-   - `app_metrics` rows for `us, tr, gb` have `price >= 0` (may be 0 for
-     free app) and `currency` matching the storefront (`USD`, `TRY`,
-     `GBP`).
-   - Rows for `ru, cn, hk, by` (unavailable) still have
-     `price=NULL, currency=NULL, is_available=false` — untouched by
-     piggyback.
-4. Confirm no extra scraper calls by comparing request counts to the
-   previous sync.
+1. ChatGPT iOS'u track et (paralı storefront varyasyonu: US→USD, TR→TRY,
+   GB→GBP).
+2. Fresh sync çalıştır.
+3. Kontrol:
+   - `us, tr, gb` satırlarında `price >= 0`, `currency` storefront ile
+     eşleşiyor.
+   - `ru, cn` gibi kullanılamayan ülkelerde `price = NULL`,
+     `is_available = false`.
+4. Android için bir app track et, `zz` satırında price + currency'nin
+   listing ile aynı olduğunu doğrula.
 
 ## Rollout
 
-- Ship behind no feature flag; single commit, single service (Laravel).
-- `make queue-restart` after merge so running workers pick up the
-  change.
-- Back-fill historical rows: optional one-off artisan command that
-  walks all `app_metrics` rows, looks up the sibling listing by
-  `(app_id, version_id, country → locale)`, and updates price/currency
-  in place. Drop if historical accuracy isn't needed.
+- scraper-ios değişikliği için `scraper-ios` imajı yeniden build edilmeli.
+- Laravel değişikliği sonrası `make queue-restart` — çalışan worker'lar
+  yeni mantığı alsın.
+- Şema değişikliği yok, migration yok.
+- Tarihsel back-fill opsiyonel: istersen tek seferlik bir artisan komutu
+  `app_metrics` satırlarını dolaşıp sibling `app_store_listings` satırından
+  fiyat kopyalar. Tarihsel doğruluk önemli değilse at.
 
-## Done when
+## Bitti sayılır
 
-- Fresh syncs populate price/currency for every `is_available=true`
-  metric row.
-- Unavailable rows remain `price=NULL, currency=NULL`.
-- Documented in `docs/tr/architecture/sync-pipeline.md` alongside the
-  existing metrics phase description.
+- Fresh sync'te `is_available = true` olan her `app_metrics` satırında
+  `price` ve `currency` dolu.
+- Unavailable satırlar `NULL` kalıyor.
+- Ek scraper çağrısı yok (iOS için request sayısı sync başına sabit
+  kalmalı).
