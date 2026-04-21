@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\App;
 
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\App\StoreCompetitorRequest;
-use App\Http\Resources\Api\App\AppResource;
+use App\Http\Resources\Api\App\CompetitorGroupResource;
 use App\Http\Resources\Api\App\CompetitorResource;
 use App\Models\App;
 use App\Models\AppCompetitor;
@@ -47,26 +47,41 @@ class CompetitorController extends BaseController
 
     #[OA\Get(
         path: '/competitors',
-        summary: 'List all competitor apps across all user apps',
+        summary: 'List competitors grouped by parent app across all user apps',
         tags: ['Apps'],
         operationId: 'listAllCompetitors',
         security: [['bearerAuth' => []]],
         responses: [
-            new OA\Response(response: 200, description: 'List of competitor apps', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/AppResource'))),
+            new OA\Response(
+                response: 200,
+                description: 'Competitors grouped by parent app',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/CompetitorGroupResource'),
+                ),
+            ),
         ],
     )]
     public function all(Request $request): AnonymousResourceCollection
     {
-        $userAppIds = $request->user()->apps()->pluck('apps.id');
+        $userId = $request->user()->id;
+        $trackedApps = $request->user()->apps()->with(['publisher', 'category'])->get();
 
-        $competitorAppIds = AppCompetitor::where('user_id', $request->user()->id)
-            ->whereIn('app_id', $userAppIds)
-            ->pluck('competitor_app_id')
-            ->unique();
+        $competitorsByParent = AppCompetitor::where('user_id', $userId)
+            ->whereIn('app_id', $trackedApps->pluck('id'))
+            ->with('competitorApp.publisher', 'competitorApp.category')
+            ->get()
+            ->groupBy('app_id');
 
-        $apps = App::whereIn('id', $competitorAppIds)->latest()->get();
+        $groups = $trackedApps
+            ->filter(fn (App $app) => $competitorsByParent->has($app->id))
+            ->map(fn (App $app) => [
+                'parent' => $app,
+                'competitors' => $competitorsByParent->get($app->id),
+            ])
+            ->values();
 
-        return AppResource::collection($apps);
+        return CompetitorGroupResource::collection($groups);
     }
 
     #[OA\Post(

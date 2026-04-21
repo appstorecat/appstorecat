@@ -53,6 +53,8 @@ export default function AppCard({ app }: AppCardProps) {
       }
       queryClient.invalidateQueries({ queryKey: ['apps'] })
       queryClient.invalidateQueries({ queryKey: ['apps', app.platform, app.external_id] })
+      queryClient.invalidateQueries({ queryKey: ['competitors'] })
+      queryClient.invalidateQueries({ queryKey: ['competitor-apps'] })
     } finally {
       setTracking(false)
     }
