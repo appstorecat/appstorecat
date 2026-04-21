@@ -247,4 +247,5 @@ endif
 	@git commit -m "release: v$(v)"
 	@git tag v$(v)
 	@git push origin master --tags
+	@gh release create v$(v) --title "v$(v)" --generate-notes
 	@echo "Released v$(v)"
