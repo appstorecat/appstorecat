@@ -168,7 +168,10 @@ class PublisherController extends BaseController
 
         $userAppIds = $request->user()->apps()->pluck('apps.external_id')->toArray();
 
-        $apps = collect($result->data['apps'] ?? [])->map(function ($a) use ($platform, $userAppIds, $publisher) {
+        // Side effect: seed the apps table from the publisher's catalog so
+        // the discovery pipeline can pick them up later. The resource owns
+        // the row shaping — we just pass the raw connector payload through.
+        $apps = collect($result->data['apps'] ?? [])->each(function ($a) use ($platform, $publisher) {
             App::discover($platform, $a['external_id'], [
                 'name' => $a['name'] ?? null,
                 'developer' => $publisher?->name,
@@ -178,12 +181,12 @@ class PublisherController extends BaseController
                 'genre_id' => $a['category_id'] ?? null,
                 'free' => $a['is_free'] ?? true,
             ], DiscoverSource::PublisherApps);
-
-            return array_merge($a, [
-                'is_tracked' => in_array($a['external_id'], $userAppIds),
-                'icon_url' => $a['icon_url'] ?? null,
-            ]);
         })->values();
+
+        // StoreAppResource reads the tracked-id list off the request's
+        // attribute bag so each row can compute `is_tracked` without the
+        // controller having to reshape the payload.
+        $request->attributes->set('store_app_tracked_external_ids', $userAppIds);
 
         return StoreAppResource::collection($apps);
     }

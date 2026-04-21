@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Resources\Api\App;
 
 use App\Http\Resources\Api\BaseResource;
+use App\Models\ChartEntry;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 /**
- * Expects $resource as array with keys:
- *  country_code, collection, category, rank, previous_rank, status, snapshot_date.
+ * Expects a ChartEntry with an eager-loaded `snapshot.category` relation and
+ * a `previous_rank` dynamic property attached by the controller (nullable —
+ * null when the app did not appear in the previous snapshot).
+ *
+ * @mixin ChartEntry
  */
 #[OA\Schema(
     schema: 'AppRankingResource',
@@ -32,20 +36,33 @@ class AppRankingResource extends BaseResource
 {
     protected function getResourceData(Request $request): array
     {
-        /** @var array{country_code:string,collection:string,category:array{id:int,name:string}|null,rank:int,previous_rank:int|null,status:string,snapshot_date:string} $data */
-        $data = $this->resource;
+        /** @var ChartEntry $entry */
+        $entry = $this->resource;
+        $snapshot = $entry->snapshot;
+
+        $previousRank = $entry->previous_rank ?? null;
+        $previousRank = $previousRank !== null ? (int) $previousRank : null;
+        $rank = (int) $entry->rank;
+
+        $status = match (true) {
+            $previousRank === null => 'new',
+            $previousRank > $rank => 'up',
+            $previousRank < $rank => 'down',
+            default => 'same',
+        };
 
         return [
-            'country_code' => $data['country_code'],
-            'collection' => $data['collection'],
-            'category' => $data['category'],
-            'rank' => $data['rank'],
-            'previous_rank' => $data['previous_rank'],
-            'rank_change' => $data['previous_rank'] !== null
-                ? $data['previous_rank'] - $data['rank']
-                : null,
-            'status' => $data['status'],
-            'snapshot_date' => $data['snapshot_date'],
+            'country_code' => $snapshot->country_code,
+            'collection' => $snapshot->collection->value,
+            'category' => $snapshot->category ? [
+                'id' => $snapshot->category->id,
+                'name' => $snapshot->category->name,
+            ] : null,
+            'rank' => $rank,
+            'previous_rank' => $previousRank,
+            'rank_change' => $previousRank !== null ? $previousRank - $rank : null,
+            'status' => $status,
+            'snapshot_date' => $snapshot->snapshot_date->toDateString(),
         ];
     }
 

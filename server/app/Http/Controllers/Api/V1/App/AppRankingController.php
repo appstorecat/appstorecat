@@ -45,7 +45,10 @@ class AppRankingController extends BaseController
             ->with(['snapshot.category'])
             ->get();
 
-        $rows = $entries->map(function (ChartEntry $entry) use ($app) {
+        // Attach `previous_rank` as a dynamic property on each entry so the
+        // resource can compute `rank_change` / `status` without reshaping
+        // rows inside the controller.
+        $entries->each(function (ChartEntry $entry) use ($app) {
             $snapshot = $entry->snapshot;
 
             $previous = ChartSnapshot::forChart(
@@ -58,39 +61,21 @@ class AppRankingController extends BaseController
                 ->orderByDesc('snapshot_date')
                 ->first();
 
-            $previousRank = $previous
+            $entry->previous_rank = $previous
                 ? ChartEntry::where('trending_chart_id', $previous->id)
                     ->where('app_id', $app->id)
                     ->value('rank')
                 : null;
+        });
 
-            $status = match (true) {
-                $previousRank === null => 'new',
-                $previousRank > $entry->rank => 'up',
-                $previousRank < $entry->rank => 'down',
-                default => 'same',
-            };
-
-            return [
-                'country_code' => $snapshot->country_code,
-                'collection' => $snapshot->collection->value,
-                'category' => $snapshot->category ? [
-                    'id' => $snapshot->category->id,
-                    'name' => $snapshot->category->name,
-                ] : null,
-                'rank' => (int) $entry->rank,
-                'previous_rank' => $previousRank !== null ? (int) $previousRank : null,
-                'status' => $status,
-                'snapshot_date' => $snapshot->snapshot_date->toDateString(),
-            ];
-        })
+        $sorted = $entries
             ->sortBy([
-                ['country_code', 'asc'],
-                ['collection', 'asc'],
+                [fn (ChartEntry $e) => $e->snapshot->country_code, 'asc'],
+                [fn (ChartEntry $e) => $e->snapshot->collection->value, 'asc'],
                 ['rank', 'asc'],
             ])
             ->values();
 
-        return AppRankingResource::collection($rows);
+        return AppRankingResource::collection($sorted);
     }
 }

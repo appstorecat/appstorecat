@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
-import { ArrowUp, ArrowDown, Minus, Smartphone, Star, Clock } from 'lucide-react'
+import { ArrowUp, ArrowDown, Minus, Smartphone, Clock } from 'lucide-react'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -40,15 +40,18 @@ interface ChartEntry {
   price: number | null
   currency: string | null
   is_free: boolean
-  rating: number | null
 }
 
 interface ChartResponse {
-  snapshot_date: string
-  platform: string
-  collection: string
-  country: string
-  entries: ChartEntry[]
+  data: ChartEntry[]
+  meta: {
+    snapshot_date: string | null
+    updated_at: string | null
+    platform: string
+    collection: string
+    country_code: string
+    message?: string
+  }
 }
 
 interface StoreCategory {
@@ -118,13 +121,11 @@ export default function Trending() {
         <p className="text-sm text-muted-foreground">
           Top charts from App Store and Google Play
         </p>
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {(chart as any)?.updated_at && (
+        {chart?.meta?.updated_at && (
           <div className="flex items-center gap-3 text-xs text-muted-foreground/60">
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              Updated {timeAgo((chart as any).updated_at)}
+              Updated {timeAgo(chart.meta.updated_at)}
             </span>
           </div>
         )}
@@ -180,7 +181,7 @@ export default function Trending() {
         <div className="flex items-center justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
-      ) : chart?.entries && chart.entries.length > 0 ? (
+      ) : chart?.data && chart.data.length > 0 ? (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
             <thead>
@@ -189,12 +190,11 @@ export default function Trending() {
                 <th className="w-12 px-2 py-3"></th>
                 <th className="px-4 py-3">APP</th>
                 <th className="hidden px-4 py-3 md:table-cell">CATEGORY</th>
-                <th className="hidden px-4 py-3 text-right md:table-cell">RATING</th>
                 <th className="px-4 py-3 text-right">PRICE</th>
               </tr>
             </thead>
             <tbody>
-              {chart.entries.map((entry) => (
+              {chart.data.map((entry) => (
                 <tr
                   key={entry.app_external_id}
                   className="border-b transition-colors last:border-0 hover:bg-muted/30"
@@ -233,16 +233,6 @@ export default function Trending() {
                   </td>
                   <td className="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell">
                     {entry.category_name || '—'}
-                  </td>
-                  <td className="hidden px-4 py-3 text-right md:table-cell">
-                    {entry.rating ? (
-                      <span className="flex items-center justify-end gap-1 text-xs">
-                        <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        {Number(entry.rating).toFixed(1)}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {!entry.price || entry.price === 0 ? (

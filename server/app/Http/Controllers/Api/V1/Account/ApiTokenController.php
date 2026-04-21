@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1\Account;
 
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\Account\StoreApiTokenRequest;
+use App\Http\Resources\Api\Account\ApiTokenCreatedResource;
 use App\Http\Resources\Api\Account\ApiTokenResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -54,12 +55,7 @@ class ApiTokenController extends BaseController
             new OA\Response(
                 response: 201,
                 description: 'Token created',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'token', ref: '#/components/schemas/ApiTokenResource'),
-                        new OA\Property(property: 'plain_text_token', type: 'string', example: '1|abc123...'),
-                    ],
-                ),
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiTokenCreatedResource'),
             ),
             new OA\Response(response: 422, description: 'Validation error'),
         ],
@@ -68,10 +64,9 @@ class ApiTokenController extends BaseController
     {
         $newToken = $request->user()->createToken($request->name, ['mcp']);
 
-        return response()->json([
-            'token' => (new ApiTokenResource($newToken->accessToken))->toArray($request),
-            'plain_text_token' => $newToken->plainTextToken,
-        ], 201);
+        return ApiTokenCreatedResource::make($newToken)
+            ->response()
+            ->setStatusCode(201);
     }
 
     #[OA\Delete(

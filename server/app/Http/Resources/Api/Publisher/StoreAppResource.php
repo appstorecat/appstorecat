@@ -26,15 +26,28 @@ class StoreAppResource extends BaseResource
 {
     protected function getResourceData(Request $request): array
     {
+        $row = $this->resource;
+        $externalId = $row['external_id'] ?? null;
+
+        // The current user's tracked external ids are injected onto the
+        // request attribute bag by the controller (see
+        // PublisherController::storeApps). The resource reads them back so
+        // each row can compute `is_tracked` without the controller
+        // reshaping the connector payload.
+        $trackedIds = (array) $request->attributes->get('store_app_tracked_external_ids', []);
+        $isTracked = $externalId !== null && in_array($externalId, $trackedIds, true)
+            ? true
+            : (bool) ($row['is_tracked'] ?? false);
+
         return [
-            'external_id' => $this->resource['external_id'],
-            'name' => $this->resource['name'],
-            'icon_url' => $this->resource['icon_url'] ?? null,
-            'rating' => $this->resource['rating'] ?? null,
-            'rating_count' => $this->resource['rating_count'] ?? null,
-            'is_free' => $this->resource['is_free'] ?? true,
-            'category' => $this->resource['category'] ?? null,
-            'is_tracked' => $this->resource['is_tracked'] ?? false,
+            'external_id' => $externalId,
+            'name' => $row['name'] ?? null,
+            'icon_url' => $row['icon_url'] ?? null,
+            'rating' => $row['rating'] ?? null,
+            'rating_count' => $row['rating_count'] ?? null,
+            'is_free' => $row['is_free'] ?? true,
+            'category' => $row['category'] ?? null,
+            'is_tracked' => $isTracked,
         ];
     }
 
