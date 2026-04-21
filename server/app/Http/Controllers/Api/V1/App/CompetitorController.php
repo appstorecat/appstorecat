@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\App;
 
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\App\CompetitorAllRequest;
 use App\Http\Requests\Api\App\StoreCompetitorRequest;
 use App\Http\Resources\Api\App\CompetitorGroupResource;
 use App\Http\Resources\Api\App\CompetitorResource;
 use App\Models\App;
 use App\Models\AppCompetitor;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -51,6 +53,10 @@ class CompetitorController extends BaseController
         tags: ['Apps'],
         operationId: 'listAllCompetitors',
         security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
+        ],
         responses: [
             new OA\Response(
                 response: 200,
@@ -62,16 +68,56 @@ class CompetitorController extends BaseController
             ),
         ],
     )]
-    public function all(Request $request): AnonymousResourceCollection
+    public function all(CompetitorAllRequest $request): AnonymousResourceCollection
     {
         $userId = $request->user()->id;
-        $trackedApps = $request->user()->apps()->with(['publisher', 'category'])->get();
+        $platform = $request->validated('platform');
+        $search = trim((string) ($request->validated('search') ?? ''));
+        $hasSearch = $search !== '';
+        $like = '%'.$search.'%';
 
-        $competitorsByParent = AppCompetitor::where('user_id', $userId)
+        $trackedApps = $request->user()->apps()
+            ->with(['publisher', 'category'])
+            ->when($platform, fn ($query, $p) => $query->platform($p))
+            ->get();
+
+        $competitorsQuery = AppCompetitor::where('user_id', $userId)
             ->whereIn('app_id', $trackedApps->pluck('id'))
-            ->with('competitorApp.publisher', 'competitorApp.category')
-            ->get()
-            ->groupBy('app_id');
+            ->with('competitorApp.publisher', 'competitorApp.category');
+
+        if ($hasSearch) {
+            $competitorsQuery->where(function (Builder $query) use ($like) {
+                $query
+                    ->whereHas('app', fn (Builder $q) => $q->where('display_name', 'like', $like))
+                    ->orWhereHas('competitorApp', fn (Builder $q) => $q->where('display_name', 'like', $like));
+            });
+        }
+
+        $competitors = $competitorsQuery->get();
+
+        $parentMatchIds = $hasSearch
+            ? $request->user()->apps()
+                ->whereIn('apps.id', $trackedApps->pluck('id'))
+                ->where('apps.display_name', 'like', $like)
+                ->pluck('apps.id')
+                ->all()
+            : [];
+
+        $competitorsByParent = $competitors
+            ->groupBy('app_id')
+            ->map(function ($group, $parentId) use ($hasSearch, $parentMatchIds, $search) {
+                if (! $hasSearch || in_array($parentId, $parentMatchIds, true)) {
+                    return $group;
+                }
+
+                // Parent did not match — keep only competitors whose own display_name matches.
+                // Mirrors the SQL LIKE (case-insensitive substring) applied in the eager query above.
+                return $group->filter(
+                    fn (AppCompetitor $c) => $c->competitorApp
+                        && stripos((string) $c->competitorApp->display_name, $search) !== false,
+                );
+            })
+            ->filter(fn ($group) => $group->isNotEmpty());
 
         $groups = $trackedApps
             ->filter(fn (App $app) => $competitorsByParent->has($app->id))

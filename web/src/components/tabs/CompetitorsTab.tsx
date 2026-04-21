@@ -70,8 +70,19 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
   }, [searchQuery, selectedExternalId])
 
   const searchEnabled = debouncedTerm.length >= 2 && !selectedExternalId
+  // Backend filters out the parent app and already-added competitors via
+  // `exclude_external_ids[]` so the picker never shows duplicates (which would
+  // otherwise 422 on submit).
+  const excludeExternalIds = [
+    externalId,
+    ...competitors.map((c) => c.app?.external_id).filter((id): id is string => Boolean(id)),
+  ]
   const { data: searchResults = [], isFetching: searching } = useSearchApps(
-    { term: debouncedTerm, platform: platformParam },
+    {
+      term: debouncedTerm,
+      platform: platformParam,
+      'exclude_external_ids[]': excludeExternalIds,
+    },
     { query: { enabled: searchEnabled } },
   )
 

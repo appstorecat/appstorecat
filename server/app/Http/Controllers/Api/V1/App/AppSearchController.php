@@ -26,6 +26,14 @@ class AppSearchController extends BaseController
             new OA\Parameter(name: 'term', in: 'query', required: true, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 100)),
             new OA\Parameter(name: 'platform', in: 'query', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'country_code', in: 'query', required: false, schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 2, default: 'us')),
+            new OA\Parameter(
+                name: 'exclude_external_ids[]',
+                in: 'query',
+                required: false,
+                explode: true,
+                style: 'form',
+                schema: new OA\Schema(type: 'array', items: new OA\Items(type: 'string', maxLength: 255)),
+            ),
         ],
         responses: [
             new OA\Response(
@@ -40,6 +48,9 @@ class AppSearchController extends BaseController
         $term = $request->input('term');
         $platform = $request->input('platform');
         $countryCode = $request->input('country_code', 'us');
+        $excludedExternalIds = collect($request->validated('exclude_external_ids') ?? [])
+            ->filter()
+            ->map(fn ($id) => (string) $id);
 
         $connector = $platform === 'ios' ? $ios : $android;
         $results = $connector->fetchSearch($term, 10, $countryCode);
@@ -53,8 +64,12 @@ class AppSearchController extends BaseController
                 'genre' => $result['genre'] ?? null,
                 'genre_id' => $result['genre_id'] ?? null,
             ], DiscoverSource::Search, $countryCode);
-        })->filter()->values();
+        })->filter();
 
-        return AppSearchResultResource::collection($apps);
+        if ($excludedExternalIds->isNotEmpty()) {
+            $apps = $apps->reject(fn (App $app) => $excludedExternalIds->contains($app->external_id));
+        }
+
+        return AppSearchResultResource::collection($apps->values());
     }
 }
