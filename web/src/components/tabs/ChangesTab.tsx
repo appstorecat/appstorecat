@@ -474,7 +474,7 @@ function VersionCard({
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Localization {entry.localesCount}
                 </span>
-                <Select value={selectedLocale} onValueChange={onLocaleChange}>
+                <Select value={selectedLocale} onValueChange={(v) => v && onLocaleChange(v)}>
                   <SelectTrigger className="h-8 w-[160px] text-xs">
                     <SelectValue>{localeName(selectedLocale)}</SelectValue>
                   </SelectTrigger>

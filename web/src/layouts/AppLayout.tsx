@@ -163,7 +163,7 @@ function useBreadcrumbs(app: AppDetailResource | null): BreadcrumbItemData[] {
 interface NavItem {
   title: string
   href: string
-  icon: React.ComponentType
+  icon: React.ComponentType<{ className?: string }>
   comingSoon?: boolean
 }
 
