@@ -51,7 +51,7 @@ export const searchPublishers = (
 
 
       return orvalMutator<PublisherSearchResultResource[]>(
-      {url: `/api/v1/publishers/search`, method: 'GET',
+      {url: `/publishers/search`, method: 'GET',
         params, signal
     },
       options);
@@ -62,7 +62,7 @@ export const searchPublishers = (
 
 export const getSearchPublishersQueryKey = (params?: SearchPublishersParams,) => {
     return [
-    `/api/v1/publishers/search`, ...(params ? [params] : [])
+    `/publishers/search`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -142,7 +142,7 @@ export const listPublishers = (
 
 
       return orvalMutator<PublisherResource[]>(
-      {url: `/api/v1/publishers`, method: 'GET', signal
+      {url: `/publishers`, method: 'GET', signal
     },
       options);
     }
@@ -152,7 +152,7 @@ export const listPublishers = (
 
 export const getListPublishersQueryKey = () => {
     return [
-    `/api/v1/publishers`
+    `/publishers`
     ] as const;
     }
 
@@ -234,7 +234,7 @@ export const showPublisher = (
 
 
       return orvalMutator<PublisherDetailResource>(
-      {url: `/api/v1/publishers/${platform}/${externalId}`, method: 'GET',
+      {url: `/publishers/${platform}/${externalId}`, method: 'GET',
         params, signal
     },
       options);
@@ -247,7 +247,7 @@ export const getShowPublisherQueryKey = (platform: 'ios' | 'android',
     externalId: string,
     params?: ShowPublisherParams,) => {
     return [
-    `/api/v1/publishers/${platform}/${externalId}`, ...(params ? [params] : [])
+    `/publishers/${platform}/${externalId}`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -338,7 +338,7 @@ export const publisherStoreApps = (
 
 
       return orvalMutator<PublisherStoreApps200>(
-      {url: `/api/v1/publishers/${platform}/${externalId}/store-apps`, method: 'GET', signal
+      {url: `/publishers/${platform}/${externalId}/store-apps`, method: 'GET', signal
     },
       options);
     }
@@ -349,7 +349,7 @@ export const publisherStoreApps = (
 export const getPublisherStoreAppsQueryKey = (platform: 'ios' | 'android',
     externalId: string,) => {
     return [
-    `/api/v1/publishers/${platform}/${externalId}/store-apps`
+    `/publishers/${platform}/${externalId}/store-apps`
     ] as const;
     }
 
@@ -436,7 +436,7 @@ export const importPublisherApps = (
 
 
       return orvalMutator<void>(
-      {url: `/api/v1/publishers/${platform}/${externalId}/import`, method: 'POST',
+      {url: `/publishers/${platform}/${externalId}/import`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: importPublisherAppsBody, signal
     },

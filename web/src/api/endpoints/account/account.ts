@@ -52,7 +52,7 @@ export const listApiTokens = (
 
 
       return orvalMutator<ApiTokenResource[]>(
-      {url: `/api/v1/account/api-tokens`, method: 'GET', signal
+      {url: `/account/api-tokens`, method: 'GET', signal
     },
       options);
     }
@@ -62,7 +62,7 @@ export const listApiTokens = (
 
 export const getListApiTokensQueryKey = () => {
     return [
-    `/api/v1/account/api-tokens`
+    `/account/api-tokens`
     ] as const;
     }
 
@@ -142,7 +142,7 @@ export const createApiToken = (
 
 
       return orvalMutator<ApiTokenCreatedResource>(
-      {url: `/api/v1/account/api-tokens`, method: 'POST',
+      {url: `/account/api-tokens`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: storeApiTokenRequest, signal
     },
@@ -205,7 +205,7 @@ export const revokeApiToken = (
 
 
       return orvalMutator<void>(
-      {url: `/api/v1/account/api-tokens/${tokenId}`, method: 'DELETE', signal
+      {url: `/account/api-tokens/${tokenId}`, method: 'DELETE', signal
     },
       options);
     }
@@ -266,7 +266,7 @@ export const showProfile = (
 
 
       return orvalMutator<UserResource>(
-      {url: `/api/v1/account/profile`, method: 'GET', signal
+      {url: `/account/profile`, method: 'GET', signal
     },
       options);
     }
@@ -276,7 +276,7 @@ export const showProfile = (
 
 export const getShowProfileQueryKey = () => {
     return [
-    `/api/v1/account/profile`
+    `/account/profile`
     ] as const;
     }
 
@@ -356,7 +356,7 @@ export const deleteProfile = (
 
 
       return orvalMutator<void>(
-      {url: `/api/v1/account/profile`, method: 'DELETE',
+      {url: `/account/profile`, method: 'DELETE',
       headers: {'Content-Type': 'application/json', },
       data: profileDeleteRequest, signal
     },
@@ -419,7 +419,7 @@ export const updateProfile = (
 
 
       return orvalMutator<UserResource>(
-      {url: `/api/v1/account/profile`, method: 'PATCH',
+      {url: `/account/profile`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: profileUpdateRequest, signal
     },
@@ -482,7 +482,7 @@ export const updatePassword = (
 
 
       return orvalMutator<MessageResource>(
-      {url: `/api/v1/account/password`, method: 'PUT',
+      {url: `/account/password`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: passwordUpdateRequest, signal
     },

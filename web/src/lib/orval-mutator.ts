@@ -16,20 +16,9 @@ export const orvalMutator = <T>(
   config: AxiosRequestConfig,
   options?: AxiosRequestConfig,
 ): Promise<T> => {
-  const source = axios.CancelToken.source()
-
-  const promise = axios({
-    ...config,
-    ...options,
-    cancelToken: source.token,
-  }).then(({ data }) => data as T)
-
-  // Allow react-query to cancel in-flight requests on unmount / key change.
-  ;(promise as Promise<T> & { cancel?: () => void }).cancel = () => {
-    source.cancel('Query was cancelled')
-  }
-
-  return promise
+  // Orval passes an AbortSignal in `config.signal` when react-query wants to
+  // cancel — axios forwards it through natively, no manual cancel plumbing.
+  return axios({ ...config, ...options }).then(({ data }) => data as T)
 }
 
 export default orvalMutator

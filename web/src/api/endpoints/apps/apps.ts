@@ -65,7 +65,7 @@ export const listApps = (
 
 
       return orvalMutator<AppResource[]>(
-      {url: `/api/v1/apps`, method: 'GET',
+      {url: `/apps`, method: 'GET',
         params, signal
     },
       options);
@@ -76,7 +76,7 @@ export const listApps = (
 
 export const getListAppsQueryKey = (params?: ListAppsParams,) => {
     return [
-    `/api/v1/apps`, ...(params ? [params] : [])
+    `/apps`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -156,7 +156,7 @@ export const storeApp = (
 
 
       return orvalMutator<AppDetailResource>(
-      {url: `/api/v1/apps`, method: 'POST',
+      {url: `/apps`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: storeAppRequest, signal
     },
@@ -220,7 +220,7 @@ export const showApp = (
 
 
       return orvalMutator<AppDetailResource>(
-      {url: `/api/v1/apps/${platform}/${externalId}`, method: 'GET', signal
+      {url: `/apps/${platform}/${externalId}`, method: 'GET', signal
     },
       options);
     }
@@ -231,7 +231,7 @@ export const showApp = (
 export const getShowAppQueryKey = (platform: 'ios' | 'android',
     externalId: string,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}`
+    `/apps/${platform}/${externalId}`
     ] as const;
     }
 
@@ -318,7 +318,7 @@ export const appListing = (
 
 
       return orvalMutator<ListingResource>(
-      {url: `/api/v1/apps/${platform}/${externalId}/listing`, method: 'GET',
+      {url: `/apps/${platform}/${externalId}/listing`, method: 'GET',
         params, signal
     },
       options);
@@ -331,7 +331,7 @@ export const getAppListingQueryKey = (platform: 'ios' | 'android',
     externalId: string,
     params?: AppListingParams,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/listing`, ...(params ? [params] : [])
+    `/apps/${platform}/${externalId}/listing`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -422,7 +422,7 @@ export const syncApp = (
 
 
       return orvalMutator<SyncStatusResource>(
-      {url: `/api/v1/apps/${platform}/${externalId}/sync`, method: 'POST', signal
+      {url: `/apps/${platform}/${externalId}/sync`, method: 'POST', signal
     },
       options);
     }
@@ -484,7 +484,7 @@ export const appSyncStatus = (
 
 
       return orvalMutator<SyncStatusResource>(
-      {url: `/api/v1/apps/${platform}/${externalId}/sync-status`, method: 'GET', signal
+      {url: `/apps/${platform}/${externalId}/sync-status`, method: 'GET', signal
     },
       options);
     }
@@ -495,7 +495,7 @@ export const appSyncStatus = (
 export const getAppSyncStatusQueryKey = (platform: 'ios' | 'android',
     externalId: string,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/sync-status`
+    `/apps/${platform}/${externalId}/sync-status`
     ] as const;
     }
 
@@ -581,7 +581,7 @@ export const trackApp = (
 
 
       return orvalMutator<void>(
-      {url: `/api/v1/apps/${platform}/${externalId}/track`, method: 'POST', signal
+      {url: `/apps/${platform}/${externalId}/track`, method: 'POST', signal
     },
       options);
     }
@@ -643,7 +643,7 @@ export const untrackApp = (
 
 
       return orvalMutator<void>(
-      {url: `/api/v1/apps/${platform}/${externalId}/track`, method: 'DELETE', signal
+      {url: `/apps/${platform}/${externalId}/track`, method: 'DELETE', signal
     },
       options);
     }
@@ -706,7 +706,7 @@ export const listAppRankings = (
 
 
       return orvalMutator<AppRankingResource[]>(
-      {url: `/api/v1/apps/${platform}/${externalId}/rankings`, method: 'GET',
+      {url: `/apps/${platform}/${externalId}/rankings`, method: 'GET',
         params, signal
     },
       options);
@@ -719,7 +719,7 @@ export const getListAppRankingsQueryKey = (platform: 'ios' | 'android',
     externalId: string,
     params?: ListAppRankingsParams,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/rankings`, ...(params ? [params] : [])
+    `/apps/${platform}/${externalId}/rankings`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -809,7 +809,7 @@ export const searchApps = (
 
 
       return orvalMutator<AppResource[]>(
-      {url: `/api/v1/apps/search`, method: 'GET',
+      {url: `/apps/search`, method: 'GET',
         params, signal
     },
       options);
@@ -820,7 +820,7 @@ export const searchApps = (
 
 export const getSearchAppsQueryKey = (params?: SearchAppsParams,) => {
     return [
-    `/api/v1/apps/search`, ...(params ? [params] : [])
+    `/apps/search`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -901,7 +901,7 @@ export const listCompetitors = (
 
 
       return orvalMutator<CompetitorResource[]>(
-      {url: `/api/v1/apps/${platform}/${externalId}/competitors`, method: 'GET', signal
+      {url: `/apps/${platform}/${externalId}/competitors`, method: 'GET', signal
     },
       options);
     }
@@ -912,7 +912,7 @@ export const listCompetitors = (
 export const getListCompetitorsQueryKey = (platform: 'ios' | 'android',
     externalId: string,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/competitors`
+    `/apps/${platform}/${externalId}/competitors`
     ] as const;
     }
 
@@ -999,7 +999,7 @@ export const storeCompetitor = (
 
 
       return orvalMutator<CompetitorResource>(
-      {url: `/api/v1/apps/${platform}/${externalId}/competitors`, method: 'POST',
+      {url: `/apps/${platform}/${externalId}/competitors`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: storeCompetitorRequest, signal
     },
@@ -1062,7 +1062,7 @@ export const listAllCompetitors = (
 
 
       return orvalMutator<CompetitorGroupResource[]>(
-      {url: `/api/v1/competitors`, method: 'GET', signal
+      {url: `/competitors`, method: 'GET', signal
     },
       options);
     }
@@ -1072,7 +1072,7 @@ export const listAllCompetitors = (
 
 export const getListAllCompetitorsQueryKey = () => {
     return [
-    `/api/v1/competitors`
+    `/competitors`
     ] as const;
     }
 
@@ -1154,7 +1154,7 @@ export const deleteCompetitor = (
 
 
       return orvalMutator<void>(
-      {url: `/api/v1/apps/${platform}/${externalId}/competitors/${competitor}`, method: 'DELETE', signal
+      {url: `/apps/${platform}/${externalId}/competitors/${competitor}`, method: 'DELETE', signal
     },
       options);
     }
@@ -1217,7 +1217,7 @@ export const appKeywords = (
 
 
       return orvalMutator<KeywordDensityResource[]>(
-      {url: `/api/v1/apps/${platform}/${externalId}/keywords`, method: 'GET',
+      {url: `/apps/${platform}/${externalId}/keywords`, method: 'GET',
         params, signal
     },
       options);
@@ -1230,7 +1230,7 @@ export const getAppKeywordsQueryKey = (platform: 'ios' | 'android',
     externalId: string,
     params?: AppKeywordsParams,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/keywords`, ...(params ? [params] : [])
+    `/apps/${platform}/${externalId}/keywords`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -1322,7 +1322,7 @@ export const compareKeywords = (
 
 
       return orvalMutator<KeywordCompareResource>(
-      {url: `/api/v1/apps/${platform}/${externalId}/keywords/compare`, method: 'GET',
+      {url: `/apps/${platform}/${externalId}/keywords/compare`, method: 'GET',
         params, signal
     },
       options);
@@ -1335,7 +1335,7 @@ export const getCompareKeywordsQueryKey = (platform: 'ios' | 'android',
     externalId: string,
     params?: CompareKeywordsParams,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/keywords/compare`, ...(params ? [params] : [])
+    `/apps/${platform}/${externalId}/keywords/compare`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -1426,7 +1426,7 @@ export const getRatingSummary = (
 
 
       return orvalMutator<RatingSummaryResource>(
-      {url: `/api/v1/apps/${platform}/${externalId}/ratings/summary`, method: 'GET', signal
+      {url: `/apps/${platform}/${externalId}/ratings/summary`, method: 'GET', signal
     },
       options);
     }
@@ -1437,7 +1437,7 @@ export const getRatingSummary = (
 export const getGetRatingSummaryQueryKey = (platform: 'ios' | 'android',
     externalId: string,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/ratings/summary`
+    `/apps/${platform}/${externalId}/ratings/summary`
     ] as const;
     }
 
@@ -1524,7 +1524,7 @@ export const getRatingHistory = (
 
 
       return orvalMutator<RatingHistoryPointResource[]>(
-      {url: `/api/v1/apps/${platform}/${externalId}/ratings/history`, method: 'GET',
+      {url: `/apps/${platform}/${externalId}/ratings/history`, method: 'GET',
         params, signal
     },
       options);
@@ -1537,7 +1537,7 @@ export const getGetRatingHistoryQueryKey = (platform: 'ios' | 'android',
     externalId: string,
     params?: GetRatingHistoryParams,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/ratings/history`, ...(params ? [params] : [])
+    `/apps/${platform}/${externalId}/ratings/history`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -1628,7 +1628,7 @@ export const getRatingCountryBreakdown = (
 
 
       return orvalMutator<RatingByCountryResource[]>(
-      {url: `/api/v1/apps/${platform}/${externalId}/ratings/country-breakdown`, method: 'GET', signal
+      {url: `/apps/${platform}/${externalId}/ratings/country-breakdown`, method: 'GET', signal
     },
       options);
     }
@@ -1639,7 +1639,7 @@ export const getRatingCountryBreakdown = (
 export const getGetRatingCountryBreakdownQueryKey = (platform: 'ios' | 'android',
     externalId: string,) => {
     return [
-    `/api/v1/apps/${platform}/${externalId}/ratings/country-breakdown`
+    `/apps/${platform}/${externalId}/ratings/country-breakdown`
     ] as const;
     }
 

@@ -42,7 +42,7 @@ export const listStoreCategories = (
 
 
       return orvalMutator<StoreCategoryResource[]>(
-      {url: `/api/v1/store-categories`, method: 'GET',
+      {url: `/store-categories`, method: 'GET',
         params, signal
     },
       options);
@@ -53,7 +53,7 @@ export const listStoreCategories = (
 
 export const getListStoreCategoriesQueryKey = (params?: ListStoreCategoriesParams,) => {
     return [
-    `/api/v1/store-categories`, ...(params ? [params] : [])
+    `/store-categories`, ...(params ? [params] : [])
     ] as const;
     }
 

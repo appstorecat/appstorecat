@@ -42,7 +42,7 @@ export const getCharts = (
 
 
       return orvalMutator<GetCharts200>(
-      {url: `/api/v1/charts`, method: 'GET',
+      {url: `/charts`, method: 'GET',
         params, signal
     },
       options);
@@ -53,7 +53,7 @@ export const getCharts = (
 
 export const getGetChartsQueryKey = (params?: GetChartsParams,) => {
     return [
-    `/api/v1/charts`, ...(params ? [params] : [])
+    `/charts`, ...(params ? [params] : [])
     ] as const;
     }
 

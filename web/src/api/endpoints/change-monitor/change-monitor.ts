@@ -43,7 +43,7 @@ export const appChanges = (
 
 
       return orvalMutator<ChangeResource[]>(
-      {url: `/api/v1/changes/apps`, method: 'GET',
+      {url: `/changes/apps`, method: 'GET',
         params, signal
     },
       options);
@@ -54,7 +54,7 @@ export const appChanges = (
 
 export const getAppChangesQueryKey = (params?: AppChangesParams,) => {
     return [
-    `/api/v1/changes/apps`, ...(params ? [params] : [])
+    `/changes/apps`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -134,7 +134,7 @@ export const competitorChanges = (
 
 
       return orvalMutator<ChangeResource[]>(
-      {url: `/api/v1/changes/competitors`, method: 'GET',
+      {url: `/changes/competitors`, method: 'GET',
         params, signal
     },
       options);
@@ -145,7 +145,7 @@ export const competitorChanges = (
 
 export const getCompetitorChangesQueryKey = (params?: CompetitorChangesParams,) => {
     return [
-    `/api/v1/changes/competitors`, ...(params ? [params] : [])
+    `/changes/competitors`, ...(params ? [params] : [])
     ] as const;
     }
 

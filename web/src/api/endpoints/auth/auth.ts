@@ -48,7 +48,7 @@ export const register = (
 
 
       return orvalMutator<LoginResource>(
-      {url: `/api/v1/auth/register`, method: 'POST',
+      {url: `/auth/register`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: registerRequest, signal
     },
@@ -111,7 +111,7 @@ export const login = (
 
 
       return orvalMutator<LoginResource>(
-      {url: `/api/v1/auth/login`, method: 'POST',
+      {url: `/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: loginRequest, signal
     },
@@ -174,7 +174,7 @@ export const logout = (
 
 
       return orvalMutator<void>(
-      {url: `/api/v1/auth/logout`, method: 'POST', signal
+      {url: `/auth/logout`, method: 'POST', signal
     },
       options);
     }
@@ -235,7 +235,7 @@ export const me = (
 
 
       return orvalMutator<UserResource>(
-      {url: `/api/v1/auth/me`, method: 'GET', signal
+      {url: `/auth/me`, method: 'GET', signal
     },
       options);
     }
@@ -245,7 +245,7 @@ export const me = (
 
 export const getMeQueryKey = () => {
     return [
-    `/api/v1/auth/me`
+    `/auth/me`
     ] as const;
     }
 

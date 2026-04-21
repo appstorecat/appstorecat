@@ -41,7 +41,7 @@ export const dashboard = (
 
 
       return orvalMutator<Dashboard200>(
-      {url: `/api/v1/dashboard`, method: 'GET', signal
+      {url: `/dashboard`, method: 'GET', signal
     },
       options);
     }
@@ -51,7 +51,7 @@ export const dashboard = (
 
 export const getDashboardQueryKey = () => {
     return [
-    `/api/v1/dashboard`
+    `/dashboard`
     ] as const;
     }
 

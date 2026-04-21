@@ -41,7 +41,7 @@ export const listCountries = (
 
 
       return orvalMutator<CountryResource[]>(
-      {url: `/api/v1/countries`, method: 'GET', signal
+      {url: `/countries`, method: 'GET', signal
     },
       options);
     }
@@ -51,7 +51,7 @@ export const listCountries = (
 
 export const getListCountriesQueryKey = () => {
     return [
-    `/api/v1/countries`
+    `/countries`
     ] as const;
     }
 

@@ -44,7 +44,7 @@ export const exploreScreenshots = (
 
 
       return orvalMutator<ExploreScreenshots200>(
-      {url: `/api/v1/explorer/screenshots`, method: 'GET',
+      {url: `/explorer/screenshots`, method: 'GET',
         params, signal
     },
       options);
@@ -55,7 +55,7 @@ export const exploreScreenshots = (
 
 export const getExploreScreenshotsQueryKey = (params?: ExploreScreenshotsParams,) => {
     return [
-    `/api/v1/explorer/screenshots`, ...(params ? [params] : [])
+    `/explorer/screenshots`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -135,7 +135,7 @@ export const exploreIcons = (
 
 
       return orvalMutator<ExploreIcons200>(
-      {url: `/api/v1/explorer/icons`, method: 'GET',
+      {url: `/explorer/icons`, method: 'GET',
         params, signal
     },
       options);
@@ -146,7 +146,7 @@ export const exploreIcons = (
 
 export const getExploreIconsQueryKey = (params?: ExploreIconsParams,) => {
     return [
-    `/api/v1/explorer/icons`, ...(params ? [params] : [])
+    `/explorer/icons`, ...(params ? [params] : [])
     ] as const;
     }
 
