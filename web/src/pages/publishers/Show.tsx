@@ -1,25 +1,24 @@
 import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  getPublisherStoreAppsQueryKey,
+  getShowPublisherQueryKey,
+  usePublisherStoreApps,
+  useShowPublisher,
+} from '@/api/endpoints/publishers/publishers'
+import {
+  getListAppsQueryKey,
+  useTrackApp,
+  useUntrackApp,
+} from '@/api/endpoints/apps/apps'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { BookmarkMinus, BookmarkPlus, ExternalLink, Loader2, Plus, Smartphone, Star } from 'lucide-react'
 import QueryError from '@/components/QueryError'
 import AppCard from '@/components/AppCard'
 
-interface StoreApp {
-  external_id: string
-  name: string
-  icon_url: string | null
-  rating: number | null
-  rating_count: number | null
-  is_free: boolean
-  category: string | null
-  is_tracked: boolean
-}
-
-function formatRatingCount(count: number | null): string {
+function formatRatingCount(count: number | null | undefined): string {
   if (!count) return ''
   if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`
   if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`
@@ -27,33 +26,48 @@ function formatRatingCount(count: number | null): string {
 }
 
 export default function PublishersShow() {
-  const { platform, externalId } = useParams()
+  const { platform, externalId } = useParams<{ platform: 'ios' | 'android'; externalId: string }>()
   const [searchParams] = useSearchParams()
   const nameParam = searchParams.get('name')
   const queryClient = useQueryClient()
   const [importing, setImporting] = useState<Set<string>>(new Set())
   const [importingAll, setImportingAll] = useState(false)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, isLoading, isError, refetch } = useQuery<any>({
-    queryKey: ['publisher', platform, externalId],
-    queryFn: () => axios.get(`/publishers/${platform}/${externalId}`, {
-      params: nameParam ? { name: nameParam } : {},
-    }).then((r) => r.data),
-  })
+  const trackAppMutation = useTrackApp()
+  const untrackAppMutation = useUntrackApp()
 
-  const { data: storeData, isLoading: loadingStore } = useQuery<StoreApp[]>({
-    queryKey: ['publisher-store-apps', platform, externalId],
-    queryFn: () => axios.get(`/publishers/${platform}/${externalId}/store-apps`, {
-      params: nameParam ? { name: nameParam } : {},
-    }).then((r) => r.data),
-    enabled: !!data?.publisher.external_id,
-  })
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+  } = useShowPublisher(
+    platform as 'ios' | 'android',
+    externalId ?? '',
+    nameParam ? { name: nameParam } : undefined,
+  )
+
+  const { data: storeData, isLoading: loadingStore } = usePublisherStoreApps(
+    platform as 'ios' | 'android',
+    externalId ?? '',
+    { query: { enabled: !!data?.publisher?.external_id } },
+  )
 
   const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ['publisher', platform, externalId] })
-    queryClient.invalidateQueries({ queryKey: ['publisher-store-apps', platform, externalId] })
-    queryClient.invalidateQueries({ queryKey: ['apps'] })
+    queryClient.invalidateQueries({
+      queryKey: getShowPublisherQueryKey(
+        platform as 'ios' | 'android',
+        externalId ?? '',
+        nameParam ? { name: nameParam } : undefined,
+      ),
+    })
+    queryClient.invalidateQueries({
+      queryKey: getPublisherStoreAppsQueryKey(
+        platform as 'ios' | 'android',
+        externalId ?? '',
+      ),
+    })
+    queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() })
   }
 
   const toggleApp = async (extId: string, isTracked: boolean) => {
@@ -61,9 +75,9 @@ export default function PublishersShow() {
     setImporting((prev) => new Set(prev).add(extId))
     try {
       if (isTracked) {
-        await axios.delete(`/apps/${platform}/${extId}/track`)
+        await untrackAppMutation.mutateAsync({ platform: platform as 'ios' | 'android', externalId: extId })
       } else {
-        await axios.post(`/apps/${platform}/${extId}/track`)
+        await trackAppMutation.mutateAsync({ platform: platform as 'ios' | 'android', externalId: extId })
       }
       invalidateAll()
     } finally {
@@ -75,16 +89,19 @@ export default function PublishersShow() {
     }
   }
 
+  const storeApps = storeData?.apps ?? []
+  const untrackedCount = storeApps.filter((a) => !a.is_tracked).length
+
   const trackAll = async () => {
-    if (!storeData || !platform) return
-    const untracked = storeData.filter((a) => !a.is_tracked).map((a) => a.external_id)
+    if (!platform) return
+    const untracked = storeApps.filter((a) => !a.is_tracked).map((a) => a.external_id)
     if (untracked.length === 0) return
     if (!confirm(`Track ${untracked.length} app${untracked.length > 1 ? 's' : ''}?`)) return
 
     setImportingAll(true)
     try {
       for (const extId of untracked) {
-        await axios.post(`/apps/${platform}/${extId}/track`)
+        await trackAppMutation.mutateAsync({ platform: platform as 'ios' | 'android', externalId: extId })
       }
       invalidateAll()
     } finally {
@@ -100,13 +117,12 @@ export default function PublishersShow() {
     )
   }
 
-  if (isError || !data) {
+  if (isError || !data || !data.publisher) {
     return <QueryError message="Failed to load publisher." onRetry={() => refetch()} />
   }
 
-  const { publisher, apps } = data
-  const storeApps: StoreApp[] = storeData ?? []
-  const untrackedCount = storeApps.filter((a) => !a.is_tracked).length
+  const publisher = data.publisher
+  const apps = data.apps ?? []
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
@@ -115,7 +131,7 @@ export default function PublishersShow() {
         <div>
           <h1 className="text-2xl font-bold">{publisher.name}</h1>
           <p className="text-sm text-muted-foreground">
-            {publisher.platform === 'ios' ? 'iOS' : 'Android'} Publisher
+            {String(publisher.platform).toLowerCase() === 'ios' ? 'iOS' : 'Android'} Publisher
           </p>
         </div>
         {publisher.url && (
@@ -135,9 +151,9 @@ export default function PublishersShow() {
             Tracked Apps ({apps.length})
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {apps.map((app: any) => (
-              <AppCard key={app.id} app={app} />
+            {apps.map((app) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              <AppCard key={app.id} app={app as any} />
             ))}
           </div>
         </div>
@@ -188,7 +204,7 @@ export default function PublishersShow() {
                         variant={app.is_tracked ? 'outline' : 'default'}
                         size="sm"
                         className="h-7 text-xs"
-                        onClick={(e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); toggleApp(app.external_id, app.is_tracked) }}
+                        onClick={(e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); toggleApp(app.external_id, !!app.is_tracked) }}
                         disabled={importing.has(app.external_id)}
                       >
                         {importing.has(app.external_id) ? (

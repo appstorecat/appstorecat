@@ -1,32 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useAppChanges } from '@/api/endpoints/change-monitor/change-monitor'
 import ChangeCard from '@/components/ChangeCard'
 
-interface Change {
-  id: number
-  app: {
-    id: number
-    name: string
-    platform: string
-    external_id: string
-    icon_url: string | null
-  } | null
-  version: string | null
-  previous_version: string | null
-  language: string
-  field_changed: string
-  old_value: string | null
-  new_value: string | null
-  detected_at: string
-}
-
 export default function AppChanges() {
-  const { data, isLoading } = useQuery<{ data: Change[] }>({
-    queryKey: ['changes', 'apps'],
-    queryFn: () => axios.get('/changes/apps?per_page=50').then((r) => r.data),
-  })
-
-  const changes = data?.data ?? []
+  const { data: changes = [], isLoading } = useAppChanges({ per_page: 50 })
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
@@ -55,11 +31,11 @@ export default function AppChanges() {
               iconUrl={change.app?.icon_url}
               beforeVersion={change.previous_version}
               afterVersion={change.version}
-              locale={change.locale}
-              fieldChanged={change.field_changed}
-              oldValue={change.old_value}
-              newValue={change.new_value}
-              detectedAt={change.detected_at}
+              locale={change.locale ?? ''}
+              fieldChanged={change.field_changed ?? ''}
+              oldValue={change.old_value ?? null}
+              newValue={change.new_value ?? null}
+              detectedAt={change.detected_at ?? ''}
             />
           ))}
         </div>

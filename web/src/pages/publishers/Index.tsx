@@ -1,31 +1,13 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import axios from '@/lib/axios'
+import { useListPublishers, useSearchPublishers } from '@/api/endpoints/publishers/publishers'
+import { SearchPublishersPlatform } from '@/api/models/searchPublishersPlatform'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import PlatformSwitcher, { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
 import { Search, Smartphone } from 'lucide-react'
 import QueryError from '@/components/QueryError'
-
-interface PublisherData {
-  id: number
-  name: string
-  external_id: string | null
-  platform: string
-  url: string | null
-  apps_count: number
-}
-
-interface SearchResult {
-  external_id: string
-  name: string
-  url: string | null
-  platform: string
-  app_count: number
-  sample_apps: { name: string; icon_url: string | null }[]
-}
 
 function PlatformIcon({ platform, className }: { platform: string; className?: string }) {
   return platform === 'ios' ? <AppStoreSvg className={className} /> : <GooglePlaySvg className={className} />
@@ -36,17 +18,18 @@ export default function PublishersIndex() {
   const [platform, setPlatform] = useState<string>('ios')
   const [countryCode, setCountryCode] = useState<string>('us')
 
-  const { data: publishers, isLoading, isError, refetch } = useQuery<PublisherData[]>({
-    queryKey: ['publishers'],
-    queryFn: () => axios.get('/publishers').then((r) => r.data),
-  })
+  const { data: publishers, isLoading, isError, refetch } = useListPublishers()
 
-  const { data: searchResults, isFetching: searching } = useQuery<SearchResult[]>({
-    queryKey: ['developer-search', searchTerm, platform, countryCode],
-    queryFn: () =>
-      axios.get('/publishers/search', { params: { term: searchTerm, platform, country_code: countryCode } }).then((r) => r.data),
-    enabled: searchTerm.length >= 2,
-  })
+  const { data: searchResults, isFetching: searching } = useSearchPublishers(
+    {
+      term: searchTerm,
+      platform: platform as SearchPublishersPlatform,
+      country_code: countryCode,
+    },
+    {
+      query: { enabled: searchTerm.length >= 2 },
+    },
+  )
 
   if (isLoading) {
     return (
@@ -92,7 +75,7 @@ export default function PublishersIndex() {
                     <div className="flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm">
                       {/* Sample app icons */}
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center">
-                        {dev.sample_apps.length > 0 && dev.sample_apps[0].icon_url ? (
+                        {dev.sample_apps?.[0]?.icon_url ? (
                           <img
                             src={dev.sample_apps[0].icon_url}
                             alt=""
@@ -112,9 +95,9 @@ export default function PublishersIndex() {
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {dev.app_count} app{dev.app_count !== 1 ? 's' : ''} found
+                          {dev.app_count ?? 0} app{dev.app_count !== 1 ? 's' : ''} found
                         </p>
-                        {dev.sample_apps.length > 1 && (
+                        {dev.sample_apps && dev.sample_apps.length > 1 && (
                           <div className="mt-1.5 flex items-center gap-1">
                             {dev.sample_apps.slice(1).map((app, i) => (
                               <div key={i} title={app.name}>
@@ -143,29 +126,32 @@ export default function PublishersIndex() {
         <div className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">My Publishers</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            {publishers.map((dev) => (
-              <Link key={dev.id} to={`/publishers/${dev.platform}/${dev.external_id}`}>
-                <div className="flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-muted">
-                    <PlatformIcon platform={dev.platform} className="h-7 w-7 text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate text-sm font-medium">{dev.name}</p>
-                      <div className="ml-auto flex shrink-0 items-center gap-1.5">
-                        <PlatformIcon platform={dev.platform} />
-                        <Badge variant="secondary" className="text-[10px]">
-                          {dev.apps_count} app{dev.apps_count !== 1 ? 's' : ''}
-                        </Badge>
-                      </div>
+            {publishers.map((dev) => {
+              const platformSlug = String(dev.platform).toLowerCase()
+              return (
+                <Link key={dev.id} to={`/publishers/${platformSlug}/${dev.external_id}`}>
+                  <div className="flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+                      <PlatformIcon platform={platformSlug} className="h-7 w-7 text-muted-foreground" />
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {dev.platform === 'ios' ? 'iOS' : 'Android'} Publisher
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate text-sm font-medium">{dev.name}</p>
+                        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                          <PlatformIcon platform={platformSlug} />
+                          <Badge variant="secondary" className="text-[10px]">
+                            {dev.apps_count ?? 0} app{dev.apps_count !== 1 ? 's' : ''}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {platformSlug === 'ios' ? 'iOS' : 'Android'} Publisher
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}

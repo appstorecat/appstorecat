@@ -1,24 +1,18 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useListCountries } from '@/api/endpoints/countries/countries'
+import type { CountryResource } from '@/api/models/countryResource'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Button } from '@/components/ui/button'
 import { ChevronsUpDown, Check, Ban } from 'lucide-react'
 
-export interface Country {
-  code: string
-  name: string
-  emoji: string
-  ios_languages: string[] | null
-  android_languages: string[] | null
-}
+export type { CountryResource } from '@/api/models/countryResource'
 
 export function useCountries() {
-  return useQuery<Country[]>({
-    queryKey: ['countries'],
-    queryFn: () => axios.get('/countries').then((r) => r.data),
-    staleTime: Infinity,
+  return useListCountries({
+    query: {
+      staleTime: Infinity,
+    },
   })
 }
 
@@ -43,7 +37,7 @@ export default function CountrySelect({ value, onChange, className, disabledCode
   // Available countries first (A-Z), then disabled ones (A-Z).
   const orderedCountries = useMemo(() => {
     if (!countries) return []
-    const byName = (a: Country, b: Country) => a.name.localeCompare(b.name)
+    const byName = (a: CountryResource, b: CountryResource) => a.name.localeCompare(b.name)
     const visible = countries.filter((c) => c.code !== 'zz')
     const available = visible.filter((c) => !disabledSet.has(c.code)).sort(byName)
     const disabled = visible.filter((c) => disabledSet.has(c.code)).sort(byName)

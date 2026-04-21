@@ -1,13 +1,6 @@
 import { create } from 'zustand'
-import axios from '@/lib/axios'
-
-interface User {
-  id: number
-  name: string
-  email: string
-  email_verified_at: string | null
-  created_at: string
-}
+import { login, register, logout, me } from '@/api/endpoints/auth/auth'
+import type { User } from '@/api/models/user'
 
 interface AuthState {
   token: string | null
@@ -26,27 +19,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
 
   login: async (email, password) => {
-    const { data } = await axios.post('/auth/login', { email, password })
-    const token = data.token
+    const data = await login({ email, password })
+    const token = data.token ?? ''
     localStorage.setItem('token', token)
-    set({ token, user: data.user, isLoading: false })
+    set({ token, user: data.user ?? null, isLoading: false })
   },
 
   register: async (name, email, password, password_confirmation) => {
-    const { data } = await axios.post('/auth/register', {
-      name,
-      email,
-      password,
-      password_confirmation,
-    })
-    const token = data.token
+    const data = await register({ name, email, password, password_confirmation })
+    const token = data.token ?? ''
     localStorage.setItem('token', token)
-    set({ token, user: data.user, isLoading: false })
+    set({ token, user: data.user ?? null, isLoading: false })
   },
 
   logout: async () => {
     try {
-      await axios.post('/auth/logout')
+      await logout()
     } finally {
       localStorage.removeItem('token')
       set({ token: null, user: null })
@@ -61,7 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ isLoading: false })
         return
       }
-      const { data } = await axios.get('/auth/me')
+      const data = await me()
       set({ user: data, isLoading: false })
     } catch {
       localStorage.removeItem('token')

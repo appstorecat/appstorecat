@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
-import axios from '@/lib/axios'
+import {
+  useUpdateProfile,
+  useUpdatePassword,
+  useDeleteProfile,
+} from '@/api/endpoints/account/account'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,25 +17,27 @@ function ProfileSection() {
   const { user, fetchUser } = useAuthStore()
   const [name, setName] = useState(user?.name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
-  const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const updateProfile = useUpdateProfile({
+    mutation: {
+      onSuccess: async () => {
+        await fetchUser()
+        setSuccess('Profile updated.')
+      },
+      onError: (err: unknown) => {
+        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        setError(msg || 'Failed to update profile.')
+      },
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSaving(true)
     setError('')
     setSuccess('')
-    try {
-      await axios.patch('/account/profile', { name, email })
-      await fetchUser()
-      setSuccess('Profile updated.')
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      setError(msg || 'Failed to update profile.')
-    } finally {
-      setSaving(false)
-    }
+    updateProfile.mutate({ data: { name, email } })
   }
 
   return (
@@ -52,8 +58,8 @@ function ProfileSection() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
-          <Button type="submit" disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
+          <Button type="submit" disabled={updateProfile.isPending}>
+            {updateProfile.isPending ? 'Saving...' : 'Save'}
           </Button>
         </form>
       </CardContent>
@@ -65,31 +71,35 @@ function PasswordSection() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
-  const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const updatePassword = useUpdatePassword({
+    mutation: {
+      onSuccess: () => {
+        setCurrentPassword('')
+        setPassword('')
+        setPasswordConfirmation('')
+        setSuccess('Password updated.')
+      },
+      onError: (err: unknown) => {
+        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        setError(msg || 'Failed to update password.')
+      },
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSaving(true)
     setError('')
     setSuccess('')
-    try {
-      await axios.put('/account/password', {
+    updatePassword.mutate({
+      data: {
         current_password: currentPassword,
         password,
         password_confirmation: passwordConfirmation,
-      })
-      setCurrentPassword('')
-      setPassword('')
-      setPasswordConfirmation('')
-      setSuccess('Password updated.')
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      setError(msg || 'Failed to update password.')
-    } finally {
-      setSaving(false)
-    }
+      },
+    })
   }
 
   return (
@@ -114,8 +124,8 @@ function PasswordSection() {
             <Label htmlFor="password_confirmation">Confirm New Password</Label>
             <Input id="password_confirmation" type="password" value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)} required />
           </div>
-          <Button type="submit" disabled={saving}>
-            {saving ? 'Updating...' : 'Update Password'}
+          <Button type="submit" disabled={updatePassword.isPending}>
+            {updatePassword.isPending ? 'Updating...' : 'Update Password'}
           </Button>
         </form>
       </CardContent>
@@ -127,24 +137,26 @@ function DeleteAccountSection() {
   const navigate = useNavigate()
   const { reset } = useAuthStore()
   const [password, setPassword] = useState('')
-  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
 
-  const handleDelete = async (e: React.FormEvent) => {
+  const deleteProfile = useDeleteProfile({
+    mutation: {
+      onSuccess: () => {
+        reset()
+        navigate('/login')
+      },
+      onError: (err: unknown) => {
+        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        setError(msg || 'Failed to delete account.')
+      },
+    },
+  })
+
+  const handleDelete = (e: React.FormEvent) => {
     e.preventDefault()
     if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return
-    setDeleting(true)
     setError('')
-    try {
-      await axios.delete('/account/profile', { data: { password } })
-      reset()
-      navigate('/login')
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      setError(msg || 'Failed to delete account.')
-    } finally {
-      setDeleting(false)
-    }
+    deleteProfile.mutate({ data: { password } })
   }
 
   return (
@@ -162,8 +174,8 @@ function DeleteAccountSection() {
             <Label htmlFor="delete_password">Confirm Password</Label>
             <Input id="delete_password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
-          <Button type="submit" variant="destructive" disabled={deleting}>
-            {deleting ? 'Deleting...' : 'Delete Account'}
+          <Button type="submit" variant="destructive" disabled={deleteProfile.isPending}>
+            {deleteProfile.isPending ? 'Deleting...' : 'Delete Account'}
           </Button>
         </form>
       </CardContent>

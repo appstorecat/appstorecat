@@ -1,7 +1,8 @@
 import { useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useGetCharts } from '@/api/endpoints/charts/charts'
+import { useListStoreCategories } from '@/api/endpoints/store-categories/store-categories'
+import type { GetChartsCollection, GetChartsPlatform, ListStoreCategoriesPlatform } from '@/api/models'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -23,43 +24,6 @@ function timeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24)
   if (days === 1) return 'yesterday'
   return `${days} days ago`
-}
-
-
-
-interface ChartEntry {
-  rank: number
-  rank_change: number | null
-  app_id: number
-  app_external_id: string
-  app_name: string
-  icon_url: string | null
-  platform: string
-  publisher: { id: number; name: string } | null
-  category_name: string | null
-  price: number | null
-  currency: string | null
-  is_free: boolean
-}
-
-interface ChartResponse {
-  data: ChartEntry[]
-  meta: {
-    snapshot_date: string | null
-    updated_at: string | null
-    platform: string
-    collection: string
-    country_code: string
-    message?: string
-  }
-}
-
-interface StoreCategory {
-  id: number
-  name: string
-  external_id: string | null
-  platform: string
-  type: string
 }
 
 export default function Trending() {
@@ -94,24 +58,16 @@ export default function Trending() {
   const setCollection = (v: string | null) => v && setParam('collection', v)
   const setCategoryId = (v: string | null) => setParam('category_id', v === 'all' ? '' : (v || ''))
 
-  const { data: categories } = useQuery<StoreCategory[]>({
-    queryKey: ['store-categories', platform],
-    queryFn: () => axios.get('/store-categories', { params: { platform, type: 'app' } }).then((r) => r.data),
+  const { data: categories } = useListStoreCategories({
+    platform: platform as ListStoreCategoriesPlatform,
+    type: 'app',
   })
 
-  const { data: chart, isLoading } = useQuery<ChartResponse>({
-    queryKey: ['charts', platform, collection, countryCode, categoryId],
-    queryFn: () =>
-      axios
-        .get('/charts', {
-          params: {
-            platform,
-            collection,
-            country_code: countryCode,
-            ...(categoryId ? { category_id: categoryId } : {}),
-          },
-        })
-        .then((r) => r.data),
+  const { data: chart, isLoading } = useGetCharts({
+    platform: platform as GetChartsPlatform,
+    collection: collection as GetChartsCollection,
+    country_code: countryCode,
+    ...(categoryId ? { category_id: Number(categoryId) } : {}),
   })
 
   return (
@@ -200,12 +156,12 @@ export default function Trending() {
                   className="border-b transition-colors last:border-0 hover:bg-muted/30"
                 >
                   <td className="px-4 py-3">
-                    <span className={`font-semibold ${entry.rank <= 3 ? 'text-sidebar-accent-foreground' : 'text-muted-foreground'}`}>
+                    <span className={`font-semibold ${entry.rank && entry.rank <= 3 ? 'text-sidebar-accent-foreground' : 'text-muted-foreground'}`}>
                       #{entry.rank}
                     </span>
                   </td>
                   <td className="px-2 py-3">
-                    <RankChange change={entry.rank_change} />
+                    <RankChange change={entry.rank_change ?? null} />
                   </td>
                   <td className="px-4 py-3">
                     <Link

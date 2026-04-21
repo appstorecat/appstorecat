@@ -1,5 +1,12 @@
-import { useState, useEffect } from 'react'
-import axios from '@/lib/axios'
+import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  useListApiTokens,
+  useCreateApiToken,
+  useRevokeApiToken,
+  getListApiTokensQueryKey,
+} from '@/api/endpoints/account/account'
+import type { ApiTokenResource } from '@/api/models/apiTokenResource'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,15 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Copy, Trash2, Plus, Key } from 'lucide-react'
 
-interface ApiToken {
-  id: number
-  name: string
-  abilities: string[]
-  last_used_at: string | null
-  created_at: string
-}
-
-function formatDate(iso: string | null) {
+function formatDate(iso: string | null | undefined) {
   if (!iso) return 'Never'
   return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -28,58 +27,58 @@ function formatDate(iso: string | null) {
 }
 
 export default function ApiTokens() {
-  const [tokens, setTokens] = useState<ApiToken[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const { data: tokens = [], isLoading: loading } = useListApiTokens()
+
   const [name, setName] = useState('')
-  const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const [newToken, setNewToken] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [revokeError, setRevokeError] = useState('')
-  const [tokenToRevoke, setTokenToRevoke] = useState<ApiToken | null>(null)
+  const [tokenToRevoke, setTokenToRevoke] = useState<ApiTokenResource | null>(null)
 
-  const fetchTokens = async () => {
-    try {
-      const { data } = await axios.get('/account/api-tokens')
-      setTokens(data)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const createToken = useCreateApiToken({
+    mutation: {
+      onSuccess: (data) => {
+        setNewToken(data.plain_text_token)
+        setName('')
+        queryClient.invalidateQueries({ queryKey: getListApiTokensQueryKey() })
+      },
+      onError: (err: unknown) => {
+        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        setError(msg || 'Failed to create token.')
+      },
+    },
+  })
 
-  useEffect(() => {
-    fetchTokens()
-  }, [])
+  const revokeToken = useRevokeApiToken({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListApiTokensQueryKey() })
+      },
+      onError: (err: unknown) => {
+        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        setRevokeError(msg || 'Failed to revoke token.')
+      },
+    },
+  })
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
-    setCreating(true)
     setError('')
-    try {
-      const { data } = await axios.post('/account/api-tokens', { name })
-      setNewToken(data.plain_text_token)
-      setName('')
-      fetchTokens()
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      setError(msg || 'Failed to create token.')
-    } finally {
-      setCreating(false)
-    }
+    createToken.mutate({ data: { name } })
   }
 
-  const handleRevoke = async () => {
-    if (!tokenToRevoke) return
+  const handleRevoke = () => {
+    if (!tokenToRevoke?.id) return
     setRevokeError('')
-    try {
-      await axios.delete(`/account/api-tokens/${tokenToRevoke.id}`)
-      setTokens((prev) => prev.filter((t) => t.id !== tokenToRevoke.id))
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      setRevokeError(msg || 'Failed to revoke token.')
-    } finally {
-      setTokenToRevoke(null)
-    }
+    const id = tokenToRevoke.id
+    revokeToken.mutate(
+      { tokenId: id },
+      {
+        onSettled: () => setTokenToRevoke(null),
+      },
+    )
   }
 
   const handleCopy = async () => {
@@ -114,9 +113,9 @@ export default function ApiTokens() {
                   maxLength={255}
                 />
               </div>
-              <Button type="submit" disabled={creating || !name.trim()}>
+              <Button type="submit" disabled={createToken.isPending || !name.trim()}>
                 <Plus className="mr-2 h-4 w-4" />
-                {creating ? 'Creating...' : 'Create'}
+                {createToken.isPending ? 'Creating...' : 'Create'}
               </Button>
             </form>
           </CardContent>
