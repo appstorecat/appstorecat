@@ -23,7 +23,9 @@ class ChangeMonitorController extends BaseController
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 25)),
-            new OA\Parameter(name: 'field', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_removed'])),
+            new OA\Parameter(name: 'field', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_added', 'locale_removed'])),
+            new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
         ],
         responses: [
             new OA\Response(
@@ -50,11 +52,13 @@ class ChangeMonitorController extends BaseController
 
         $query = StoreListingChange::whereIn('app_id', $trackedAppIds)
             ->with('app')
-            ->orderByDesc('detected_at');
-
-        if ($request->filled('field')) {
-            $query->where('field_changed', $request->validated('field'));
-        }
+            ->orderByDesc('detected_at')
+            ->when($request->validated('field'), fn ($q, $field) => $q->where('field_changed', $field))
+            ->when($request->validated('platform'), fn ($q, $platform) => $q->whereHas('app', fn ($a) => $a->platform($platform)))
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $term = '%'.$request->validated('search').'%';
+                $q->whereHas('app', fn ($a) => $a->where('display_name', 'like', $term));
+            });
 
         return ChangeResource::collection($query->paginate((int) ($request->validated('per_page') ?? 25)));
     }
@@ -67,7 +71,9 @@ class ChangeMonitorController extends BaseController
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 25)),
-            new OA\Parameter(name: 'field', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_removed'])),
+            new OA\Parameter(name: 'field', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_added', 'locale_removed'])),
+            new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
         ],
         responses: [
             new OA\Response(
@@ -92,11 +98,13 @@ class ChangeMonitorController extends BaseController
 
         $query = StoreListingChange::whereIn('app_id', $competitorAppIds)
             ->with('app')
-            ->orderByDesc('detected_at');
-
-        if ($request->filled('field')) {
-            $query->where('field_changed', $request->validated('field'));
-        }
+            ->orderByDesc('detected_at')
+            ->when($request->validated('field'), fn ($q, $field) => $q->where('field_changed', $field))
+            ->when($request->validated('platform'), fn ($q, $platform) => $q->whereHas('app', fn ($a) => $a->platform($platform)))
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $term = '%'.$request->validated('search').'%';
+                $q->whereHas('app', fn ($a) => $a->where('display_name', 'like', $term));
+            });
 
         return ChangeResource::collection($query->paginate((int) ($request->validated('per_page') ?? 25)));
     }
