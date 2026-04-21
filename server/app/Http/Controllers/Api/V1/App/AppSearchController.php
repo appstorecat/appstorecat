@@ -9,7 +9,7 @@ use App\Connectors\ITunesLookupConnector;
 use App\Enums\DiscoverSource;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\App\AppSearchRequest;
-use App\Http\Resources\Api\App\AppResource;
+use App\Http\Resources\Api\App\AppSearchResultResource;
 use App\Models\App;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
@@ -31,7 +31,7 @@ class AppSearchController extends BaseController
             new OA\Response(
                 response: 200,
                 description: 'Search results',
-                content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/AppResource')),
+                content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/AppSearchResultResource')),
             ),
         ],
     )]
@@ -55,6 +55,6 @@ class AppSearchController extends BaseController
             ], DiscoverSource::Search, $countryCode);
         })->filter()->values();
 
-        return AppResource::collection($apps);
+        return AppSearchResultResource::collection($apps);
     }
 }

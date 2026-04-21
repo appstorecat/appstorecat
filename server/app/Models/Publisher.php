@@ -16,7 +16,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'name', type: 'string', example: 'Instagram, Inc.'),
         new OA\Property(property: 'external_id', type: 'string', nullable: true, example: '389801255'),
-        new OA\Property(property: 'platform', ref: '#/components/schemas/Platform'),
+        new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android']),
         new OA\Property(property: 'url', type: 'string', nullable: true, example: 'https://apps.apple.com/us/developer/instagram-inc/id389801255'),
     ],
 )]

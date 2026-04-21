@@ -3,9 +3,7 @@
 namespace App\Enums;
 
 use JsonSerializable;
-use OpenApi\Attributes as OA;
 
-#[OA\Schema(schema: 'Platform', type: 'string', enum: ['ios', 'android'], example: 'ios')]
 enum Platform: int implements JsonSerializable
 {
     case Ios = 1;

@@ -15,12 +15,29 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'app_id', type: 'integer'),
         new OA\Property(property: 'status', type: 'string', enum: ['queued', 'processing', 'completed', 'failed']),
-        new OA\Property(property: 'current_step', type: 'string', nullable: true),
+        new OA\Property(property: 'current_step', type: 'string', enum: ['identity', 'listings', 'metrics', 'finalize', 'reconciling'], nullable: true),
         new OA\Property(property: 'progress', type: 'object', properties: [
             new OA\Property(property: 'done', type: 'integer'),
             new OA\Property(property: 'total', type: 'integer'),
         ]),
-        new OA\Property(property: 'failed_items', type: 'array', items: new OA\Items(type: 'object')),
+        new OA\Property(
+            property: 'failed_items',
+            type: 'array',
+            items: new OA\Items(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'type', type: 'string', enum: ['listing', 'metric']),
+                    new OA\Property(property: 'locale', type: 'string', nullable: true),
+                    new OA\Property(property: 'country_code', type: 'string', nullable: true),
+                    new OA\Property(property: 'reason', type: 'string', nullable: true),
+                    new OA\Property(property: 'retry_count', type: 'integer'),
+                    new OA\Property(property: 'last_attempted_at', type: 'string', format: 'date-time', nullable: true),
+                    new OA\Property(property: 'next_retry_at', type: 'string', format: 'date-time', nullable: true),
+                    new OA\Property(property: 'permanent_failure', type: 'boolean'),
+                    new OA\Property(property: 'last_error', type: 'string', nullable: true),
+                ],
+            ),
+        ),
         new OA\Property(property: 'failed_items_count', type: 'integer'),
         new OA\Property(property: 'error_message', type: 'string', nullable: true),
         new OA\Property(property: 'job_id', type: 'string', nullable: true),

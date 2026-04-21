@@ -15,7 +15,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'external_id', type: 'string', example: '389801255'),
         new OA\Property(property: 'name', type: 'string', example: 'Meta Platforms, Inc.'),
         new OA\Property(property: 'url', type: 'string', nullable: true),
-        new OA\Property(property: 'platform', type: 'string', example: 'ios'),
+        new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android'], example: 'ios'),
         new OA\Property(property: 'app_count', type: 'integer', example: 5),
         new OA\Property(
             property: 'sample_apps',

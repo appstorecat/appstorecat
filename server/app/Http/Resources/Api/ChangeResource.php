@@ -16,7 +16,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'app', type: 'object', nullable: true, properties: [
             new OA\Property(property: 'id', type: 'integer'),
             new OA\Property(property: 'name', type: 'string'),
-            new OA\Property(property: 'platform', type: 'string'),
+            new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android']),
             new OA\Property(property: 'external_id', type: 'string'),
             new OA\Property(property: 'icon_url', type: 'string', nullable: true),
         ]),

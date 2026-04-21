@@ -38,7 +38,7 @@ class ChartController extends BaseController
                         new OA\Property(property: 'meta', type: 'object', properties: [
                             new OA\Property(property: 'snapshot_date', type: 'string', format: 'date', nullable: true),
                             new OA\Property(property: 'updated_at', type: 'string', format: 'date-time', nullable: true),
-                            new OA\Property(property: 'platform', type: 'string'),
+                            new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android']),
                             new OA\Property(property: 'collection', type: 'string'),
                             new OA\Property(property: 'country_code', type: 'string'),
                             new OA\Property(property: 'message', type: 'string', nullable: true),

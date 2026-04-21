@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\App;
 
+use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use OpenApi\Attributes as OA;
 
@@ -19,7 +20,7 @@ use OpenApi\Attributes as OA;
 class AppSearchRequest extends FormRequest
 {
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|string>>
+     * @return array<string, array<int, Rule|string>>
      */
     public function rules(): array
     {

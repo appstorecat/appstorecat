@@ -42,7 +42,7 @@ use OpenApi\Attributes as OA;
     required: ['id', 'platform', 'external_id'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
-        new OA\Property(property: 'platform', ref: '#/components/schemas/Platform'),
+        new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android']),
         new OA\Property(property: 'external_id', type: 'string', example: '389801252'),
         new OA\Property(property: 'display_name', type: 'string', nullable: true, example: 'Instagram'),
         new OA\Property(property: 'icon_url', type: 'string', nullable: true),

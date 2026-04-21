@@ -15,12 +15,24 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'app_id', type: 'integer'),
         new OA\Property(property: 'external_id', type: 'string'),
-        new OA\Property(property: 'platform', type: 'string'),
+        new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android']),
         new OA\Property(property: 'name', type: 'string'),
         new OA\Property(property: 'icon_url', type: 'string', nullable: true),
         new OA\Property(property: 'publisher_name', type: 'string', nullable: true),
         new OA\Property(property: 'category_name', type: 'string', nullable: true),
-        new OA\Property(property: 'screenshots', type: 'array', items: new OA\Items(type: 'string')),
+        new OA\Property(
+            property: 'screenshots',
+            type: 'array',
+            items: new OA\Items(
+                type: 'object',
+                required: ['url', 'device_type', 'order'],
+                properties: [
+                    new OA\Property(property: 'url', type: 'string'),
+                    new OA\Property(property: 'device_type', type: 'string', example: 'iphone'),
+                    new OA\Property(property: 'order', type: 'integer'),
+                ],
+            ),
+        ),
     ],
 )]
 class ExplorerScreenshotResource extends BaseResource

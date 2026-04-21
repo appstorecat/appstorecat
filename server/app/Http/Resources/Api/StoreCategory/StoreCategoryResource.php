@@ -15,7 +15,7 @@ use OpenApi\Attributes as OA;
     allOf: [new OA\Schema(ref: '#/components/schemas/StoreCategory')],
     properties: [
         new OA\Property(property: 'parent_id', type: 'integer', nullable: true),
-        new OA\Property(property: 'type', type: 'string', nullable: true),
+        new OA\Property(property: 'type', type: 'string', enum: ['app', 'game', 'magazine'], nullable: true),
         new OA\Property(property: 'external_id', type: 'string', nullable: true),
     ],
 )]

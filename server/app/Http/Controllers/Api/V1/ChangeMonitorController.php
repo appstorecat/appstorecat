@@ -28,8 +28,14 @@ class ChangeMonitorController extends BaseController
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'App changes list',
-                content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/ChangeResource')),
+                description: 'Paginated app changes list',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/ChangeResource')),
+                        new OA\Property(property: 'links', type: 'object'),
+                        new OA\Property(property: 'meta', type: 'object'),
+                    ],
+                ),
             ),
         ],
     )]
@@ -66,8 +72,14 @@ class ChangeMonitorController extends BaseController
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Competitor changes list',
-                content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/ChangeResource')),
+                description: 'Paginated competitor changes list',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/ChangeResource')),
+                        new OA\Property(property: 'links', type: 'object'),
+                        new OA\Property(property: 'meta', type: 'object'),
+                    ],
+                ),
             ),
         ],
     )]

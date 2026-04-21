@@ -18,7 +18,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'name', type: 'string', example: 'Photo & Video'),
         new OA\Property(property: 'slug', type: 'string', example: 'photo-video'),
-        new OA\Property(property: 'platform', ref: '#/components/schemas/Platform'),
+        new OA\Property(property: 'platform', type: 'string', enum: ['ios', 'android']),
     ],
 )]
 #[Fillable([
