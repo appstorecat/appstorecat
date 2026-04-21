@@ -10,13 +10,21 @@ return new class extends Migration
     {
         Schema::create('store_categories', function (Blueprint $table) {
             $table->id();
-            $table->string('external_id')->nullable();
-            $table->string('name');
-            $table->string('slug');
-            $table->unsignedTinyInteger('platform');
-            $table->string('type')->default('app');
-            $table->foreignId('parent_id')->nullable()->constrained('store_categories')->nullOnDelete();
-            $table->smallInteger('priority')->default(0);
+            $table->string('external_id')->nullable()
+                ->comment('Store-provided genre id (iTunes genreId / Play category slug); null for custom buckets.');
+            $table->string('name')
+                ->comment('Human-readable category name in English (e.g. "Photo & Video").');
+            $table->string('slug')
+                ->comment('URL-safe identifier used in routes and API filters. Unique with (platform, type).');
+            $table->unsignedTinyInteger('platform')
+                ->comment('Store platform: 1=iOS, 2=Android. See App\\Enums\\Platform.');
+            $table->string('type')->default('app')
+                ->comment('Category kind: app, game, or chart-collection group; scopes the uniqueness key.');
+            $table->foreignId('parent_id')->nullable()
+                ->comment('FK -> store_categories.id for subcategories; null for top-level. Null on parent delete.')
+                ->constrained('store_categories')->nullOnDelete();
+            $table->smallInteger('priority')->default(0)
+                ->comment('Manual ordering weight for UI listings; higher = shown first.');
             $table->timestamps();
 
             $table->unique(['platform', 'slug', 'type']);

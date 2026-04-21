@@ -13,27 +13,40 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('name')
+                ->comment('Display name shown in UI; free-form, not unique.');
+            $table->string('email')->unique()
+                ->comment('Login identifier; unique across all users, lowercased on insert.');
+            $table->timestamp('email_verified_at')->nullable()
+                ->comment('Set when user confirms email via signed link; null = unverified.');
+            $table->string('password')
+                ->comment('Bcrypt hash of the user password (never plaintext).');
             $table->rememberToken();
             $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+            $table->string('email')->primary()
+                ->comment('Email address the reset was requested for; acts as PK (one active reset per email).');
+            $table->string('token')
+                ->comment('Hashed reset token sent to the user via email.');
+            $table->timestamp('created_at')->nullable()
+                ->comment('Issue time of the reset token; used to enforce expiry window.');
         });
 
         Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
+            $table->string('id')->primary()
+                ->comment('Opaque session identifier stored in the session cookie.');
+            $table->foreignId('user_id')->nullable()->index()
+                ->comment('FK -> users.id; null for guest sessions (pre-login).');
+            $table->string('ip_address', 45)->nullable()
+                ->comment('Last-seen client IP (IPv4 or IPv6); used for audit/security signals.');
+            $table->text('user_agent')->nullable()
+                ->comment('Last-seen User-Agent header; truncated/sanitized by Laravel.');
+            $table->longText('payload')
+                ->comment('Serialized session data (flash, auth, CSRF, etc.), base64-encoded.');
+            $table->integer('last_activity')->index()
+                ->comment('Unix timestamp of the last request on this session; drives session GC.');
         });
     }
 
