@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { keepPreviousData } from '@tanstack/react-query'
 import { useGetCharts } from '@/api/endpoints/charts/charts'
 import { useListStoreCategories } from '@/api/endpoints/store-categories/store-categories'
 import type { GetChartsCollection, GetChartsPlatform, ListStoreCategoriesPlatform } from '@/api/models'
@@ -65,15 +64,17 @@ export default function Trending() {
     type: 'app',
   })
 
-  const { data: chart, isPending } = useGetCharts(
-    {
-      platform: platform as GetChartsPlatform,
-      collection: collection as GetChartsCollection,
-      country_code: countryCode,
-      ...(categoryId ? { category_id: Number(categoryId) } : {}),
-    },
-    { query: { placeholderData: keepPreviousData } },
-  )
+  const { data: chart, isPending, isFetching } = useGetCharts({
+    platform: platform as GetChartsPlatform,
+    collection: collection as GetChartsCollection,
+    country_code: countryCode,
+    ...(categoryId ? { category_id: Number(categoryId) } : {}),
+  })
+
+  // Show skeleton on any refetch (initial + filter changes) because chart
+  // data changes meaning entirely when country/collection/category changes —
+  // keeping the previous rows on screen would be misleading.
+  const showLoading = isPending || isFetching
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
@@ -138,7 +139,7 @@ export default function Trending() {
       </div>
 
       {/* Table */}
-      {isPending ? (
+      {showLoading ? (
         <div className="space-y-2 rounded-lg border p-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-14 w-full" />
