@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useTrackApp, useUntrackApp } from '@/api/endpoints/apps/apps'
 import type { AppResource } from '@/api/models'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,6 +10,16 @@ import { Star, BookmarkPlus, BookmarkMinus, Loader2 } from 'lucide-react'
 interface AppCardProps {
   app: AppResource
 }
+
+// Invalidate everything that could have been filtered by "is_tracked" after a
+// track toggle. Prefix-based invalidation covers every variant param tuple
+// (tracked list, all-competitors groupings, search suggestions, detail view).
+const TRACK_DEPENDENT_KEYS = [
+  ['/apps'],
+  ['/competitors'],
+  ['/apps/search'],
+  ['/publishers'],
+] as const
 
 function formatRatingCount(count: number | null): string {
   if (!count) return ''
@@ -24,26 +33,28 @@ const AndroidSvg = () => <GooglePlaySvg className="h-4 w-4 shrink-0 text-muted-f
 
 export default function AppCard({ app }: AppCardProps) {
   const queryClient = useQueryClient()
-  const [tracking, setTracking] = useState(false)
+  const trackMutation = useTrackApp()
+  const untrackMutation = useUntrackApp()
+  const tracking = trackMutation.isPending || untrackMutation.isPending
   const publisherName = app.publisher?.name ?? '—'
-  const isTracked = app.is_tracked ?? true
+  const isTracked = app.is_tracked ?? false
 
   const toggleTrack = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setTracking(true)
+    const platform = app.platform as 'ios' | 'android'
+    const externalId = app.external_id
     try {
       if (isTracked) {
-        await axios.delete(`/apps/${app.platform}/${app.external_id}/track`)
+        await untrackMutation.mutateAsync({ platform, externalId })
       } else {
-        await axios.post(`/apps/${app.platform}/${app.external_id}/track`)
+        await trackMutation.mutateAsync({ platform, externalId })
       }
-      queryClient.invalidateQueries({ queryKey: ['apps'] })
-      queryClient.invalidateQueries({ queryKey: ['apps', app.platform, app.external_id] })
-      queryClient.invalidateQueries({ queryKey: ['competitors'] })
-      queryClient.invalidateQueries({ queryKey: ['competitor-apps'] })
-    } finally {
-      setTracking(false)
+      for (const queryKey of TRACK_DEPENDENT_KEYS) {
+        await queryClient.invalidateQueries({ queryKey: [...queryKey] })
+      }
+    } catch {
+      // network errors surface via the mutation state if needed
     }
   }
 

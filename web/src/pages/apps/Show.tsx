@@ -156,7 +156,12 @@ export default function AppsShow() {
       }
       queryClient.invalidateQueries({ queryKey: getShowAppQueryKey(platform, externalId) })
       queryClient.removeQueries({ queryKey: getListCompetitorsQueryKey(platform, externalId) })
-      queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() })
+      // Prefix-invalidate every list that can filter by is_tracked so the new
+      // state propagates across Apps, Competitors, Search and Publisher views.
+      queryClient.invalidateQueries({ queryKey: ['/apps'] })
+      queryClient.invalidateQueries({ queryKey: ['/competitors'] })
+      queryClient.invalidateQueries({ queryKey: ['/apps/search'] })
+      queryClient.invalidateQueries({ queryKey: ['/publishers'] })
       queryClient.invalidateQueries({ queryKey: ['keywords-compare'] })
     } catch {
       // ignore
