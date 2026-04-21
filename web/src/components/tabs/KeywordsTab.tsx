@@ -1,13 +1,7 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  type ColumnDef,
-  flexRender,
-} from '@tanstack/react-table'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query'
+import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,12 +18,19 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Search, ChevronsUpDown, ArrowUpDown, ArrowUp, ArrowDown, X, Plus } from 'lucide-react'
-import { useAppKeywords, useCompareKeywords } from '@/api/endpoints/apps/apps'
+import {
+  appKeywords,
+  getAppKeywordsQueryKey,
+  useCompareKeywords,
+} from '@/api/endpoints/apps/apps'
 import type { AppVersion } from '@/api/models/appVersion'
+import type { AppKeywords200 } from '@/api/models/appKeywords200'
 import type { KeywordDensityResource } from '@/api/models/keywordDensityResource'
 import type { KeywordCompareResourceAppsItem } from '@/api/models/keywordCompareResourceAppsItem'
 import type { KeywordCompareResourceKeywords } from '@/api/models/keywordCompareResourceKeywords'
 import type { AppKeywordsNgram } from '@/api/models/appKeywordsNgram'
+import type { AppKeywordsSort } from '@/api/models/appKeywordsSort'
+import type { AppKeywordsOrder } from '@/api/models/appKeywordsOrder'
 import type { CompareKeywordsNgram } from '@/api/models/compareKeywordsNgram'
 
 // --- Types ---
@@ -51,8 +52,11 @@ interface KeywordRow {
   [key: string]: unknown
 }
 
-// --- Locale helpers ---
+type SortableColumn = 'keyword' | 'count' | 'density'
 
+const PER_PAGE = 100
+
+// --- Locale helpers ---
 
 function getFlagUrl(countryCode: string): string {
   return `https://flagcdn.com/w40/${countryCode}.png`
@@ -83,31 +87,80 @@ function getDensityColor(density: number): string {
 // --- Main component ---
 
 export default function KeywordsTab({ platform, externalId, versions, selectedLocale, selectedVersion, allApps }: KeywordsTabProps) {
-  const sortedVersions = useMemo(() => [...versions].sort((a, b) => b.id - a.id), [versions])
-  const latestVersionId = sortedVersions[0]?.id
+  const latestVersionId = versions[0]?.id
   const selectedVersionId = selectedVersion === 'latest' ? (latestVersionId ?? null) : Number(selectedVersion)
   const [selectedNgram, setSelectedNgram] = useState<string>('1')
   const [compareAppIds, setCompareAppIds] = useState<number[]>([])
   const [compareVersionIds, setCompareVersionIds] = useState<Record<number, number>>({})
 
+  // URL-driven table state: search, sort, order are owned by the server and
+  // reflected in the URL so the view is deep-linkable and identical to what
+  // MCP / mobile clients would produce. No client-side filter/sort/slice.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlSearch = searchParams.get('kw_search') ?? ''
+  const urlSort = (searchParams.get('kw_sort') as SortableColumn | null) ?? 'density'
+  const urlOrder = (searchParams.get('kw_order') as AppKeywordsOrder | null) ?? 'desc'
+
+  const [searchInput, setSearchInput] = useState(urlSearch)
+  const debouncedSearch = useDebounce(searchInput)
+
+  const setParam = useCallback((key: string, value: string | null) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      if (value === null || value === '') {
+        next.delete(key)
+      } else {
+        next.set(key, value)
+      }
+      return next
+    }, { replace: true })
+  }, [setSearchParams])
+
+  useEffect(() => {
+    setParam('kw_search', debouncedSearch.trim() || null)
+  }, [debouncedSearch, setParam])
+
   // Platform type coercion at the tab boundary — backend enum is lowercase.
   const platformParam = platform as 'ios' | 'android'
   const ngramNumber = Number(selectedNgram)
 
-  const { data: keywords, isLoading } = useAppKeywords(
-    platformParam,
-    externalId,
-    {
-      version_id: selectedVersionId ?? undefined,
-      locale: selectedLocale,
-      ngram: ngramNumber as AppKeywordsNgram,
+  const keywordParams = useMemo(() => ({
+    version_id: selectedVersionId ?? undefined,
+    locale: selectedLocale,
+    ngram: ngramNumber as AppKeywordsNgram,
+    per_page: PER_PAGE,
+    sort: urlSort as AppKeywordsSort,
+    order: urlOrder,
+    ...(debouncedSearch.trim() ? { search: debouncedSearch.trim() } : {}),
+  }), [selectedVersionId, selectedLocale, ngramNumber, urlSort, urlOrder, debouncedSearch])
+
+  const keywordsEnabled = !!selectedVersionId && !!selectedLocale
+
+  const {
+    data: keywordsData,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<AppKeywords200, void, InfiniteData<AppKeywords200, number>, readonly unknown[], number>({
+    queryKey: getAppKeywordsQueryKey(platformParam, externalId, keywordParams) as readonly unknown[],
+    queryFn: ({ pageParam, signal }) =>
+      appKeywords(platformParam, externalId, { ...keywordParams, page: pageParam }, undefined, signal),
+    initialPageParam: 1,
+    enabled: keywordsEnabled,
+    getNextPageParam: (lastPage: AppKeywords200) => {
+      const meta = lastPage.meta as { current_page?: number; last_page?: number } | undefined
+      const current = meta?.current_page ?? 0
+      const last = meta?.last_page ?? 0
+      return current < last ? current + 1 : undefined
     },
-    {
-      query: {
-        enabled: !!selectedVersionId && !!selectedLocale,
-      },
-    },
+  })
+
+  const keywords: KeywordDensityResource[] = useMemo(
+    () => keywordsData?.pages.flatMap((p) => p.data ?? []) ?? [],
+    [keywordsData],
   )
+  const totalKeywords = (keywordsData?.pages[0]?.meta as { total?: number } | undefined)?.total ?? 0
 
   const versionIdsParam = useMemo(() => {
     const map: Record<string, number> = {}
@@ -148,6 +201,23 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
   }
 
   const availableApps = allApps.filter((a) => !compareAppIds.includes(a.id))
+
+  const toggleSort = useCallback((column: SortableColumn) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      const currentSort = next.get('kw_sort') ?? 'density'
+      const currentOrder = next.get('kw_order') ?? 'desc'
+
+      if (currentSort === column) {
+        // Same column → flip direction.
+        next.set('kw_order', currentOrder === 'desc' ? 'asc' : 'desc')
+      } else {
+        next.set('kw_sort', column)
+        next.set('kw_order', 'desc')
+      }
+      return next
+    }, { replace: true })
+  }, [setSearchParams])
 
   if (versions.length === 0) {
     return (
@@ -246,7 +316,7 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
         <div className="flex items-center justify-center py-12">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
-      ) : !keywords || keywords.length === 0 ? (
+      ) : keywords.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm text-muted-foreground">No {selectedNgram}-gram keywords found for this version and locale.</p>
         </div>
@@ -256,6 +326,15 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
           compareApps={compareData?.apps ?? []}
           compareKeywords={compareData?.keywords ?? {}}
           compareAppIds={compareAppIds}
+          total={totalKeywords}
+          sort={urlSort}
+          order={urlOrder}
+          onToggleSort={toggleSort}
+          searchInput={searchInput}
+          onSearchChange={setSearchInput}
+          hasNextPage={!!hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
         />
       )}
     </div>
@@ -299,16 +378,31 @@ function KeywordTable({
   compareApps,
   compareKeywords,
   compareAppIds,
+  total,
+  sort,
+  order,
+  onToggleSort,
+  searchInput,
+  onSearchChange,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
 }: {
   keywords: KeywordDensityResource[]
   compareApps: KeywordCompareResourceAppsItem[]
   compareKeywords: KeywordCompareResourceKeywords
   compareAppIds: number[]
+  total: number
+  sort: SortableColumn
+  order: AppKeywordsOrder
+  onToggleSort: (column: SortableColumn) => void
+  searchInput: string
+  onSearchChange: (value: string) => void
+  hasNextPage: boolean
+  isFetchingNextPage: boolean
+  onLoadMore: () => void
 }) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
   const tableContainerRef = useRef<HTMLDivElement>(null)
-  const [visibleRows, setVisibleRows] = useState(100)
 
   const getCompareData = useCallback(
     (keyword: string, appId: number): { count: number; density: number } | null => {
@@ -319,6 +413,10 @@ function KeywordTable({
     [compareKeywords],
   )
 
+  // Primary rows arrive pre-sorted + filtered + paginated from the server.
+  // Compare-only keywords (present in a competitor but not in the primary
+  // listing) are appended as a visual merge because they have no server-side
+  // source; the backend dictates ordering for everything visible by default.
   const tableData: KeywordRow[] = useMemo(() => {
     const rows: KeywordRow[] = keywords.map((kw) => {
       const row: KeywordRow = { id: kw.keyword, keyword: kw.keyword, count: kw.count, density: kw.density }
@@ -345,129 +443,40 @@ function KeywordTable({
     return rows
   }, [keywords, compareAppIds, compareKeywords, getCompareData])
 
-  const columns: ColumnDef<KeywordRow>[] = useMemo(() => {
-    const SortIcon = ({ column }: { column: { getIsSorted: () => false | 'asc' | 'desc' } }) => {
-      const s = column.getIsSorted()
-      if (s === 'asc') return <ArrowUp className="h-3 w-3" />
-      if (s === 'desc') return <ArrowDown className="h-3 w-3" />
-      return <ArrowUpDown className="h-3 w-3 opacity-30" />
-    }
+  const renderSortIcon = (column: SortableColumn) => {
+    if (sort !== column) return <ArrowUpDown className="h-3 w-3 opacity-30" />
+    return order === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+  }
 
-    const cols: ColumnDef<KeywordRow>[] = [
-      {
-        accessorKey: 'keyword',
-        header: ({ column }) => (
-          <button className="flex items-center gap-1" onClick={() => column.toggleSorting()}>
-            Keyword <SortIcon column={column} />
-          </button>
-        ),
-        cell: ({ getValue }) => <span className="font-mono text-xs">{getValue() as string}</span>,
-      },
-      {
-        accessorKey: 'density',
-        header: ({ column }) => (
-          <button className="ml-auto flex items-center gap-1" onClick={() => column.toggleSorting()}>
-            Density <SortIcon column={column} />
-          </button>
-        ),
-        cell: ({ row, getValue }) => {
-          const d = getValue() as number
-          const count = row.original.count
-          return (
-            <div className={`text-right text-xs font-medium ${getDensityColor(d)}`}>
-              {count > 0 && <span className="font-normal text-muted-foreground">({count})</span>}{' '}
-              {d > 0 ? `${d}%` : '—'}
-            </div>
-          )
-        },
-      },
-    ]
-
-    compareAppIds.forEach((id) => {
-      const app = compareApps.find((a) => a.id === id)
-      const name = app?.name ?? `App #${id}`
-
-      cols.push({
-        accessorKey: `comp_${id}`,
-        header: ({ column }) => (
-          <button className="ml-auto flex items-center gap-1.5 truncate max-w-[150px]" title={name} onClick={() => column.toggleSorting()}>
-            {app?.icon_url && (
-              <img src={app.icon_url} alt="" className="h-4 w-4 shrink-0 rounded-sm object-cover" />
-            )}
-            <span className="truncate">{name}</span>
-            <SortIcon column={column} />
-          </button>
-        ),
-        cell: ({ getValue }) => {
-          const cd = getValue() as { count: number; density: number } | null
-          return (
-            <div className={`text-right text-xs font-medium ${cd ? getDensityColor(cd.density) : 'text-muted-foreground/30'}`}>
-              {cd ? <><span className="font-normal text-muted-foreground">({cd.count})</span> {cd.density}%</> : '—'}
-            </div>
-          )
-        },
-        sortingFn: (a, b, columnId) => {
-          const av = (a.getValue(columnId) as { density: number } | null)?.density ?? -1
-          const bv = (b.getValue(columnId) as { density: number } | null)?.density ?? -1
-          return av - bv
-        },
-      })
-    })
-
-    return cols
-  }, [compareAppIds, compareApps])
-
-  const table = useReactTable({
-    data: tableData,
-    columns,
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    globalFilterFn: (row, _columnId, filterValue) => {
-      return (row.getValue('keyword') as string).includes(filterValue.toLowerCase())
-    },
-  })
-
-  const filteredRows = table.getFilteredRowModel().rows
-  const sortedRows = table.getRowModel().rows
-  const displayedRows = sortedRows.slice(0, visibleRows)
-
-  // Infinite scroll
+  // Auto-fetch next page as the user scrolls near the bottom. The explicit
+  // "Load more" button remains as the primary affordance.
   useEffect(() => {
     const container = tableContainerRef.current
     if (!container) return
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container
-      if (scrollHeight - scrollTop - clientHeight < 200) {
-        setVisibleRows((prev) => Math.min(prev + 100, sortedRows.length))
+      if (scrollHeight - scrollTop - clientHeight < 200 && hasNextPage && !isFetchingNextPage) {
+        onLoadMore()
       }
     }
 
     container.addEventListener('scroll', handleScroll)
     return () => container.removeEventListener('scroll', handleScroll)
-  }, [sortedRows.length])
-
-  // Reset visible rows when data changes
-  useEffect(() => {
-    setVisibleRows(100)
-  }, [tableData, globalFilter, sorting])
+  }, [hasNextPage, isFetchingNextPage, onLoadMore])
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            {filteredRows.length} keyword{filteredRows.length !== 1 ? 's' : ''}
+            {total} keyword{total !== 1 ? 's' : ''}
           </CardTitle>
           <div className="relative w-[200px]">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              value={searchInput}
+              onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Filter keywords..."
               className="h-8 pl-8 text-xs"
             />
@@ -478,31 +487,70 @@ function KeywordTable({
         <div ref={tableContainerRef} className="max-h-[600px] overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-card">
-              {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id} className="border-b text-xs text-muted-foreground">
-                  {hg.headers.map((header) => (
-                    <th key={header.id} className="pb-2 font-medium">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+              <tr className="border-b text-xs text-muted-foreground">
+                <th className="pb-2 font-medium">
+                  <button className="flex items-center gap-1" onClick={() => onToggleSort('keyword')}>
+                    Keyword {renderSortIcon('keyword')}
+                  </button>
+                </th>
+                <th className="pb-2 font-medium">
+                  <button className="ml-auto flex items-center gap-1" onClick={() => onToggleSort('density')}>
+                    Density {renderSortIcon('density')}
+                  </button>
+                </th>
+                {compareAppIds.map((id) => {
+                  const app = compareApps.find((a) => a.id === id)
+                  const name = app?.name ?? `App #${id}`
+                  return (
+                    <th key={id} className="pb-2 font-medium">
+                      <span className="ml-auto flex max-w-[150px] items-center gap-1.5 truncate" title={name}>
+                        {app?.icon_url && (
+                          <img src={app.icon_url} alt="" className="h-4 w-4 shrink-0 rounded-sm object-cover" />
+                        )}
+                        <span className="truncate">{name}</span>
+                      </span>
                     </th>
-                  ))}
-                </tr>
-              ))}
+                  )
+                })}
+              </tr>
             </thead>
             <tbody>
-              {displayedRows.map((row) => (
+              {tableData.map((row) => (
                 <tr key={row.id} className="border-b border-border/50 last:border-0">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-1.5">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+                  <td className="py-1.5">
+                    <span className="font-mono text-xs">{row.keyword}</span>
+                  </td>
+                  <td className="py-1.5">
+                    <div className={`text-right text-xs font-medium ${getDensityColor(row.density)}`}>
+                      {row.count > 0 && <span className="font-normal text-muted-foreground">({row.count})</span>}{' '}
+                      {row.density > 0 ? `${row.density}%` : '—'}
+                    </div>
+                  </td>
+                  {compareAppIds.map((id) => {
+                    const cd = row[`comp_${id}`] as { count: number; density: number } | null
+                    return (
+                      <td key={id} className="py-1.5">
+                        <div className={`text-right text-xs font-medium ${cd ? getDensityColor(cd.density) : 'text-muted-foreground/30'}`}>
+                          {cd ? <><span className="font-normal text-muted-foreground">({cd.count})</span> {cd.density}%</> : '—'}
+                        </div>
+                      </td>
+                    )
+                  })}
                 </tr>
               ))}
             </tbody>
           </table>
-          {displayedRows.length < sortedRows.length && (
-            <div className="py-3 text-center text-xs text-muted-foreground">
-              Showing {displayedRows.length} of {filteredRows.length} keywords — scroll for more
+          {hasNextPage && (
+            <div className="py-3 text-center text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLoadMore}
+                disabled={isFetchingNextPage}
+                className="h-7 text-xs"
+              >
+                {isFetchingNextPage ? 'Loading…' : `Load more (${keywords.length} of ${total})`}
+              </Button>
             </div>
           )}
         </div>

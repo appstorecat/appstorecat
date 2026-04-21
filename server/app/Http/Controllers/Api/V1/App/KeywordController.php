@@ -13,6 +13,8 @@ use App\Models\App;
 use App\Models\StoreListing;
 use App\Services\KeywordAnalyzer;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use OpenApi\Attributes as OA;
 
 class KeywordController extends BaseController
@@ -31,12 +33,23 @@ class KeywordController extends BaseController
             new OA\Parameter(name: 'locale', in: 'query', required: false, schema: new OA\Schema(type: 'string', example: 'en-US')),
             new OA\Parameter(name: 'ngram', in: 'query', required: false, schema: new OA\Schema(type: 'integer', enum: [1, 2, 3], example: 1)),
             new OA\Parameter(name: 'version_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
+            new OA\Parameter(name: 'sort', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['keyword', 'count', 'density'], default: 'density')),
+            new OA\Parameter(name: 'order', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['asc', 'desc'], default: 'desc')),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 500, default: 100)),
+            new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, default: 1)),
         ],
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Keyword density list',
-                content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/KeywordDensityResource')),
+                description: 'Paginated keyword density list',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/KeywordDensityResource')),
+                        new OA\Property(property: 'links', type: 'object'),
+                        new OA\Property(property: 'meta', type: 'object'),
+                    ],
+                ),
             ),
             new OA\Response(response: 404, description: 'App not found'),
         ],
@@ -50,20 +63,52 @@ class KeywordController extends BaseController
         $versionIdRaw = $request->validated('version_id') ?? $app->versions()->value('id');
         $versionId = $versionIdRaw !== null ? (int) $versionIdRaw : null;
 
+        $search = $request->validated('search');
+        $sort = $request->validated('sort') ?? 'density';
+        $order = $request->validated('order') ?? 'desc';
+        $perPage = (int) ($request->validated('per_page') ?? 100);
+        $page = (int) ($request->validated('page') ?? Paginator::resolveCurrentPage());
+
         $listing = $this->findListing($app->id, $versionId, $locale);
 
         if (! $listing) {
-            return KeywordDensityResource::collection([]);
+            $empty = new LengthAwarePaginator([], 0, $perPage, $page, [
+                'path' => Paginator::resolveCurrentPath(),
+                'pageName' => 'page',
+            ]);
+
+            return KeywordDensityResource::collection($empty);
         }
 
+        // Keyword analysis is computed in PHP over the full listing corpus.
+        // We filter, sort, and paginate the resulting collection in-memory —
+        // server-side shape matches an Eloquent paginator so the client can
+        // read `data`, `links`, `meta` uniformly.
         $rows = collect($this->analyzer->analyzeListing($listing))
             ->filter(fn (array $row) => $row['ngram_size'] === $ngram)
-            ->sortByDesc('count')
-            ->values()
             ->map(fn (array $row) => array_merge($row, ['locale' => $listing->locale]))
-            ->all();
+            ->values();
 
-        return KeywordDensityResource::collection($rows);
+        if ($search !== null && $search !== '') {
+            $needle = mb_strtolower($search);
+            $rows = $rows->filter(fn (array $row) => str_contains(mb_strtolower((string) $row['keyword']), $needle))
+                ->values();
+        }
+
+        $sortedRows = $order === 'asc'
+            ? $rows->sortBy($sort, SORT_REGULAR, false)->values()
+            : $rows->sortByDesc($sort)->values();
+
+        $total = $sortedRows->count();
+        $items = $sortedRows->forPage($page, $perPage)->values()->all();
+
+        $paginator = new LengthAwarePaginator($items, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => 'page',
+        ]);
+        $paginator->appends($request->query());
+
+        return KeywordDensityResource::collection($paginator);
     }
 
     #[OA\Get(
