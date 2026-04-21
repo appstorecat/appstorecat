@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import { Search, Smartphone } from 'lucide-react'
 
@@ -151,8 +152,17 @@ export default function Screenshots() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-6 w-48" />
+              <div className="flex gap-3 overflow-hidden">
+                {Array.from({ length: 5 }).map((__, j) => (
+                  <Skeleton key={j} className="h-72 w-40 shrink-0 rounded-xl" />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : apps.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">

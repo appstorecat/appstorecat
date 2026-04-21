@@ -8,6 +8,7 @@ import {
 } from '@/api/endpoints/account/account'
 import type { ApiTokenResource } from '@/api/models/apiTokenResource'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -131,8 +132,10 @@ export default function ApiTokens() {
           <CardContent>
             {revokeError && <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">{revokeError}</div>}
             {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <div className="space-y-3">
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
               </div>
             ) : tokens.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">

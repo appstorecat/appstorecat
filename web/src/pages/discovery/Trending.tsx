@@ -4,6 +4,7 @@ import { useGetCharts } from '@/api/endpoints/charts/charts'
 import { useListStoreCategories } from '@/api/endpoints/store-categories/store-categories'
 import type { GetChartsCollection, GetChartsPlatform, ListStoreCategoriesPlatform } from '@/api/models'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -134,8 +135,14 @@ export default function Trending() {
 
       {/* Table */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="space-y-2 rounded-lg border p-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
         </div>
       ) : chart?.data && chart.data.length > 0 ? (
         <div className="overflow-x-auto rounded-lg border">

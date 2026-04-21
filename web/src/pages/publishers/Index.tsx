@@ -4,6 +4,7 @@ import { useListPublishers, useSearchPublishers } from '@/api/endpoints/publishe
 import { SearchPublishersPlatform } from '@/api/models/searchPublishersPlatform'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import PlatformSwitcher, { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
 import { Search, Smartphone } from 'lucide-react'
@@ -33,8 +34,14 @@ export default function PublishersIndex() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+        <Skeleton className="h-10 w-56" />
+        <Skeleton className="h-10 w-full max-w-md" />
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
       </div>
     )
   }

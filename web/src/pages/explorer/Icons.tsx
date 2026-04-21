@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import { Search, Smartphone, ExternalLink } from 'lucide-react'
 
@@ -149,8 +150,10 @@ export default function Icons() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
+          {Array.from({ length: 30 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-square w-full rounded-xl" />
+          ))}
         </div>
       ) : icons.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center">

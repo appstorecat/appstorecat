@@ -17,6 +17,7 @@ import {
 import type { AppDetailResource, VersionResource } from '@/api/models'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -164,8 +165,19 @@ export default function AppsShow() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+        <div className="flex items-start gap-4">
+          <Skeleton className="h-20 w-20 rounded-2xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-7 w-72" />
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <Skeleton className="h-10 w-24" />
+        </div>
+        <Skeleton className="h-10 w-full max-w-lg" />
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-48 w-full" />
       </div>
     )
   }

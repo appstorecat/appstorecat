@@ -14,6 +14,7 @@ import {
 } from '@/api/endpoints/apps/apps'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { BookmarkMinus, BookmarkPlus, ExternalLink, Loader2, Plus, Smartphone, Star } from 'lucide-react'
 import QueryError from '@/components/QueryError'
 import AppCard from '@/components/AppCard'
@@ -111,8 +112,20 @@ export default function PublishersShow() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex h-full flex-1 flex-col gap-6 p-4">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-16 w-16 rounded-xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-6 w-64" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
       </div>
     )
   }
@@ -178,8 +191,11 @@ export default function PublishersShow() {
         </div>
 
         {loadingStore ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
           </div>
         ) : storeApps.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
