@@ -33,11 +33,15 @@ import type {
   CompareKeywordsParams,
   CompetitorGroupResource,
   CompetitorResource,
+  GetRatingHistoryParams,
   KeywordCompareResource,
   KeywordDensityResource,
   ListAppRankingsParams,
   ListAppsParams,
   ListingResource,
+  RatingByCountryResource,
+  RatingHistoryPointResource,
+  RatingSummaryResource,
   SearchAppsParams,
   StoreAppRequest,
   StoreCompetitorRequest,
@@ -1920,6 +1924,414 @@ export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeyw
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getCompareKeywordsQueryOptions(platform,externalId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Get the rating summary (current rating + 30-day trend)
+ */
+export type getRatingSummaryResponse200 = {
+  data: RatingSummaryResource
+  status: 200
+}
+
+export type getRatingSummaryResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getRatingSummaryResponseSuccess = (getRatingSummaryResponse200) & {
+  headers: Headers;
+};
+export type getRatingSummaryResponseError = (getRatingSummaryResponse404) & {
+  headers: Headers;
+};
+
+export type getRatingSummaryResponse = (getRatingSummaryResponseSuccess | getRatingSummaryResponseError)
+
+export const getGetRatingSummaryUrl = (platform: 'ios' | 'android',
+    externalId: string,) => {
+
+
+
+
+  return `/api/v1/apps/${platform}/${externalId}/ratings/summary`
+}
+
+export const getRatingSummary = async (platform: 'ios' | 'android',
+    externalId: string, options?: RequestInit): Promise<getRatingSummaryResponse> => {
+
+  const res = await fetch(getGetRatingSummaryUrl(platform,externalId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getRatingSummaryResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getRatingSummaryResponse
+}
+
+
+
+
+
+export const getGetRatingSummaryQueryKey = (platform: 'ios' | 'android',
+    externalId: string,) => {
+    return [
+    `/api/v1/apps/${platform}/${externalId}/ratings/summary`
+    ] as const;
+    }
+
+
+export const getGetRatingSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRatingSummaryQueryKey(platform,externalId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingSummary>>> = ({ signal }) => getRatingSummary(platform,externalId, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRatingSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getRatingSummary>>>
+export type GetRatingSummaryQueryError = void
+
+
+export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRatingSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getRatingSummary>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRatingSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getRatingSummary>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get the rating summary (current rating + 30-day trend)
+ */
+
+export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRatingSummaryQueryOptions(platform,externalId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Get monthly rating history (last N months)
+ */
+export type getRatingHistoryResponse200 = {
+  data: RatingHistoryPointResource[]
+  status: 200
+}
+
+export type getRatingHistoryResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getRatingHistoryResponseSuccess = (getRatingHistoryResponse200) & {
+  headers: Headers;
+};
+export type getRatingHistoryResponseError = (getRatingHistoryResponse404) & {
+  headers: Headers;
+};
+
+export type getRatingHistoryResponse = (getRatingHistoryResponseSuccess | getRatingHistoryResponseError)
+
+export const getGetRatingHistoryUrl = (platform: 'ios' | 'android',
+    externalId: string,
+    params?: GetRatingHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/ratings/history?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/ratings/history`
+}
+
+export const getRatingHistory = async (platform: 'ios' | 'android',
+    externalId: string,
+    params?: GetRatingHistoryParams, options?: RequestInit): Promise<getRatingHistoryResponse> => {
+
+  const res = await fetch(getGetRatingHistoryUrl(platform,externalId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getRatingHistoryResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getRatingHistoryResponse
+}
+
+
+
+
+
+export const getGetRatingHistoryQueryKey = (platform: 'ios' | 'android',
+    externalId: string,
+    params?: GetRatingHistoryParams,) => {
+    return [
+    `/api/v1/apps/${platform}/${externalId}/ratings/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRatingHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(platform: 'ios' | 'android',
+    externalId: string,
+    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRatingHistoryQueryKey(platform,externalId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingHistory>>> = ({ signal }) => getRatingHistory(platform,externalId,params, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRatingHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getRatingHistory>>>
+export type GetRatingHistoryQueryError = void
+
+
+export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params: undefined |  GetRatingHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRatingHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getRatingHistory>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRatingHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getRatingHistory>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get monthly rating history (last N months)
+ */
+
+export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string,
+    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRatingHistoryQueryOptions(platform,externalId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Get the latest rating snapshot per country (iOS only)
+ */
+export type getRatingCountryBreakdownResponse200 = {
+  data: RatingByCountryResource[]
+  status: 200
+}
+
+export type getRatingCountryBreakdownResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getRatingCountryBreakdownResponseSuccess = (getRatingCountryBreakdownResponse200) & {
+  headers: Headers;
+};
+export type getRatingCountryBreakdownResponseError = (getRatingCountryBreakdownResponse404) & {
+  headers: Headers;
+};
+
+export type getRatingCountryBreakdownResponse = (getRatingCountryBreakdownResponseSuccess | getRatingCountryBreakdownResponseError)
+
+export const getGetRatingCountryBreakdownUrl = (platform: 'ios' | 'android',
+    externalId: string,) => {
+
+
+
+
+  return `/api/v1/apps/${platform}/${externalId}/ratings/country-breakdown`
+}
+
+export const getRatingCountryBreakdown = async (platform: 'ios' | 'android',
+    externalId: string, options?: RequestInit): Promise<getRatingCountryBreakdownResponse> => {
+
+  const res = await fetch(getGetRatingCountryBreakdownUrl(platform,externalId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getRatingCountryBreakdownResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getRatingCountryBreakdownResponse
+}
+
+
+
+
+
+export const getGetRatingCountryBreakdownQueryKey = (platform: 'ios' | 'android',
+    externalId: string,) => {
+    return [
+    `/api/v1/apps/${platform}/${externalId}/ratings/country-breakdown`
+    ] as const;
+    }
+
+
+export const getGetRatingCountryBreakdownQueryOptions = <TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRatingCountryBreakdownQueryKey(platform,externalId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingCountryBreakdown>>> = ({ signal }) => getRatingCountryBreakdown(platform,externalId, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(platform && externalId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRatingCountryBreakdownQueryResult = NonNullable<Awaited<ReturnType<typeof getRatingCountryBreakdown>>>
+export type GetRatingCountryBreakdownQueryError = void
+
+
+export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRatingCountryBreakdown>>,
+          TError,
+          Awaited<ReturnType<typeof getRatingCountryBreakdown>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRatingCountryBreakdown>>,
+          TError,
+          Awaited<ReturnType<typeof getRatingCountryBreakdown>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get the latest rating snapshot per country (iOS only)
+ */
+
+export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(
+ platform: 'ios' | 'android',
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRatingCountryBreakdownQueryOptions(platform,externalId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
