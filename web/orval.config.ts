@@ -7,8 +7,15 @@ export default defineConfig({
       target: './src/api/endpoints',
       schemas: './src/api/models',
       client: 'react-query',
+      httpClient: 'axios',
       mode: 'tags-split',
       baseUrl: '/api/v1',
+      override: {
+        mutator: {
+          path: './src/lib/orval-mutator.ts',
+          name: 'orvalMutator',
+        },
+      },
     },
   },
 })

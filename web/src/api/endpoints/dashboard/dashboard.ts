@@ -24,50 +24,27 @@ import type {
   Dashboard200
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary Get dashboard summary for current user
  */
-export type dashboardResponse200 = {
-  data: Dashboard200
-  status: 200
-}
+export const dashboard = (
 
-export type dashboardResponseSuccess = (dashboardResponse200) & {
-  headers: Headers;
-};
-;
-
-export type dashboardResponse = (dashboardResponseSuccess)
-
-export const getDashboardUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/dashboard`
-}
-
-export const dashboard = async ( options?: RequestInit): Promise<dashboardResponse> => {
-
-  const res = await fetch(getDashboardUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: dashboardResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as dashboardResponse
-}
-
+      return orvalMutator<Dashboard200>(
+      {url: `/api/v1/dashboard`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -79,16 +56,16 @@ export const getDashboardQueryKey = () => {
     }
 
 
-export const getDashboardQueryOptions = <TData = Awaited<ReturnType<typeof dashboard>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboard>>, TError, TData>>, fetch?: RequestInit}
+export const getDashboardQueryOptions = <TData = Awaited<ReturnType<typeof dashboard>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboard>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getDashboardQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof dashboard>>> = ({ signal }) => dashboard({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof dashboard>>> = ({ signal }) => dashboard(requestOptions, signal);
 
 
 
@@ -108,7 +85,7 @@ export function useDashboard<TData = Awaited<ReturnType<typeof dashboard>>, TErr
           TError,
           Awaited<ReturnType<typeof dashboard>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDashboard<TData = Awaited<ReturnType<typeof dashboard>>, TError = unknown>(
@@ -118,11 +95,11 @@ export function useDashboard<TData = Awaited<ReturnType<typeof dashboard>>, TErr
           TError,
           Awaited<ReturnType<typeof dashboard>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useDashboard<TData = Awaited<ReturnType<typeof dashboard>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboard>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboard>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -130,7 +107,7 @@ export function useDashboard<TData = Awaited<ReturnType<typeof dashboard>>, TErr
  */
 
 export function useDashboard<TData = Awaited<ReturnType<typeof dashboard>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboard>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboard>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

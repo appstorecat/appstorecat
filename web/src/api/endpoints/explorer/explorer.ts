@@ -27,57 +27,28 @@ import type {
   ExploreScreenshotsParams
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary Browse screenshots across all apps
  */
-export type exploreScreenshotsResponse200 = {
-  data: ExploreScreenshots200
-  status: 200
-}
+export const exploreScreenshots = (
+    params?: ExploreScreenshotsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type exploreScreenshotsResponseSuccess = (exploreScreenshotsResponse200) & {
-  headers: Headers;
-};
-;
 
-export type exploreScreenshotsResponse = (exploreScreenshotsResponseSuccess)
-
-export const getExploreScreenshotsUrl = (params?: ExploreScreenshotsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<ExploreScreenshots200>(
+      {url: `/api/v1/explorer/screenshots`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/explorer/screenshots?${stringifiedParams}` : `/api/v1/explorer/screenshots`
-}
-
-export const exploreScreenshots = async (params?: ExploreScreenshotsParams, options?: RequestInit): Promise<exploreScreenshotsResponse> => {
-
-  const res = await fetch(getExploreScreenshotsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: exploreScreenshotsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as exploreScreenshotsResponse
-}
-
 
 
 
@@ -89,16 +60,16 @@ export const getExploreScreenshotsQueryKey = (params?: ExploreScreenshotsParams,
     }
 
 
-export const getExploreScreenshotsQueryOptions = <TData = Awaited<ReturnType<typeof exploreScreenshots>>, TError = unknown>(params?: ExploreScreenshotsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreScreenshots>>, TError, TData>>, fetch?: RequestInit}
+export const getExploreScreenshotsQueryOptions = <TData = Awaited<ReturnType<typeof exploreScreenshots>>, TError = unknown>(params?: ExploreScreenshotsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreScreenshots>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getExploreScreenshotsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exploreScreenshots>>> = ({ signal }) => exploreScreenshots(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exploreScreenshots>>> = ({ signal }) => exploreScreenshots(params, requestOptions, signal);
 
 
 
@@ -118,7 +89,7 @@ export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreS
           TError,
           Awaited<ReturnType<typeof exploreScreenshots>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreScreenshots>>, TError = unknown>(
@@ -128,11 +99,11 @@ export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreS
           TError,
           Awaited<ReturnType<typeof exploreScreenshots>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreScreenshots>>, TError = unknown>(
- params?: ExploreScreenshotsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreScreenshots>>, TError, TData>>, fetch?: RequestInit}
+ params?: ExploreScreenshotsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreScreenshots>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -140,7 +111,7 @@ export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreS
  */
 
 export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreScreenshots>>, TError = unknown>(
- params?: ExploreScreenshotsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreScreenshots>>, TError, TData>>, fetch?: RequestInit}
+ params?: ExploreScreenshotsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreScreenshots>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -157,50 +128,18 @@ export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreS
 /**
  * @summary Browse app icons across all apps
  */
-export type exploreIconsResponse200 = {
-  data: ExploreIcons200
-  status: 200
-}
+export const exploreIcons = (
+    params?: ExploreIconsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type exploreIconsResponseSuccess = (exploreIconsResponse200) & {
-  headers: Headers;
-};
-;
 
-export type exploreIconsResponse = (exploreIconsResponseSuccess)
-
-export const getExploreIconsUrl = (params?: ExploreIconsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<ExploreIcons200>(
+      {url: `/api/v1/explorer/icons`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/explorer/icons?${stringifiedParams}` : `/api/v1/explorer/icons`
-}
-
-export const exploreIcons = async (params?: ExploreIconsParams, options?: RequestInit): Promise<exploreIconsResponse> => {
-
-  const res = await fetch(getExploreIconsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: exploreIconsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as exploreIconsResponse
-}
-
 
 
 
@@ -212,16 +151,16 @@ export const getExploreIconsQueryKey = (params?: ExploreIconsParams,) => {
     }
 
 
-export const getExploreIconsQueryOptions = <TData = Awaited<ReturnType<typeof exploreIcons>>, TError = unknown>(params?: ExploreIconsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreIcons>>, TError, TData>>, fetch?: RequestInit}
+export const getExploreIconsQueryOptions = <TData = Awaited<ReturnType<typeof exploreIcons>>, TError = unknown>(params?: ExploreIconsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreIcons>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getExploreIconsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exploreIcons>>> = ({ signal }) => exploreIcons(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exploreIcons>>> = ({ signal }) => exploreIcons(params, requestOptions, signal);
 
 
 
@@ -241,7 +180,7 @@ export function useExploreIcons<TData = Awaited<ReturnType<typeof exploreIcons>>
           TError,
           Awaited<ReturnType<typeof exploreIcons>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useExploreIcons<TData = Awaited<ReturnType<typeof exploreIcons>>, TError = unknown>(
@@ -251,11 +190,11 @@ export function useExploreIcons<TData = Awaited<ReturnType<typeof exploreIcons>>
           TError,
           Awaited<ReturnType<typeof exploreIcons>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useExploreIcons<TData = Awaited<ReturnType<typeof exploreIcons>>, TError = unknown>(
- params?: ExploreIconsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreIcons>>, TError, TData>>, fetch?: RequestInit}
+ params?: ExploreIconsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreIcons>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -263,7 +202,7 @@ export function useExploreIcons<TData = Awaited<ReturnType<typeof exploreIcons>>
  */
 
 export function useExploreIcons<TData = Awaited<ReturnType<typeof exploreIcons>>, TError = unknown>(
- params?: ExploreIconsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreIcons>>, TError, TData>>, fetch?: RequestInit}
+ params?: ExploreIconsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exploreIcons>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

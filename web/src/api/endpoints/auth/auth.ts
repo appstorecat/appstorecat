@@ -31,71 +31,42 @@ import type {
   UserResource
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary Register a new user
  */
-export type registerResponse201 = {
-  data: LoginResource
-  status: 201
-}
-
-export type registerResponse422 = {
-  data: void
-  status: 422
-}
-
-export type registerResponseSuccess = (registerResponse201) & {
-  headers: Headers;
-};
-export type registerResponseError = (registerResponse422) & {
-  headers: Headers;
-};
-
-export type registerResponse = (registerResponseSuccess | registerResponseError)
-
-export const getRegisterUrl = () => {
+export const register = (
+    registerRequest: RegisterRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/auth/register`
-}
-
-export const register = async (registerRequest: RegisterRequest, options?: RequestInit): Promise<registerResponse> => {
-
-  const res = await fetch(getRegisterUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      registerRequest,)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: registerResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as registerResponse
-}
-
+      return orvalMutator<LoginResource>(
+      {url: `/api/v1/auth/register`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: registerRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getRegisterMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext> => {
 
 const mutationKey = ['register'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -103,7 +74,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof register>>, {data: RegisterRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  register(data,fetchOptions)
+          return  register(data,requestOptions)
         }
 
 
@@ -121,7 +92,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Register a new user
  */
 export const useRegister = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof register>>,
         TError,
@@ -133,64 +104,32 @@ export const useRegister = <TError = void,
     /**
  * @summary Login a user
  */
-export type loginResponse200 = {
-  data: LoginResource
-  status: 200
-}
-
-export type loginResponse401 = {
-  data: void
-  status: 401
-}
-
-export type loginResponseSuccess = (loginResponse200) & {
-  headers: Headers;
-};
-export type loginResponseError = (loginResponse401) & {
-  headers: Headers;
-};
-
-export type loginResponse = (loginResponseSuccess | loginResponseError)
-
-export const getLoginUrl = () => {
+export const login = (
+    loginRequest: LoginRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/auth/login`
-}
-
-export const login = async (loginRequest: LoginRequest, options?: RequestInit): Promise<loginResponse> => {
-
-  const res = await fetch(getLoginUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      loginRequest,)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: loginResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as loginResponse
-}
-
+      return orvalMutator<LoginResource>(
+      {url: `/api/v1/auth/login`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: loginRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getLoginMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext> => {
 
 const mutationKey = ['login'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -198,7 +137,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, {data: LoginRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  login(data,fetchOptions)
+          return  login(data,requestOptions)
         }
 
 
@@ -216,7 +155,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Login a user
  */
 export const useLogin = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof login>>,
         TError,
@@ -228,56 +167,30 @@ export const useLogin = <TError = void,
     /**
  * @summary Logout the authenticated user
  */
-export type logoutResponse204 = {
-  data: void
-  status: 204
-}
+export const logout = (
 
-export type logoutResponseSuccess = (logoutResponse204) & {
-  headers: Headers;
-};
-;
-
-export type logoutResponse = (logoutResponseSuccess)
-
-export const getLogoutUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/auth/logout`
-}
-
-export const logout = async ( options?: RequestInit): Promise<logoutResponse> => {
-
-  const res = await fetch(getLogoutUrl(),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: logoutResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as logoutResponse
-}
-
+      return orvalMutator<void>(
+      {url: `/api/v1/auth/logout`, method: 'POST', signal
+    },
+      options);
+    }
 
 
 
 export const getLogoutMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
 
 const mutationKey = ['logout'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -285,7 +198,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
 
 
-          return  logout(fetchOptions)
+          return  logout(requestOptions)
         }
 
 
@@ -303,7 +216,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Logout the authenticated user
  */
 export const useLogout = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof logout>>,
         TError,
@@ -315,43 +228,17 @@ export const useLogout = <TError = unknown,
     /**
  * @summary Get authenticated user info
  */
-export type meResponse200 = {
-  data: UserResource
-  status: 200
-}
+export const me = (
 
-export type meResponseSuccess = (meResponse200) & {
-  headers: Headers;
-};
-;
-
-export type meResponse = (meResponseSuccess)
-
-export const getMeUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/auth/me`
-}
-
-export const me = async ( options?: RequestInit): Promise<meResponse> => {
-
-  const res = await fetch(getMeUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: meResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as meResponse
-}
-
+      return orvalMutator<UserResource>(
+      {url: `/api/v1/auth/me`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -363,16 +250,16 @@ export const getMeQueryKey = () => {
     }
 
 
-export const getMeQueryOptions = <TData = Awaited<ReturnType<typeof me>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, fetch?: RequestInit}
+export const getMeQueryOptions = <TData = Awaited<ReturnType<typeof me>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getMeQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof me>>> = ({ signal }) => me({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof me>>> = ({ signal }) => me(requestOptions, signal);
 
 
 
@@ -392,7 +279,7 @@ export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = unknown>(
           TError,
           Awaited<ReturnType<typeof me>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = unknown>(
@@ -402,11 +289,11 @@ export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = unknown>(
           TError,
           Awaited<ReturnType<typeof me>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -414,7 +301,7 @@ export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = unknown>(
  */
 
 export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

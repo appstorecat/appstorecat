@@ -48,57 +48,28 @@ import type {
   SyncStatusResource
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary List tracked apps
  */
-export type listAppsResponse200 = {
-  data: AppResource[]
-  status: 200
-}
+export const listApps = (
+    params?: ListAppsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type listAppsResponseSuccess = (listAppsResponse200) & {
-  headers: Headers;
-};
-;
 
-export type listAppsResponse = (listAppsResponseSuccess)
-
-export const getListAppsUrl = (params?: ListAppsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<AppResource[]>(
+      {url: `/api/v1/apps`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps?${stringifiedParams}` : `/api/v1/apps`
-}
-
-export const listApps = async (params?: ListAppsParams, options?: RequestInit): Promise<listAppsResponse> => {
-
-  const res = await fetch(getListAppsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listAppsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listAppsResponse
-}
-
 
 
 
@@ -110,16 +81,16 @@ export const getListAppsQueryKey = (params?: ListAppsParams,) => {
     }
 
 
-export const getListAppsQueryOptions = <TData = Awaited<ReturnType<typeof listApps>>, TError = unknown>(params?: ListAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApps>>, TError, TData>>, fetch?: RequestInit}
+export const getListAppsQueryOptions = <TData = Awaited<ReturnType<typeof listApps>>, TError = unknown>(params?: ListAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListAppsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApps>>> = ({ signal }) => listApps(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApps>>> = ({ signal }) => listApps(params, requestOptions, signal);
 
 
 
@@ -139,7 +110,7 @@ export function useListApps<TData = Awaited<ReturnType<typeof listApps>>, TError
           TError,
           Awaited<ReturnType<typeof listApps>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApps<TData = Awaited<ReturnType<typeof listApps>>, TError = unknown>(
@@ -149,11 +120,11 @@ export function useListApps<TData = Awaited<ReturnType<typeof listApps>>, TError
           TError,
           Awaited<ReturnType<typeof listApps>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApps<TData = Awaited<ReturnType<typeof listApps>>, TError = unknown>(
- params?: ListAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApps>>, TError, TData>>, fetch?: RequestInit}
+ params?: ListAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -161,7 +132,7 @@ export function useListApps<TData = Awaited<ReturnType<typeof listApps>>, TError
  */
 
 export function useListApps<TData = Awaited<ReturnType<typeof listApps>>, TError = unknown>(
- params?: ListAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApps>>, TError, TData>>, fetch?: RequestInit}
+ params?: ListAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -178,64 +149,32 @@ export function useListApps<TData = Awaited<ReturnType<typeof listApps>>, TError
 /**
  * @summary Register and track an app
  */
-export type storeAppResponse201 = {
-  data: AppDetailResource
-  status: 201
-}
-
-export type storeAppResponse422 = {
-  data: void
-  status: 422
-}
-
-export type storeAppResponseSuccess = (storeAppResponse201) & {
-  headers: Headers;
-};
-export type storeAppResponseError = (storeAppResponse422) & {
-  headers: Headers;
-};
-
-export type storeAppResponse = (storeAppResponseSuccess | storeAppResponseError)
-
-export const getStoreAppUrl = () => {
+export const storeApp = (
+    storeAppRequest: StoreAppRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps`
-}
-
-export const storeApp = async (storeAppRequest: StoreAppRequest, options?: RequestInit): Promise<storeAppResponse> => {
-
-  const res = await fetch(getStoreAppUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      storeAppRequest,)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: storeAppResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as storeAppResponse
-}
-
+      return orvalMutator<AppDetailResource>(
+      {url: `/api/v1/apps`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: storeAppRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getStoreAppMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeApp>>, TError,{data: StoreAppRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeApp>>, TError,{data: StoreAppRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof storeApp>>, TError,{data: StoreAppRequest}, TContext> => {
 
 const mutationKey = ['storeApp'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -243,7 +182,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof storeApp>>, {data: StoreAppRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  storeApp(data,fetchOptions)
+          return  storeApp(data,requestOptions)
         }
 
 
@@ -261,7 +200,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Register and track an app
  */
 export const useStoreApp = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeApp>>, TError,{data: StoreAppRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeApp>>, TError,{data: StoreAppRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof storeApp>>,
         TError,
@@ -273,45 +212,18 @@ export const useStoreApp = <TError = void,
     /**
  * @summary Get app details
  */
-export type showAppResponse200 = {
-  data: AppDetailResource
-  status: 200
-}
-
-export type showAppResponseSuccess = (showAppResponse200) & {
-  headers: Headers;
-};
-;
-
-export type showAppResponse = (showAppResponseSuccess)
-
-export const getShowAppUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const showApp = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}`
-}
-
-export const showApp = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<showAppResponse> => {
-
-  const res = await fetch(getShowAppUrl(platform,externalId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: showAppResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as showAppResponse
-}
-
+      return orvalMutator<AppDetailResource>(
+      {url: `/api/v1/apps/${platform}/${externalId}`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -325,16 +237,16 @@ export const getShowAppQueryKey = (platform: 'ios' | 'android',
 
 
 export const getShowAppQueryOptions = <TData = Awaited<ReturnType<typeof showApp>>, TError = unknown>(platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showApp>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showApp>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getShowAppQueryKey(platform,externalId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof showApp>>> = ({ signal }) => showApp(platform,externalId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof showApp>>> = ({ signal }) => showApp(platform,externalId, requestOptions, signal);
 
 
 
@@ -355,7 +267,7 @@ export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError =
           TError,
           Awaited<ReturnType<typeof showApp>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError = unknown>(
@@ -366,12 +278,12 @@ export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError =
           TError,
           Awaited<ReturnType<typeof showApp>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError = unknown>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showApp>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showApp>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -380,7 +292,7 @@ export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError =
 
 export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError = unknown>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showApp>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showApp>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -397,54 +309,20 @@ export function useShowApp<TData = Awaited<ReturnType<typeof showApp>>, TError =
 /**
  * @summary Get store listing for a specific country
  */
-export type appListingResponse200 = {
-  data: ListingResource
-  status: 200
-}
-
-export type appListingResponseSuccess = (appListingResponse200) & {
-  headers: Headers;
-};
-;
-
-export type appListingResponse = (appListingResponseSuccess)
-
-export const getAppListingUrl = (platform: 'ios' | 'android',
+export const appListing = (
+    platform: 'ios' | 'android',
     externalId: string,
-    params: AppListingParams,) => {
-  const normalizedParams = new URLSearchParams();
+    params: AppListingParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<ListingResource>(
+      {url: `/api/v1/apps/${platform}/${externalId}/listing`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/listing?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/listing`
-}
-
-export const appListing = async (platform: 'ios' | 'android',
-    externalId: string,
-    params: AppListingParams, options?: RequestInit): Promise<appListingResponse> => {
-
-  const res = await fetch(getAppListingUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: appListingResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as appListingResponse
-}
-
 
 
 
@@ -460,16 +338,16 @@ export const getAppListingQueryKey = (platform: 'ios' | 'android',
 
 export const getAppListingQueryOptions = <TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(platform: 'ios' | 'android',
     externalId: string,
-    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, fetch?: RequestInit}
+    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getAppListingQueryKey(platform,externalId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appListing>>> = ({ signal }) => appListing(platform,externalId,params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof appListing>>> = ({ signal }) => appListing(platform,externalId,params, requestOptions, signal);
 
 
 
@@ -491,7 +369,7 @@ export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TE
           TError,
           Awaited<ReturnType<typeof appListing>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(
@@ -503,13 +381,13 @@ export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TE
           TError,
           Awaited<ReturnType<typeof appListing>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(
  platform: 'ios' | 'android',
     externalId: string,
-    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, fetch?: RequestInit}
+    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -519,7 +397,7 @@ export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TE
 export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TError = unknown>(
  platform: 'ios' | 'android',
     externalId: string,
-    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, fetch?: RequestInit}
+    params: AppListingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appListing>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -536,58 +414,31 @@ export function useAppListing<TData = Awaited<ReturnType<typeof appListing>>, TE
 /**
  * @summary Trigger a sync job for this app
  */
-export type syncAppResponse200 = {
-  data: SyncStatusResource
-  status: 200
-}
-
-export type syncAppResponseSuccess = (syncAppResponse200) & {
-  headers: Headers;
-};
-;
-
-export type syncAppResponse = (syncAppResponseSuccess)
-
-export const getSyncAppUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const syncApp = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/sync`
-}
-
-export const syncApp = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<syncAppResponse> => {
-
-  const res = await fetch(getSyncAppUrl(platform,externalId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: syncAppResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as syncAppResponse
-}
-
+      return orvalMutator<SyncStatusResource>(
+      {url: `/api/v1/apps/${platform}/${externalId}/sync`, method: 'POST', signal
+    },
+      options);
+    }
 
 
 
 export const getSyncAppMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext> => {
 
 const mutationKey = ['syncApp'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -595,7 +446,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncApp>>, {platform: 'ios' | 'android';externalId: string}> = (props) => {
           const {platform,externalId} = props ?? {};
 
-          return  syncApp(platform,externalId,fetchOptions)
+          return  syncApp(platform,externalId,requestOptions)
         }
 
 
@@ -613,7 +464,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Trigger a sync job for this app
  */
 export const useSyncApp = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof syncApp>>,
         TError,
@@ -625,45 +476,18 @@ export const useSyncApp = <TError = unknown,
     /**
  * @summary Get current sync status for this app
  */
-export type appSyncStatusResponse200 = {
-  data: SyncStatusResource
-  status: 200
-}
-
-export type appSyncStatusResponseSuccess = (appSyncStatusResponse200) & {
-  headers: Headers;
-};
-;
-
-export type appSyncStatusResponse = (appSyncStatusResponseSuccess)
-
-export const getAppSyncStatusUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const appSyncStatus = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/sync-status`
-}
-
-export const appSyncStatus = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<appSyncStatusResponse> => {
-
-  const res = await fetch(getAppSyncStatusUrl(platform,externalId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: appSyncStatusResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as appSyncStatusResponse
-}
-
+      return orvalMutator<SyncStatusResource>(
+      {url: `/api/v1/apps/${platform}/${externalId}/sync-status`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -677,16 +501,16 @@ export const getAppSyncStatusQueryKey = (platform: 'ios' | 'android',
 
 
 export const getAppSyncStatusQueryOptions = <TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getAppSyncStatusQueryKey(platform,externalId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appSyncStatus>>> = ({ signal }) => appSyncStatus(platform,externalId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof appSyncStatus>>> = ({ signal }) => appSyncStatus(platform,externalId, requestOptions, signal);
 
 
 
@@ -707,7 +531,7 @@ export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus
           TError,
           Awaited<ReturnType<typeof appSyncStatus>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(
@@ -718,12 +542,12 @@ export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus
           TError,
           Awaited<ReturnType<typeof appSyncStatus>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -732,7 +556,7 @@ export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus
 
 export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus>>, TError = unknown>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appSyncStatus>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -749,58 +573,31 @@ export function useAppSyncStatus<TData = Awaited<ReturnType<typeof appSyncStatus
 /**
  * @summary Track an app
  */
-export type trackAppResponse204 = {
-  data: void
-  status: 204
-}
-
-export type trackAppResponseSuccess = (trackAppResponse204) & {
-  headers: Headers;
-};
-;
-
-export type trackAppResponse = (trackAppResponseSuccess)
-
-export const getTrackAppUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const trackApp = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/track`
-}
-
-export const trackApp = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<trackAppResponse> => {
-
-  const res = await fetch(getTrackAppUrl(platform,externalId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: trackAppResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as trackAppResponse
-}
-
+      return orvalMutator<void>(
+      {url: `/api/v1/apps/${platform}/${externalId}/track`, method: 'POST', signal
+    },
+      options);
+    }
 
 
 
 export const getTrackAppMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof trackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext> => {
 
 const mutationKey = ['trackApp'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -808,7 +605,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof trackApp>>, {platform: 'ios' | 'android';externalId: string}> = (props) => {
           const {platform,externalId} = props ?? {};
 
-          return  trackApp(platform,externalId,fetchOptions)
+          return  trackApp(platform,externalId,requestOptions)
         }
 
 
@@ -826,7 +623,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Track an app
  */
 export const useTrackApp = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof trackApp>>,
         TError,
@@ -838,58 +635,31 @@ export const useTrackApp = <TError = unknown,
     /**
  * @summary Untrack an app
  */
-export type untrackAppResponse204 = {
-  data: void
-  status: 204
-}
-
-export type untrackAppResponseSuccess = (untrackAppResponse204) & {
-  headers: Headers;
-};
-;
-
-export type untrackAppResponse = (untrackAppResponseSuccess)
-
-export const getUntrackAppUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const untrackApp = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/track`
-}
-
-export const untrackApp = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<untrackAppResponse> => {
-
-  const res = await fetch(getUntrackAppUrl(platform,externalId),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: untrackAppResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as untrackAppResponse
-}
-
+      return orvalMutator<void>(
+      {url: `/api/v1/apps/${platform}/${externalId}/track`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getUntrackAppMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof untrackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof untrackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof untrackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext> => {
 
 const mutationKey = ['untrackApp'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -897,7 +667,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof untrackApp>>, {platform: 'ios' | 'android';externalId: string}> = (props) => {
           const {platform,externalId} = props ?? {};
 
-          return  untrackApp(platform,externalId,fetchOptions)
+          return  untrackApp(platform,externalId,requestOptions)
         }
 
 
@@ -915,7 +685,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Untrack an app
  */
 export const useUntrackApp = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof untrackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof untrackApp>>, TError,{platform: 'ios' | 'android';externalId: string}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof untrackApp>>,
         TError,
@@ -927,61 +697,20 @@ export const useUntrackApp = <TError = unknown,
     /**
  * @summary List chart rankings for an app on a given date
  */
-export type listAppRankingsResponse200 = {
-  data: AppRankingResource[]
-  status: 200
-}
-
-export type listAppRankingsResponse404 = {
-  data: void
-  status: 404
-}
-
-export type listAppRankingsResponseSuccess = (listAppRankingsResponse200) & {
-  headers: Headers;
-};
-export type listAppRankingsResponseError = (listAppRankingsResponse404) & {
-  headers: Headers;
-};
-
-export type listAppRankingsResponse = (listAppRankingsResponseSuccess | listAppRankingsResponseError)
-
-export const getListAppRankingsUrl = (platform: 'ios' | 'android',
+export const listAppRankings = (
+    platform: 'ios' | 'android',
     externalId: string,
-    params?: ListAppRankingsParams,) => {
-  const normalizedParams = new URLSearchParams();
+    params?: ListAppRankingsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<AppRankingResource[]>(
+      {url: `/api/v1/apps/${platform}/${externalId}/rankings`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/rankings?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/rankings`
-}
-
-export const listAppRankings = async (platform: 'ios' | 'android',
-    externalId: string,
-    params?: ListAppRankingsParams, options?: RequestInit): Promise<listAppRankingsResponse> => {
-
-  const res = await fetch(getListAppRankingsUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listAppRankingsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listAppRankingsResponse
-}
-
 
 
 
@@ -997,16 +726,16 @@ export const getListAppRankingsQueryKey = (platform: 'ios' | 'android',
 
 export const getListAppRankingsQueryOptions = <TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(platform: 'ios' | 'android',
     externalId: string,
-    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, fetch?: RequestInit}
+    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListAppRankingsQueryKey(platform,externalId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAppRankings>>> = ({ signal }) => listAppRankings(platform,externalId,params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAppRankings>>> = ({ signal }) => listAppRankings(platform,externalId,params, requestOptions, signal);
 
 
 
@@ -1028,7 +757,7 @@ export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRank
           TError,
           Awaited<ReturnType<typeof listAppRankings>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(
@@ -1040,13 +769,13 @@ export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRank
           TError,
           Awaited<ReturnType<typeof listAppRankings>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, fetch?: RequestInit}
+    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1056,7 +785,7 @@ export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRank
 export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRankings>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, fetch?: RequestInit}
+    params?: ListAppRankingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAppRankings>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1073,50 +802,18 @@ export function useListAppRankings<TData = Awaited<ReturnType<typeof listAppRank
 /**
  * @summary Search apps in stores
  */
-export type searchAppsResponse200 = {
-  data: AppResource[]
-  status: 200
-}
+export const searchApps = (
+    params: SearchAppsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type searchAppsResponseSuccess = (searchAppsResponse200) & {
-  headers: Headers;
-};
-;
 
-export type searchAppsResponse = (searchAppsResponseSuccess)
-
-export const getSearchAppsUrl = (params: SearchAppsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<AppResource[]>(
+      {url: `/api/v1/apps/search`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/search?${stringifiedParams}` : `/api/v1/apps/search`
-}
-
-export const searchApps = async (params: SearchAppsParams, options?: RequestInit): Promise<searchAppsResponse> => {
-
-  const res = await fetch(getSearchAppsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: searchAppsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as searchAppsResponse
-}
-
 
 
 
@@ -1128,16 +825,16 @@ export const getSearchAppsQueryKey = (params?: SearchAppsParams,) => {
     }
 
 
-export const getSearchAppsQueryOptions = <TData = Awaited<ReturnType<typeof searchApps>>, TError = unknown>(params: SearchAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchApps>>, TError, TData>>, fetch?: RequestInit}
+export const getSearchAppsQueryOptions = <TData = Awaited<ReturnType<typeof searchApps>>, TError = unknown>(params: SearchAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getSearchAppsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchApps>>> = ({ signal }) => searchApps(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchApps>>> = ({ signal }) => searchApps(params, requestOptions, signal);
 
 
 
@@ -1157,7 +854,7 @@ export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TE
           TError,
           Awaited<ReturnType<typeof searchApps>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TError = unknown>(
@@ -1167,11 +864,11 @@ export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TE
           TError,
           Awaited<ReturnType<typeof searchApps>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TError = unknown>(
- params: SearchAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchApps>>, TError, TData>>, fetch?: RequestInit}
+ params: SearchAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1179,7 +876,7 @@ export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TE
  */
 
 export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TError = unknown>(
- params: SearchAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchApps>>, TError, TData>>, fetch?: RequestInit}
+ params: SearchAppsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1196,52 +893,18 @@ export function useSearchApps<TData = Awaited<ReturnType<typeof searchApps>>, TE
 /**
  * @summary List competitors for an app
  */
-export type listCompetitorsResponse200 = {
-  data: CompetitorResource[]
-  status: 200
-}
-
-export type listCompetitorsResponse404 = {
-  data: void
-  status: 404
-}
-
-export type listCompetitorsResponseSuccess = (listCompetitorsResponse200) & {
-  headers: Headers;
-};
-export type listCompetitorsResponseError = (listCompetitorsResponse404) & {
-  headers: Headers;
-};
-
-export type listCompetitorsResponse = (listCompetitorsResponseSuccess | listCompetitorsResponseError)
-
-export const getListCompetitorsUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const listCompetitors = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/competitors`
-}
-
-export const listCompetitors = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<listCompetitorsResponse> => {
-
-  const res = await fetch(getListCompetitorsUrl(platform,externalId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listCompetitorsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listCompetitorsResponse
-}
-
+      return orvalMutator<CompetitorResource[]>(
+      {url: `/api/v1/apps/${platform}/${externalId}/competitors`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -1255,16 +918,16 @@ export const getListCompetitorsQueryKey = (platform: 'ios' | 'android',
 
 
 export const getListCompetitorsQueryOptions = <TData = Awaited<ReturnType<typeof listCompetitors>>, TError = void>(platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompetitors>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListCompetitorsQueryKey(platform,externalId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompetitors>>> = ({ signal }) => listCompetitors(platform,externalId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompetitors>>> = ({ signal }) => listCompetitors(platform,externalId, requestOptions, signal);
 
 
 
@@ -1285,7 +948,7 @@ export function useListCompetitors<TData = Awaited<ReturnType<typeof listCompeti
           TError,
           Awaited<ReturnType<typeof listCompetitors>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListCompetitors<TData = Awaited<ReturnType<typeof listCompetitors>>, TError = void>(
@@ -1296,12 +959,12 @@ export function useListCompetitors<TData = Awaited<ReturnType<typeof listCompeti
           TError,
           Awaited<ReturnType<typeof listCompetitors>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListCompetitors<TData = Awaited<ReturnType<typeof listCompetitors>>, TError = void>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompetitors>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1310,7 +973,7 @@ export function useListCompetitors<TData = Awaited<ReturnType<typeof listCompeti
 
 export function useListCompetitors<TData = Awaited<ReturnType<typeof listCompetitors>>, TError = void>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompetitors>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1327,72 +990,34 @@ export function useListCompetitors<TData = Awaited<ReturnType<typeof listCompeti
 /**
  * @summary Add a competitor to an app
  */
-export type storeCompetitorResponse201 = {
-  data: CompetitorResource
-  status: 201
-}
-
-export type storeCompetitorResponse404 = {
-  data: void
-  status: 404
-}
-
-export type storeCompetitorResponse422 = {
-  data: void
-  status: 422
-}
-
-export type storeCompetitorResponseSuccess = (storeCompetitorResponse201) & {
-  headers: Headers;
-};
-export type storeCompetitorResponseError = (storeCompetitorResponse404 | storeCompetitorResponse422) & {
-  headers: Headers;
-};
-
-export type storeCompetitorResponse = (storeCompetitorResponseSuccess | storeCompetitorResponseError)
-
-export const getStoreCompetitorUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
-
-
-
-
-  return `/api/v1/apps/${platform}/${externalId}/competitors`
-}
-
-export const storeCompetitor = async (platform: 'ios' | 'android',
+export const storeCompetitor = (
+    platform: 'ios' | 'android',
     externalId: string,
-    storeCompetitorRequest: StoreCompetitorRequest, options?: RequestInit): Promise<storeCompetitorResponse> => {
+    storeCompetitorRequest: StoreCompetitorRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  const res = await fetch(getStoreCompetitorUrl(platform,externalId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      storeCompetitorRequest,)
-  }
-)
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: storeCompetitorResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as storeCompetitorResponse
-}
-
+      return orvalMutator<CompetitorResource>(
+      {url: `/api/v1/apps/${platform}/${externalId}/competitors`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: storeCompetitorRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getStoreCompetitorMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;data: StoreCompetitorRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;data: StoreCompetitorRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof storeCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;data: StoreCompetitorRequest}, TContext> => {
 
 const mutationKey = ['storeCompetitor'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1400,7 +1025,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof storeCompetitor>>, {platform: 'ios' | 'android';externalId: string;data: StoreCompetitorRequest}> = (props) => {
           const {platform,externalId,data} = props ?? {};
 
-          return  storeCompetitor(platform,externalId,data,fetchOptions)
+          return  storeCompetitor(platform,externalId,data,requestOptions)
         }
 
 
@@ -1418,7 +1043,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Add a competitor to an app
  */
 export const useStoreCompetitor = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;data: StoreCompetitorRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;data: StoreCompetitorRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof storeCompetitor>>,
         TError,
@@ -1430,43 +1055,17 @@ export const useStoreCompetitor = <TError = void,
     /**
  * @summary List competitors grouped by parent app across all user apps
  */
-export type listAllCompetitorsResponse200 = {
-  data: CompetitorGroupResource[]
-  status: 200
-}
+export const listAllCompetitors = (
 
-export type listAllCompetitorsResponseSuccess = (listAllCompetitorsResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listAllCompetitorsResponse = (listAllCompetitorsResponseSuccess)
-
-export const getListAllCompetitorsUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/competitors`
-}
-
-export const listAllCompetitors = async ( options?: RequestInit): Promise<listAllCompetitorsResponse> => {
-
-  const res = await fetch(getListAllCompetitorsUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listAllCompetitorsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listAllCompetitorsResponse
-}
-
+      return orvalMutator<CompetitorGroupResource[]>(
+      {url: `/api/v1/competitors`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -1478,16 +1077,16 @@ export const getListAllCompetitorsQueryKey = () => {
     }
 
 
-export const getListAllCompetitorsQueryOptions = <TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, fetch?: RequestInit}
+export const getListAllCompetitorsQueryOptions = <TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListAllCompetitorsQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllCompetitors>>> = ({ signal }) => listAllCompetitors({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllCompetitors>>> = ({ signal }) => listAllCompetitors(requestOptions, signal);
 
 
 
@@ -1507,7 +1106,7 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
           TError,
           Awaited<ReturnType<typeof listAllCompetitors>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(
@@ -1517,11 +1116,11 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
           TError,
           Awaited<ReturnType<typeof listAllCompetitors>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1529,7 +1128,7 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
  */
 
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1546,67 +1145,32 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
 /**
  * @summary Remove a competitor from an app
  */
-export type deleteCompetitorResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteCompetitorResponse404 = {
-  data: void
-  status: 404
-}
-
-export type deleteCompetitorResponseSuccess = (deleteCompetitorResponse204) & {
-  headers: Headers;
-};
-export type deleteCompetitorResponseError = (deleteCompetitorResponse404) & {
-  headers: Headers;
-};
-
-export type deleteCompetitorResponse = (deleteCompetitorResponseSuccess | deleteCompetitorResponseError)
-
-export const getDeleteCompetitorUrl = (platform: 'ios' | 'android',
+export const deleteCompetitor = (
+    platform: 'ios' | 'android',
     externalId: string,
-    competitor: number,) => {
+    competitor: number,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/competitors/${competitor}`
-}
-
-export const deleteCompetitor = async (platform: 'ios' | 'android',
-    externalId: string,
-    competitor: number, options?: RequestInit): Promise<deleteCompetitorResponse> => {
-
-  const res = await fetch(getDeleteCompetitorUrl(platform,externalId,competitor),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteCompetitorResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as deleteCompetitorResponse
-}
-
+      return orvalMutator<void>(
+      {url: `/api/v1/apps/${platform}/${externalId}/competitors/${competitor}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteCompetitorMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;competitor: number}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;competitor: number}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;competitor: number}, TContext> => {
 
 const mutationKey = ['deleteCompetitor'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1614,7 +1178,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCompetitor>>, {platform: 'ios' | 'android';externalId: string;competitor: number}> = (props) => {
           const {platform,externalId,competitor} = props ?? {};
 
-          return  deleteCompetitor(platform,externalId,competitor,fetchOptions)
+          return  deleteCompetitor(platform,externalId,competitor,requestOptions)
         }
 
 
@@ -1632,7 +1196,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Remove a competitor from an app
  */
 export const useDeleteCompetitor = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;competitor: number}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompetitor>>, TError,{platform: 'ios' | 'android';externalId: string;competitor: number}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteCompetitor>>,
         TError,
@@ -1644,61 +1208,20 @@ export const useDeleteCompetitor = <TError = void,
     /**
  * @summary Get keyword density for an app
  */
-export type appKeywordsResponse200 = {
-  data: KeywordDensityResource[]
-  status: 200
-}
-
-export type appKeywordsResponse404 = {
-  data: void
-  status: 404
-}
-
-export type appKeywordsResponseSuccess = (appKeywordsResponse200) & {
-  headers: Headers;
-};
-export type appKeywordsResponseError = (appKeywordsResponse404) & {
-  headers: Headers;
-};
-
-export type appKeywordsResponse = (appKeywordsResponseSuccess | appKeywordsResponseError)
-
-export const getAppKeywordsUrl = (platform: 'ios' | 'android',
+export const appKeywords = (
+    platform: 'ios' | 'android',
     externalId: string,
-    params?: AppKeywordsParams,) => {
-  const normalizedParams = new URLSearchParams();
+    params?: AppKeywordsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<KeywordDensityResource[]>(
+      {url: `/api/v1/apps/${platform}/${externalId}/keywords`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/keywords?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/keywords`
-}
-
-export const appKeywords = async (platform: 'ios' | 'android',
-    externalId: string,
-    params?: AppKeywordsParams, options?: RequestInit): Promise<appKeywordsResponse> => {
-
-  const res = await fetch(getAppKeywordsUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: appKeywordsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as appKeywordsResponse
-}
-
 
 
 
@@ -1714,16 +1237,16 @@ export const getAppKeywordsQueryKey = (platform: 'ios' | 'android',
 
 export const getAppKeywordsQueryOptions = <TData = Awaited<ReturnType<typeof appKeywords>>, TError = void>(platform: 'ios' | 'android',
     externalId: string,
-    params?: AppKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appKeywords>>, TError, TData>>, fetch?: RequestInit}
+    params?: AppKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appKeywords>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getAppKeywordsQueryKey(platform,externalId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appKeywords>>> = ({ signal }) => appKeywords(platform,externalId,params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof appKeywords>>> = ({ signal }) => appKeywords(platform,externalId,params, requestOptions, signal);
 
 
 
@@ -1745,7 +1268,7 @@ export function useAppKeywords<TData = Awaited<ReturnType<typeof appKeywords>>, 
           TError,
           Awaited<ReturnType<typeof appKeywords>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppKeywords<TData = Awaited<ReturnType<typeof appKeywords>>, TError = void>(
@@ -1757,13 +1280,13 @@ export function useAppKeywords<TData = Awaited<ReturnType<typeof appKeywords>>, 
           TError,
           Awaited<ReturnType<typeof appKeywords>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppKeywords<TData = Awaited<ReturnType<typeof appKeywords>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: AppKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appKeywords>>, TError, TData>>, fetch?: RequestInit}
+    params?: AppKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appKeywords>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1773,7 +1296,7 @@ export function useAppKeywords<TData = Awaited<ReturnType<typeof appKeywords>>, 
 export function useAppKeywords<TData = Awaited<ReturnType<typeof appKeywords>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: AppKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appKeywords>>, TError, TData>>, fetch?: RequestInit}
+    params?: AppKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appKeywords>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1790,61 +1313,20 @@ export function useAppKeywords<TData = Awaited<ReturnType<typeof appKeywords>>, 
 /**
  * @summary Compare keyword density with other apps
  */
-export type compareKeywordsResponse200 = {
-  data: KeywordCompareResource
-  status: 200
-}
-
-export type compareKeywordsResponse404 = {
-  data: void
-  status: 404
-}
-
-export type compareKeywordsResponseSuccess = (compareKeywordsResponse200) & {
-  headers: Headers;
-};
-export type compareKeywordsResponseError = (compareKeywordsResponse404) & {
-  headers: Headers;
-};
-
-export type compareKeywordsResponse = (compareKeywordsResponseSuccess | compareKeywordsResponseError)
-
-export const getCompareKeywordsUrl = (platform: 'ios' | 'android',
+export const compareKeywords = (
+    platform: 'ios' | 'android',
     externalId: string,
-    params: CompareKeywordsParams,) => {
-  const normalizedParams = new URLSearchParams();
+    params: CompareKeywordsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<KeywordCompareResource>(
+      {url: `/api/v1/apps/${platform}/${externalId}/keywords/compare`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/keywords/compare?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/keywords/compare`
-}
-
-export const compareKeywords = async (platform: 'ios' | 'android',
-    externalId: string,
-    params: CompareKeywordsParams, options?: RequestInit): Promise<compareKeywordsResponse> => {
-
-  const res = await fetch(getCompareKeywordsUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: compareKeywordsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as compareKeywordsResponse
-}
-
 
 
 
@@ -1860,16 +1342,16 @@ export const getCompareKeywordsQueryKey = (platform: 'ios' | 'android',
 
 export const getCompareKeywordsQueryOptions = <TData = Awaited<ReturnType<typeof compareKeywords>>, TError = void>(platform: 'ios' | 'android',
     externalId: string,
-    params: CompareKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareKeywords>>, TError, TData>>, fetch?: RequestInit}
+    params: CompareKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareKeywords>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getCompareKeywordsQueryKey(platform,externalId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof compareKeywords>>> = ({ signal }) => compareKeywords(platform,externalId,params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof compareKeywords>>> = ({ signal }) => compareKeywords(platform,externalId,params, requestOptions, signal);
 
 
 
@@ -1891,7 +1373,7 @@ export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeyw
           TError,
           Awaited<ReturnType<typeof compareKeywords>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeywords>>, TError = void>(
@@ -1903,13 +1385,13 @@ export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeyw
           TError,
           Awaited<ReturnType<typeof compareKeywords>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeywords>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params: CompareKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareKeywords>>, TError, TData>>, fetch?: RequestInit}
+    params: CompareKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareKeywords>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1919,7 +1401,7 @@ export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeyw
 export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeywords>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params: CompareKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareKeywords>>, TError, TData>>, fetch?: RequestInit}
+    params: CompareKeywordsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof compareKeywords>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1936,52 +1418,18 @@ export function useCompareKeywords<TData = Awaited<ReturnType<typeof compareKeyw
 /**
  * @summary Get the rating summary (current rating + 30-day trend)
  */
-export type getRatingSummaryResponse200 = {
-  data: RatingSummaryResource
-  status: 200
-}
-
-export type getRatingSummaryResponse404 = {
-  data: void
-  status: 404
-}
-
-export type getRatingSummaryResponseSuccess = (getRatingSummaryResponse200) & {
-  headers: Headers;
-};
-export type getRatingSummaryResponseError = (getRatingSummaryResponse404) & {
-  headers: Headers;
-};
-
-export type getRatingSummaryResponse = (getRatingSummaryResponseSuccess | getRatingSummaryResponseError)
-
-export const getGetRatingSummaryUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const getRatingSummary = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/ratings/summary`
-}
-
-export const getRatingSummary = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<getRatingSummaryResponse> => {
-
-  const res = await fetch(getGetRatingSummaryUrl(platform,externalId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getRatingSummaryResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getRatingSummaryResponse
-}
-
+      return orvalMutator<RatingSummaryResource>(
+      {url: `/api/v1/apps/${platform}/${externalId}/ratings/summary`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -1995,16 +1443,16 @@ export const getGetRatingSummaryQueryKey = (platform: 'ios' | 'android',
 
 
 export const getGetRatingSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetRatingSummaryQueryKey(platform,externalId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingSummary>>> = ({ signal }) => getRatingSummary(platform,externalId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingSummary>>> = ({ signal }) => getRatingSummary(platform,externalId, requestOptions, signal);
 
 
 
@@ -2025,7 +1473,7 @@ export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingS
           TError,
           Awaited<ReturnType<typeof getRatingSummary>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(
@@ -2036,12 +1484,12 @@ export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingS
           TError,
           Awaited<ReturnType<typeof getRatingSummary>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -2050,7 +1498,7 @@ export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingS
 
 export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingSummary>>, TError = void>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingSummary>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2067,61 +1515,20 @@ export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingS
 /**
  * @summary Get monthly rating history (last N months)
  */
-export type getRatingHistoryResponse200 = {
-  data: RatingHistoryPointResource[]
-  status: 200
-}
-
-export type getRatingHistoryResponse404 = {
-  data: void
-  status: 404
-}
-
-export type getRatingHistoryResponseSuccess = (getRatingHistoryResponse200) & {
-  headers: Headers;
-};
-export type getRatingHistoryResponseError = (getRatingHistoryResponse404) & {
-  headers: Headers;
-};
-
-export type getRatingHistoryResponse = (getRatingHistoryResponseSuccess | getRatingHistoryResponseError)
-
-export const getGetRatingHistoryUrl = (platform: 'ios' | 'android',
+export const getRatingHistory = (
+    platform: 'ios' | 'android',
     externalId: string,
-    params?: GetRatingHistoryParams,) => {
-  const normalizedParams = new URLSearchParams();
+    params?: GetRatingHistoryParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<RatingHistoryPointResource[]>(
+      {url: `/api/v1/apps/${platform}/${externalId}/ratings/history`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/apps/${platform}/${externalId}/ratings/history?${stringifiedParams}` : `/api/v1/apps/${platform}/${externalId}/ratings/history`
-}
-
-export const getRatingHistory = async (platform: 'ios' | 'android',
-    externalId: string,
-    params?: GetRatingHistoryParams, options?: RequestInit): Promise<getRatingHistoryResponse> => {
-
-  const res = await fetch(getGetRatingHistoryUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getRatingHistoryResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getRatingHistoryResponse
-}
-
 
 
 
@@ -2137,16 +1544,16 @@ export const getGetRatingHistoryQueryKey = (platform: 'ios' | 'android',
 
 export const getGetRatingHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(platform: 'ios' | 'android',
     externalId: string,
-    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, fetch?: RequestInit}
+    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetRatingHistoryQueryKey(platform,externalId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingHistory>>> = ({ signal }) => getRatingHistory(platform,externalId,params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingHistory>>> = ({ signal }) => getRatingHistory(platform,externalId,params, requestOptions, signal);
 
 
 
@@ -2168,7 +1575,7 @@ export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingH
           TError,
           Awaited<ReturnType<typeof getRatingHistory>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(
@@ -2180,13 +1587,13 @@ export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingH
           TError,
           Awaited<ReturnType<typeof getRatingHistory>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, fetch?: RequestInit}
+    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -2196,7 +1603,7 @@ export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingH
 export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, fetch?: RequestInit}
+    params?: GetRatingHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingHistory>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2213,52 +1620,18 @@ export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingH
 /**
  * @summary Get the latest rating snapshot per country (iOS only)
  */
-export type getRatingCountryBreakdownResponse200 = {
-  data: RatingByCountryResource[]
-  status: 200
-}
-
-export type getRatingCountryBreakdownResponse404 = {
-  data: void
-  status: 404
-}
-
-export type getRatingCountryBreakdownResponseSuccess = (getRatingCountryBreakdownResponse200) & {
-  headers: Headers;
-};
-export type getRatingCountryBreakdownResponseError = (getRatingCountryBreakdownResponse404) & {
-  headers: Headers;
-};
-
-export type getRatingCountryBreakdownResponse = (getRatingCountryBreakdownResponseSuccess | getRatingCountryBreakdownResponseError)
-
-export const getGetRatingCountryBreakdownUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const getRatingCountryBreakdown = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/apps/${platform}/${externalId}/ratings/country-breakdown`
-}
-
-export const getRatingCountryBreakdown = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<getRatingCountryBreakdownResponse> => {
-
-  const res = await fetch(getGetRatingCountryBreakdownUrl(platform,externalId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getRatingCountryBreakdownResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getRatingCountryBreakdownResponse
-}
-
+      return orvalMutator<RatingByCountryResource[]>(
+      {url: `/api/v1/apps/${platform}/${externalId}/ratings/country-breakdown`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -2272,16 +1645,16 @@ export const getGetRatingCountryBreakdownQueryKey = (platform: 'ios' | 'android'
 
 
 export const getGetRatingCountryBreakdownQueryOptions = <TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetRatingCountryBreakdownQueryKey(platform,externalId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingCountryBreakdown>>> = ({ signal }) => getRatingCountryBreakdown(platform,externalId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRatingCountryBreakdown>>> = ({ signal }) => getRatingCountryBreakdown(platform,externalId, requestOptions, signal);
 
 
 
@@ -2302,7 +1675,7 @@ export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof g
           TError,
           Awaited<ReturnType<typeof getRatingCountryBreakdown>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(
@@ -2313,12 +1686,12 @@ export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof g
           TError,
           Awaited<ReturnType<typeof getRatingCountryBreakdown>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -2327,7 +1700,7 @@ export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof g
 
 export function useGetRatingCountryBreakdown<TData = Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError = void>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRatingCountryBreakdown>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

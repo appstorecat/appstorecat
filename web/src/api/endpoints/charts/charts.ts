@@ -25,57 +25,28 @@ import type {
   GetChartsParams
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary Get chart rankings
  */
-export type getChartsResponse200 = {
-  data: GetCharts200
-  status: 200
-}
+export const getCharts = (
+    params: GetChartsParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type getChartsResponseSuccess = (getChartsResponse200) & {
-  headers: Headers;
-};
-;
 
-export type getChartsResponse = (getChartsResponseSuccess)
-
-export const getGetChartsUrl = (params: GetChartsParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<GetCharts200>(
+      {url: `/api/v1/charts`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/charts?${stringifiedParams}` : `/api/v1/charts`
-}
-
-export const getCharts = async (params: GetChartsParams, options?: RequestInit): Promise<getChartsResponse> => {
-
-  const res = await fetch(getGetChartsUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getChartsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getChartsResponse
-}
-
 
 
 
@@ -87,16 +58,16 @@ export const getGetChartsQueryKey = (params?: GetChartsParams,) => {
     }
 
 
-export const getGetChartsQueryOptions = <TData = Awaited<ReturnType<typeof getCharts>>, TError = unknown>(params: GetChartsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCharts>>, TError, TData>>, fetch?: RequestInit}
+export const getGetChartsQueryOptions = <TData = Awaited<ReturnType<typeof getCharts>>, TError = unknown>(params: GetChartsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCharts>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetChartsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCharts>>> = ({ signal }) => getCharts(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCharts>>> = ({ signal }) => getCharts(params, requestOptions, signal);
 
 
 
@@ -116,7 +87,7 @@ export function useGetCharts<TData = Awaited<ReturnType<typeof getCharts>>, TErr
           TError,
           Awaited<ReturnType<typeof getCharts>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetCharts<TData = Awaited<ReturnType<typeof getCharts>>, TError = unknown>(
@@ -126,11 +97,11 @@ export function useGetCharts<TData = Awaited<ReturnType<typeof getCharts>>, TErr
           TError,
           Awaited<ReturnType<typeof getCharts>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetCharts<TData = Awaited<ReturnType<typeof getCharts>>, TError = unknown>(
- params: GetChartsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCharts>>, TError, TData>>, fetch?: RequestInit}
+ params: GetChartsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCharts>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -138,7 +109,7 @@ export function useGetCharts<TData = Awaited<ReturnType<typeof getCharts>>, TErr
  */
 
 export function useGetCharts<TData = Awaited<ReturnType<typeof getCharts>>, TError = unknown>(
- params: GetChartsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCharts>>, TError, TData>>, fetch?: RequestInit}
+ params: GetChartsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCharts>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

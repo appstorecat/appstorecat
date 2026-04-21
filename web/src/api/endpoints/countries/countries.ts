@@ -24,50 +24,27 @@ import type {
   CountryResource
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary List active countries
  */
-export type listCountriesResponse200 = {
-  data: CountryResource[]
-  status: 200
-}
+export const listCountries = (
 
-export type listCountriesResponseSuccess = (listCountriesResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listCountriesResponse = (listCountriesResponseSuccess)
-
-export const getListCountriesUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/countries`
-}
-
-export const listCountries = async ( options?: RequestInit): Promise<listCountriesResponse> => {
-
-  const res = await fetch(getListCountriesUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listCountriesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listCountriesResponse
-}
-
+      return orvalMutator<CountryResource[]>(
+      {url: `/api/v1/countries`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -79,16 +56,16 @@ export const getListCountriesQueryKey = () => {
     }
 
 
-export const getListCountriesQueryOptions = <TData = Awaited<ReturnType<typeof listCountries>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCountries>>, TError, TData>>, fetch?: RequestInit}
+export const getListCountriesQueryOptions = <TData = Awaited<ReturnType<typeof listCountries>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCountries>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListCountriesQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCountries>>> = ({ signal }) => listCountries({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCountries>>> = ({ signal }) => listCountries(requestOptions, signal);
 
 
 
@@ -108,7 +85,7 @@ export function useListCountries<TData = Awaited<ReturnType<typeof listCountries
           TError,
           Awaited<ReturnType<typeof listCountries>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListCountries<TData = Awaited<ReturnType<typeof listCountries>>, TError = unknown>(
@@ -118,11 +95,11 @@ export function useListCountries<TData = Awaited<ReturnType<typeof listCountries
           TError,
           Awaited<ReturnType<typeof listCountries>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListCountries<TData = Awaited<ReturnType<typeof listCountries>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCountries>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCountries>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -130,7 +107,7 @@ export function useListCountries<TData = Awaited<ReturnType<typeof listCountries
  */
 
 export function useListCountries<TData = Awaited<ReturnType<typeof listCountries>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCountries>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCountries>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

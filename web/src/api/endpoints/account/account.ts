@@ -35,50 +35,27 @@ import type {
   UserResource
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary List all API tokens
  */
-export type listApiTokensResponse200 = {
-  data: ApiTokenResource[]
-  status: 200
-}
+export const listApiTokens = (
 
-export type listApiTokensResponseSuccess = (listApiTokensResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listApiTokensResponse = (listApiTokensResponseSuccess)
-
-export const getListApiTokensUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/account/api-tokens`
-}
-
-export const listApiTokens = async ( options?: RequestInit): Promise<listApiTokensResponse> => {
-
-  const res = await fetch(getListApiTokensUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listApiTokensResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listApiTokensResponse
-}
-
+      return orvalMutator<ApiTokenResource[]>(
+      {url: `/api/v1/account/api-tokens`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -90,16 +67,16 @@ export const getListApiTokensQueryKey = () => {
     }
 
 
-export const getListApiTokensQueryOptions = <TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, fetch?: RequestInit}
+export const getListApiTokensQueryOptions = <TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListApiTokensQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApiTokens>>> = ({ signal }) => listApiTokens({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApiTokens>>> = ({ signal }) => listApiTokens(requestOptions, signal);
 
 
 
@@ -119,7 +96,7 @@ export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens
           TError,
           Awaited<ReturnType<typeof listApiTokens>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>(
@@ -129,11 +106,11 @@ export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens
           TError,
           Awaited<ReturnType<typeof listApiTokens>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -141,7 +118,7 @@ export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens
  */
 
 export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiTokens>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -158,64 +135,32 @@ export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens
 /**
  * @summary Create a new API token
  */
-export type createApiTokenResponse201 = {
-  data: ApiTokenCreatedResource
-  status: 201
-}
-
-export type createApiTokenResponse422 = {
-  data: void
-  status: 422
-}
-
-export type createApiTokenResponseSuccess = (createApiTokenResponse201) & {
-  headers: Headers;
-};
-export type createApiTokenResponseError = (createApiTokenResponse422) & {
-  headers: Headers;
-};
-
-export type createApiTokenResponse = (createApiTokenResponseSuccess | createApiTokenResponseError)
-
-export const getCreateApiTokenUrl = () => {
+export const createApiToken = (
+    storeApiTokenRequest: StoreApiTokenRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/account/api-tokens`
-}
-
-export const createApiToken = async (storeApiTokenRequest: StoreApiTokenRequest, options?: RequestInit): Promise<createApiTokenResponse> => {
-
-  const res = await fetch(getCreateApiTokenUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      storeApiTokenRequest,)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createApiTokenResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createApiTokenResponse
-}
-
+      return orvalMutator<ApiTokenCreatedResource>(
+      {url: `/api/v1/account/api-tokens`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: storeApiTokenRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getCreateApiTokenMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext> => {
 
 const mutationKey = ['createApiToken'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -223,7 +168,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createApiToken>>, {data: StoreApiTokenRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createApiToken(data,fetchOptions)
+          return  createApiToken(data,requestOptions)
         }
 
 
@@ -241,7 +186,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create a new API token
  */
 export const useCreateApiToken = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiToken>>, TError,{data: StoreApiTokenRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createApiToken>>,
         TError,
@@ -253,63 +198,30 @@ export const useCreateApiToken = <TError = void,
     /**
  * @summary Revoke an API token
  */
-export type revokeApiTokenResponse204 = {
-  data: void
-  status: 204
-}
-
-export type revokeApiTokenResponse404 = {
-  data: void
-  status: 404
-}
-
-export type revokeApiTokenResponseSuccess = (revokeApiTokenResponse204) & {
-  headers: Headers;
-};
-export type revokeApiTokenResponseError = (revokeApiTokenResponse404) & {
-  headers: Headers;
-};
-
-export type revokeApiTokenResponse = (revokeApiTokenResponseSuccess | revokeApiTokenResponseError)
-
-export const getRevokeApiTokenUrl = (tokenId: number,) => {
+export const revokeApiToken = (
+    tokenId: number,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/account/api-tokens/${tokenId}`
-}
-
-export const revokeApiToken = async (tokenId: number, options?: RequestInit): Promise<revokeApiTokenResponse> => {
-
-  const res = await fetch(getRevokeApiTokenUrl(tokenId),
-  {
-    ...options,
-    method: 'DELETE'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: revokeApiTokenResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as revokeApiTokenResponse
-}
-
+      return orvalMutator<void>(
+      {url: `/api/v1/account/api-tokens/${tokenId}`, method: 'DELETE', signal
+    },
+      options);
+    }
 
 
 
 export const getRevokeApiTokenMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext> => {
 
 const mutationKey = ['revokeApiToken'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -317,7 +229,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeApiToken>>, {tokenId: number}> = (props) => {
           const {tokenId} = props ?? {};
 
-          return  revokeApiToken(tokenId,fetchOptions)
+          return  revokeApiToken(tokenId,requestOptions)
         }
 
 
@@ -335,7 +247,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Revoke an API token
  */
 export const useRevokeApiToken = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeApiToken>>, TError,{tokenId: number}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof revokeApiToken>>,
         TError,
@@ -347,43 +259,17 @@ export const useRevokeApiToken = <TError = void,
     /**
  * @summary Get authenticated user profile
  */
-export type showProfileResponse200 = {
-  data: UserResource
-  status: 200
-}
+export const showProfile = (
 
-export type showProfileResponseSuccess = (showProfileResponse200) & {
-  headers: Headers;
-};
-;
-
-export type showProfileResponse = (showProfileResponseSuccess)
-
-export const getShowProfileUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/account/profile`
-}
-
-export const showProfile = async ( options?: RequestInit): Promise<showProfileResponse> => {
-
-  const res = await fetch(getShowProfileUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: showProfileResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as showProfileResponse
-}
-
+      return orvalMutator<UserResource>(
+      {url: `/api/v1/account/profile`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -395,16 +281,16 @@ export const getShowProfileQueryKey = () => {
     }
 
 
-export const getShowProfileQueryOptions = <TData = Awaited<ReturnType<typeof showProfile>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showProfile>>, TError, TData>>, fetch?: RequestInit}
+export const getShowProfileQueryOptions = <TData = Awaited<ReturnType<typeof showProfile>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showProfile>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getShowProfileQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof showProfile>>> = ({ signal }) => showProfile({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof showProfile>>> = ({ signal }) => showProfile(requestOptions, signal);
 
 
 
@@ -424,7 +310,7 @@ export function useShowProfile<TData = Awaited<ReturnType<typeof showProfile>>, 
           TError,
           Awaited<ReturnType<typeof showProfile>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useShowProfile<TData = Awaited<ReturnType<typeof showProfile>>, TError = unknown>(
@@ -434,11 +320,11 @@ export function useShowProfile<TData = Awaited<ReturnType<typeof showProfile>>, 
           TError,
           Awaited<ReturnType<typeof showProfile>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useShowProfile<TData = Awaited<ReturnType<typeof showProfile>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showProfile>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showProfile>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -446,7 +332,7 @@ export function useShowProfile<TData = Awaited<ReturnType<typeof showProfile>>, 
  */
 
 export function useShowProfile<TData = Awaited<ReturnType<typeof showProfile>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showProfile>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showProfile>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -463,57 +349,32 @@ export function useShowProfile<TData = Awaited<ReturnType<typeof showProfile>>, 
 /**
  * @summary Delete user account
  */
-export type deleteProfileResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteProfileResponseSuccess = (deleteProfileResponse204) & {
-  headers: Headers;
-};
-;
-
-export type deleteProfileResponse = (deleteProfileResponseSuccess)
-
-export const getDeleteProfileUrl = () => {
+export const deleteProfile = (
+    profileDeleteRequest: ProfileDeleteRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/account/profile`
-}
-
-export const deleteProfile = async (profileDeleteRequest: ProfileDeleteRequest, options?: RequestInit): Promise<deleteProfileResponse> => {
-
-  const res = await fetch(getDeleteProfileUrl(),
-  {
-    ...options,
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      profileDeleteRequest,)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteProfileResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as deleteProfileResponse
-}
-
+      return orvalMutator<void>(
+      {url: `/api/v1/account/profile`, method: 'DELETE',
+      headers: {'Content-Type': 'application/json', },
+      data: profileDeleteRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getDeleteProfileMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProfile>>, TError,{data: ProfileDeleteRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProfile>>, TError,{data: ProfileDeleteRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteProfile>>, TError,{data: ProfileDeleteRequest}, TContext> => {
 
 const mutationKey = ['deleteProfile'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -521,7 +382,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteProfile>>, {data: ProfileDeleteRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  deleteProfile(data,fetchOptions)
+          return  deleteProfile(data,requestOptions)
         }
 
 
@@ -539,7 +400,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete user account
  */
 export const useDeleteProfile = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProfile>>, TError,{data: ProfileDeleteRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProfile>>, TError,{data: ProfileDeleteRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteProfile>>,
         TError,
@@ -551,64 +412,32 @@ export const useDeleteProfile = <TError = unknown,
     /**
  * @summary Update user profile
  */
-export type updateProfileResponse200 = {
-  data: UserResource
-  status: 200
-}
-
-export type updateProfileResponse422 = {
-  data: void
-  status: 422
-}
-
-export type updateProfileResponseSuccess = (updateProfileResponse200) & {
-  headers: Headers;
-};
-export type updateProfileResponseError = (updateProfileResponse422) & {
-  headers: Headers;
-};
-
-export type updateProfileResponse = (updateProfileResponseSuccess | updateProfileResponseError)
-
-export const getUpdateProfileUrl = () => {
+export const updateProfile = (
+    profileUpdateRequest: ProfileUpdateRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/account/profile`
-}
-
-export const updateProfile = async (profileUpdateRequest: ProfileUpdateRequest, options?: RequestInit): Promise<updateProfileResponse> => {
-
-  const res = await fetch(getUpdateProfileUrl(),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      profileUpdateRequest,)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateProfileResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateProfileResponse
-}
-
+      return orvalMutator<UserResource>(
+      {url: `/api/v1/account/profile`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: profileUpdateRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getUpdateProfileMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: ProfileUpdateRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: ProfileUpdateRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: ProfileUpdateRequest}, TContext> => {
 
 const mutationKey = ['updateProfile'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -616,7 +445,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProfile>>, {data: ProfileUpdateRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  updateProfile(data,fetchOptions)
+          return  updateProfile(data,requestOptions)
         }
 
 
@@ -634,7 +463,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update user profile
  */
 export const useUpdateProfile = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: ProfileUpdateRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError,{data: ProfileUpdateRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateProfile>>,
         TError,
@@ -646,64 +475,32 @@ export const useUpdateProfile = <TError = void,
     /**
  * @summary Update user password
  */
-export type updatePasswordResponse200 = {
-  data: MessageResource
-  status: 200
-}
-
-export type updatePasswordResponse422 = {
-  data: void
-  status: 422
-}
-
-export type updatePasswordResponseSuccess = (updatePasswordResponse200) & {
-  headers: Headers;
-};
-export type updatePasswordResponseError = (updatePasswordResponse422) & {
-  headers: Headers;
-};
-
-export type updatePasswordResponse = (updatePasswordResponseSuccess | updatePasswordResponseError)
-
-export const getUpdatePasswordUrl = () => {
+export const updatePassword = (
+    passwordUpdateRequest: PasswordUpdateRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/account/password`
-}
-
-export const updatePassword = async (passwordUpdateRequest: PasswordUpdateRequest, options?: RequestInit): Promise<updatePasswordResponse> => {
-
-  const res = await fetch(getUpdatePasswordUrl(),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      passwordUpdateRequest,)
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updatePasswordResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updatePasswordResponse
-}
-
+      return orvalMutator<MessageResource>(
+      {url: `/api/v1/account/password`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: passwordUpdateRequest, signal
+    },
+      options);
+    }
 
 
 
 export const getUpdatePasswordMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: PasswordUpdateRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: PasswordUpdateRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: PasswordUpdateRequest}, TContext> => {
 
 const mutationKey = ['updatePassword'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -711,7 +508,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePassword>>, {data: PasswordUpdateRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  updatePassword(data,fetchOptions)
+          return  updatePassword(data,requestOptions)
         }
 
 
@@ -729,7 +526,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update user password
  */
 export const useUpdatePassword = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: PasswordUpdateRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: PasswordUpdateRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updatePassword>>,
         TError,

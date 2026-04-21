@@ -26,57 +26,28 @@ import type {
   CompetitorChangesParams
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary List store listing changes for all tracked apps
  */
-export type appChangesResponse200 = {
-  data: ChangeResource[]
-  status: 200
-}
+export const appChanges = (
+    params?: AppChangesParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type appChangesResponseSuccess = (appChangesResponse200) & {
-  headers: Headers;
-};
-;
 
-export type appChangesResponse = (appChangesResponseSuccess)
-
-export const getAppChangesUrl = (params?: AppChangesParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<ChangeResource[]>(
+      {url: `/api/v1/changes/apps`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/changes/apps?${stringifiedParams}` : `/api/v1/changes/apps`
-}
-
-export const appChanges = async (params?: AppChangesParams, options?: RequestInit): Promise<appChangesResponse> => {
-
-  const res = await fetch(getAppChangesUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: appChangesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as appChangesResponse
-}
-
 
 
 
@@ -88,16 +59,16 @@ export const getAppChangesQueryKey = (params?: AppChangesParams,) => {
     }
 
 
-export const getAppChangesQueryOptions = <TData = Awaited<ReturnType<typeof appChanges>>, TError = unknown>(params?: AppChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appChanges>>, TError, TData>>, fetch?: RequestInit}
+export const getAppChangesQueryOptions = <TData = Awaited<ReturnType<typeof appChanges>>, TError = unknown>(params?: AppChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appChanges>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getAppChangesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof appChanges>>> = ({ signal }) => appChanges(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof appChanges>>> = ({ signal }) => appChanges(params, requestOptions, signal);
 
 
 
@@ -117,7 +88,7 @@ export function useAppChanges<TData = Awaited<ReturnType<typeof appChanges>>, TE
           TError,
           Awaited<ReturnType<typeof appChanges>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppChanges<TData = Awaited<ReturnType<typeof appChanges>>, TError = unknown>(
@@ -127,11 +98,11 @@ export function useAppChanges<TData = Awaited<ReturnType<typeof appChanges>>, TE
           TError,
           Awaited<ReturnType<typeof appChanges>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAppChanges<TData = Awaited<ReturnType<typeof appChanges>>, TError = unknown>(
- params?: AppChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appChanges>>, TError, TData>>, fetch?: RequestInit}
+ params?: AppChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appChanges>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -139,7 +110,7 @@ export function useAppChanges<TData = Awaited<ReturnType<typeof appChanges>>, TE
  */
 
 export function useAppChanges<TData = Awaited<ReturnType<typeof appChanges>>, TError = unknown>(
- params?: AppChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appChanges>>, TError, TData>>, fetch?: RequestInit}
+ params?: AppChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof appChanges>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -156,50 +127,18 @@ export function useAppChanges<TData = Awaited<ReturnType<typeof appChanges>>, TE
 /**
  * @summary List store listing changes for all competitor apps
  */
-export type competitorChangesResponse200 = {
-  data: ChangeResource[]
-  status: 200
-}
+export const competitorChanges = (
+    params?: CompetitorChangesParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type competitorChangesResponseSuccess = (competitorChangesResponse200) & {
-  headers: Headers;
-};
-;
 
-export type competitorChangesResponse = (competitorChangesResponseSuccess)
-
-export const getCompetitorChangesUrl = (params?: CompetitorChangesParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<ChangeResource[]>(
+      {url: `/api/v1/changes/competitors`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/changes/competitors?${stringifiedParams}` : `/api/v1/changes/competitors`
-}
-
-export const competitorChanges = async (params?: CompetitorChangesParams, options?: RequestInit): Promise<competitorChangesResponse> => {
-
-  const res = await fetch(getCompetitorChangesUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: competitorChangesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as competitorChangesResponse
-}
-
 
 
 
@@ -211,16 +150,16 @@ export const getCompetitorChangesQueryKey = (params?: CompetitorChangesParams,) 
     }
 
 
-export const getCompetitorChangesQueryOptions = <TData = Awaited<ReturnType<typeof competitorChanges>>, TError = unknown>(params?: CompetitorChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof competitorChanges>>, TError, TData>>, fetch?: RequestInit}
+export const getCompetitorChangesQueryOptions = <TData = Awaited<ReturnType<typeof competitorChanges>>, TError = unknown>(params?: CompetitorChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof competitorChanges>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getCompetitorChangesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof competitorChanges>>> = ({ signal }) => competitorChanges(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof competitorChanges>>> = ({ signal }) => competitorChanges(params, requestOptions, signal);
 
 
 
@@ -240,7 +179,7 @@ export function useCompetitorChanges<TData = Awaited<ReturnType<typeof competito
           TError,
           Awaited<ReturnType<typeof competitorChanges>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCompetitorChanges<TData = Awaited<ReturnType<typeof competitorChanges>>, TError = unknown>(
@@ -250,11 +189,11 @@ export function useCompetitorChanges<TData = Awaited<ReturnType<typeof competito
           TError,
           Awaited<ReturnType<typeof competitorChanges>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useCompetitorChanges<TData = Awaited<ReturnType<typeof competitorChanges>>, TError = unknown>(
- params?: CompetitorChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof competitorChanges>>, TError, TData>>, fetch?: RequestInit}
+ params?: CompetitorChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof competitorChanges>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -262,7 +201,7 @@ export function useCompetitorChanges<TData = Awaited<ReturnType<typeof competito
  */
 
 export function useCompetitorChanges<TData = Awaited<ReturnType<typeof competitorChanges>>, TError = unknown>(
- params?: CompetitorChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof competitorChanges>>, TError, TData>>, fetch?: RequestInit}
+ params?: CompetitorChangesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof competitorChanges>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

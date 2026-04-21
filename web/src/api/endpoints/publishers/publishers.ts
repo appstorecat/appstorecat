@@ -34,57 +34,28 @@ import type {
   ShowPublisherParams
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary Search publishers across stores
  */
-export type searchPublishersResponse200 = {
-  data: PublisherSearchResultResource[]
-  status: 200
-}
+export const searchPublishers = (
+    params: SearchPublishersParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type searchPublishersResponseSuccess = (searchPublishersResponse200) & {
-  headers: Headers;
-};
-;
 
-export type searchPublishersResponse = (searchPublishersResponseSuccess)
-
-export const getSearchPublishersUrl = (params: SearchPublishersParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<PublisherSearchResultResource[]>(
+      {url: `/api/v1/publishers/search`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/publishers/search?${stringifiedParams}` : `/api/v1/publishers/search`
-}
-
-export const searchPublishers = async (params: SearchPublishersParams, options?: RequestInit): Promise<searchPublishersResponse> => {
-
-  const res = await fetch(getSearchPublishersUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: searchPublishersResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as searchPublishersResponse
-}
-
 
 
 
@@ -96,16 +67,16 @@ export const getSearchPublishersQueryKey = (params?: SearchPublishersParams,) =>
     }
 
 
-export const getSearchPublishersQueryOptions = <TData = Awaited<ReturnType<typeof searchPublishers>>, TError = unknown>(params: SearchPublishersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPublishers>>, TError, TData>>, fetch?: RequestInit}
+export const getSearchPublishersQueryOptions = <TData = Awaited<ReturnType<typeof searchPublishers>>, TError = unknown>(params: SearchPublishersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPublishers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getSearchPublishersQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchPublishers>>> = ({ signal }) => searchPublishers(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchPublishers>>> = ({ signal }) => searchPublishers(params, requestOptions, signal);
 
 
 
@@ -125,7 +96,7 @@ export function useSearchPublishers<TData = Awaited<ReturnType<typeof searchPubl
           TError,
           Awaited<ReturnType<typeof searchPublishers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSearchPublishers<TData = Awaited<ReturnType<typeof searchPublishers>>, TError = unknown>(
@@ -135,11 +106,11 @@ export function useSearchPublishers<TData = Awaited<ReturnType<typeof searchPubl
           TError,
           Awaited<ReturnType<typeof searchPublishers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useSearchPublishers<TData = Awaited<ReturnType<typeof searchPublishers>>, TError = unknown>(
- params: SearchPublishersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPublishers>>, TError, TData>>, fetch?: RequestInit}
+ params: SearchPublishersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPublishers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -147,7 +118,7 @@ export function useSearchPublishers<TData = Awaited<ReturnType<typeof searchPubl
  */
 
 export function useSearchPublishers<TData = Awaited<ReturnType<typeof searchPublishers>>, TError = unknown>(
- params: SearchPublishersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPublishers>>, TError, TData>>, fetch?: RequestInit}
+ params: SearchPublishersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPublishers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -164,43 +135,17 @@ export function useSearchPublishers<TData = Awaited<ReturnType<typeof searchPubl
 /**
  * @summary List publishers from user apps
  */
-export type listPublishersResponse200 = {
-  data: PublisherResource[]
-  status: 200
-}
+export const listPublishers = (
 
-export type listPublishersResponseSuccess = (listPublishersResponse200) & {
-  headers: Headers;
-};
-;
-
-export type listPublishersResponse = (listPublishersResponseSuccess)
-
-export const getListPublishersUrl = () => {
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/publishers`
-}
-
-export const listPublishers = async ( options?: RequestInit): Promise<listPublishersResponse> => {
-
-  const res = await fetch(getListPublishersUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listPublishersResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listPublishersResponse
-}
-
+      return orvalMutator<PublisherResource[]>(
+      {url: `/api/v1/publishers`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -212,16 +157,16 @@ export const getListPublishersQueryKey = () => {
     }
 
 
-export const getListPublishersQueryOptions = <TData = Awaited<ReturnType<typeof listPublishers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublishers>>, TError, TData>>, fetch?: RequestInit}
+export const getListPublishersQueryOptions = <TData = Awaited<ReturnType<typeof listPublishers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublishers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListPublishersQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPublishers>>> = ({ signal }) => listPublishers({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPublishers>>> = ({ signal }) => listPublishers(requestOptions, signal);
 
 
 
@@ -241,7 +186,7 @@ export function useListPublishers<TData = Awaited<ReturnType<typeof listPublishe
           TError,
           Awaited<ReturnType<typeof listPublishers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPublishers<TData = Awaited<ReturnType<typeof listPublishers>>, TError = unknown>(
@@ -251,11 +196,11 @@ export function useListPublishers<TData = Awaited<ReturnType<typeof listPublishe
           TError,
           Awaited<ReturnType<typeof listPublishers>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPublishers<TData = Awaited<ReturnType<typeof listPublishers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublishers>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublishers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -263,7 +208,7 @@ export function useListPublishers<TData = Awaited<ReturnType<typeof listPublishe
  */
 
 export function useListPublishers<TData = Awaited<ReturnType<typeof listPublishers>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublishers>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublishers>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -280,54 +225,20 @@ export function useListPublishers<TData = Awaited<ReturnType<typeof listPublishe
 /**
  * @summary Get publisher details with tracked apps
  */
-export type showPublisherResponse200 = {
-  data: PublisherDetailResource
-  status: 200
-}
-
-export type showPublisherResponseSuccess = (showPublisherResponse200) & {
-  headers: Headers;
-};
-;
-
-export type showPublisherResponse = (showPublisherResponseSuccess)
-
-export const getShowPublisherUrl = (platform: 'ios' | 'android',
+export const showPublisher = (
+    platform: 'ios' | 'android',
     externalId: string,
-    params?: ShowPublisherParams,) => {
-  const normalizedParams = new URLSearchParams();
+    params?: ShowPublisherParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  Object.entries(params || {}).forEach(([key, value]) => {
 
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<PublisherDetailResource>(
+      {url: `/api/v1/publishers/${platform}/${externalId}`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/publishers/${platform}/${externalId}?${stringifiedParams}` : `/api/v1/publishers/${platform}/${externalId}`
-}
-
-export const showPublisher = async (platform: 'ios' | 'android',
-    externalId: string,
-    params?: ShowPublisherParams, options?: RequestInit): Promise<showPublisherResponse> => {
-
-  const res = await fetch(getShowPublisherUrl(platform,externalId,params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: showPublisherResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as showPublisherResponse
-}
-
 
 
 
@@ -343,16 +254,16 @@ export const getShowPublisherQueryKey = (platform: 'ios' | 'android',
 
 export const getShowPublisherQueryOptions = <TData = Awaited<ReturnType<typeof showPublisher>>, TError = unknown>(platform: 'ios' | 'android',
     externalId: string,
-    params?: ShowPublisherParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showPublisher>>, TError, TData>>, fetch?: RequestInit}
+    params?: ShowPublisherParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showPublisher>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getShowPublisherQueryKey(platform,externalId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof showPublisher>>> = ({ signal }) => showPublisher(platform,externalId,params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof showPublisher>>> = ({ signal }) => showPublisher(platform,externalId,params, requestOptions, signal);
 
 
 
@@ -374,7 +285,7 @@ export function useShowPublisher<TData = Awaited<ReturnType<typeof showPublisher
           TError,
           Awaited<ReturnType<typeof showPublisher>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useShowPublisher<TData = Awaited<ReturnType<typeof showPublisher>>, TError = unknown>(
@@ -386,13 +297,13 @@ export function useShowPublisher<TData = Awaited<ReturnType<typeof showPublisher
           TError,
           Awaited<ReturnType<typeof showPublisher>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useShowPublisher<TData = Awaited<ReturnType<typeof showPublisher>>, TError = unknown>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: ShowPublisherParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showPublisher>>, TError, TData>>, fetch?: RequestInit}
+    params?: ShowPublisherParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showPublisher>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -402,7 +313,7 @@ export function useShowPublisher<TData = Awaited<ReturnType<typeof showPublisher
 export function useShowPublisher<TData = Awaited<ReturnType<typeof showPublisher>>, TError = unknown>(
  platform: 'ios' | 'android',
     externalId: string,
-    params?: ShowPublisherParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showPublisher>>, TError, TData>>, fetch?: RequestInit}
+    params?: ShowPublisherParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof showPublisher>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -419,45 +330,18 @@ export function useShowPublisher<TData = Awaited<ReturnType<typeof showPublisher
 /**
  * @summary Fetch all apps by publisher from store
  */
-export type publisherStoreAppsResponse200 = {
-  data: PublisherStoreApps200
-  status: 200
-}
-
-export type publisherStoreAppsResponseSuccess = (publisherStoreAppsResponse200) & {
-  headers: Headers;
-};
-;
-
-export type publisherStoreAppsResponse = (publisherStoreAppsResponseSuccess)
-
-export const getPublisherStoreAppsUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
+export const publisherStoreApps = (
+    platform: 'ios' | 'android',
+    externalId: string,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
 
-
-
-  return `/api/v1/publishers/${platform}/${externalId}/store-apps`
-}
-
-export const publisherStoreApps = async (platform: 'ios' | 'android',
-    externalId: string, options?: RequestInit): Promise<publisherStoreAppsResponse> => {
-
-  const res = await fetch(getPublisherStoreAppsUrl(platform,externalId),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: publisherStoreAppsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as publisherStoreAppsResponse
-}
-
+      return orvalMutator<PublisherStoreApps200>(
+      {url: `/api/v1/publishers/${platform}/${externalId}/store-apps`, method: 'GET', signal
+    },
+      options);
+    }
 
 
 
@@ -471,16 +355,16 @@ export const getPublisherStoreAppsQueryKey = (platform: 'ios' | 'android',
 
 
 export const getPublisherStoreAppsQueryOptions = <TData = Awaited<ReturnType<typeof publisherStoreApps>>, TError = unknown>(platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publisherStoreApps>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publisherStoreApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getPublisherStoreAppsQueryKey(platform,externalId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof publisherStoreApps>>> = ({ signal }) => publisherStoreApps(platform,externalId, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publisherStoreApps>>> = ({ signal }) => publisherStoreApps(platform,externalId, requestOptions, signal);
 
 
 
@@ -501,7 +385,7 @@ export function usePublisherStoreApps<TData = Awaited<ReturnType<typeof publishe
           TError,
           Awaited<ReturnType<typeof publisherStoreApps>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePublisherStoreApps<TData = Awaited<ReturnType<typeof publisherStoreApps>>, TError = unknown>(
@@ -512,12 +396,12 @@ export function usePublisherStoreApps<TData = Awaited<ReturnType<typeof publishe
           TError,
           Awaited<ReturnType<typeof publisherStoreApps>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePublisherStoreApps<TData = Awaited<ReturnType<typeof publisherStoreApps>>, TError = unknown>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publisherStoreApps>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publisherStoreApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -526,7 +410,7 @@ export function usePublisherStoreApps<TData = Awaited<ReturnType<typeof publishe
 
 export function usePublisherStoreApps<TData = Awaited<ReturnType<typeof publisherStoreApps>>, TError = unknown>(
  platform: 'ios' | 'android',
-    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publisherStoreApps>>, TError, TData>>, fetch?: RequestInit}
+    externalId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publisherStoreApps>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -543,60 +427,34 @@ export function usePublisherStoreApps<TData = Awaited<ReturnType<typeof publishe
 /**
  * @summary Import and track apps from publisher
  */
-export type importPublisherAppsResponse204 = {
-  data: void
-  status: 204
-}
-
-export type importPublisherAppsResponseSuccess = (importPublisherAppsResponse204) & {
-  headers: Headers;
-};
-;
-
-export type importPublisherAppsResponse = (importPublisherAppsResponseSuccess)
-
-export const getImportPublisherAppsUrl = (platform: 'ios' | 'android',
-    externalId: string,) => {
-
-
-
-
-  return `/api/v1/publishers/${platform}/${externalId}/import`
-}
-
-export const importPublisherApps = async (platform: 'ios' | 'android',
+export const importPublisherApps = (
+    platform: 'ios' | 'android',
     externalId: string,
-    importPublisherAppsBody: ImportPublisherAppsBody, options?: RequestInit): Promise<importPublisherAppsResponse> => {
+    importPublisherAppsBody: ImportPublisherAppsBody,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-  const res = await fetch(getImportPublisherAppsUrl(platform,externalId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      importPublisherAppsBody,)
-  }
-)
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: importPublisherAppsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as importPublisherAppsResponse
-}
-
+      return orvalMutator<void>(
+      {url: `/api/v1/publishers/${platform}/${externalId}/import`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: importPublisherAppsBody, signal
+    },
+      options);
+    }
 
 
 
 export const getImportPublisherAppsMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importPublisherApps>>, TError,{platform: 'ios' | 'android';externalId: string;data: ImportPublisherAppsBody}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importPublisherApps>>, TError,{platform: 'ios' | 'android';externalId: string;data: ImportPublisherAppsBody}, TContext>, request?: SecondParameter<typeof orvalMutator>}
 ): UseMutationOptions<Awaited<ReturnType<typeof importPublisherApps>>, TError,{platform: 'ios' | 'android';externalId: string;data: ImportPublisherAppsBody}, TContext> => {
 
 const mutationKey = ['importPublisherApps'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -604,7 +462,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof importPublisherApps>>, {platform: 'ios' | 'android';externalId: string;data: ImportPublisherAppsBody}> = (props) => {
           const {platform,externalId,data} = props ?? {};
 
-          return  importPublisherApps(platform,externalId,data,fetchOptions)
+          return  importPublisherApps(platform,externalId,data,requestOptions)
         }
 
 
@@ -622,7 +480,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Import and track apps from publisher
  */
 export const useImportPublisherApps = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importPublisherApps>>, TError,{platform: 'ios' | 'android';externalId: string;data: ImportPublisherAppsBody}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importPublisherApps>>, TError,{platform: 'ios' | 'android';externalId: string;data: ImportPublisherAppsBody}, TContext>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof importPublisherApps>>,
         TError,

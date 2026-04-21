@@ -25,57 +25,28 @@ import type {
   StoreCategoryResource
 } from '../../models';
 
+import { orvalMutator } from '../../../lib/orval-mutator';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
 /**
  * @summary List store categories
  */
-export type listStoreCategoriesResponse200 = {
-  data: StoreCategoryResource[]
-  status: 200
-}
+export const listStoreCategories = (
+    params?: ListStoreCategoriesParams,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
 
-export type listStoreCategoriesResponseSuccess = (listStoreCategoriesResponse200) & {
-  headers: Headers;
-};
-;
 
-export type listStoreCategoriesResponse = (listStoreCategoriesResponseSuccess)
-
-export const getListStoreCategoriesUrl = (params?: ListStoreCategoriesParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      return orvalMutator<StoreCategoryResource[]>(
+      {url: `/api/v1/store-categories`, method: 'GET',
+        params, signal
+    },
+      options);
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/v1/store-categories?${stringifiedParams}` : `/api/v1/store-categories`
-}
-
-export const listStoreCategories = async (params?: ListStoreCategoriesParams, options?: RequestInit): Promise<listStoreCategoriesResponse> => {
-
-  const res = await fetch(getListStoreCategoriesUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listStoreCategoriesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listStoreCategoriesResponse
-}
-
 
 
 
@@ -87,16 +58,16 @@ export const getListStoreCategoriesQueryKey = (params?: ListStoreCategoriesParam
     }
 
 
-export const getListStoreCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listStoreCategories>>, TError = unknown>(params?: ListStoreCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStoreCategories>>, TError, TData>>, fetch?: RequestInit}
+export const getListStoreCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listStoreCategories>>, TError = unknown>(params?: ListStoreCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStoreCategories>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getListStoreCategoriesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStoreCategories>>> = ({ signal }) => listStoreCategories(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listStoreCategories>>> = ({ signal }) => listStoreCategories(params, requestOptions, signal);
 
 
 
@@ -116,7 +87,7 @@ export function useListStoreCategories<TData = Awaited<ReturnType<typeof listSto
           TError,
           Awaited<ReturnType<typeof listStoreCategories>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListStoreCategories<TData = Awaited<ReturnType<typeof listStoreCategories>>, TError = unknown>(
@@ -126,11 +97,11 @@ export function useListStoreCategories<TData = Awaited<ReturnType<typeof listSto
           TError,
           Awaited<ReturnType<typeof listStoreCategories>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListStoreCategories<TData = Awaited<ReturnType<typeof listStoreCategories>>, TError = unknown>(
- params?: ListStoreCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStoreCategories>>, TError, TData>>, fetch?: RequestInit}
+ params?: ListStoreCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStoreCategories>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -138,7 +109,7 @@ export function useListStoreCategories<TData = Awaited<ReturnType<typeof listSto
  */
 
 export function useListStoreCategories<TData = Awaited<ReturnType<typeof listStoreCategories>>, TError = unknown>(
- params?: ListStoreCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStoreCategories>>, TError, TData>>, fetch?: RequestInit}
+ params?: ListStoreCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listStoreCategories>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
