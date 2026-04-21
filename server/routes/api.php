@@ -50,6 +50,9 @@ Route::prefix('v1')->group(function () {
             Route::get('keywords', [V1\App\KeywordController::class, 'index']);
             Route::get('keywords/compare', [V1\App\KeywordController::class, 'compare']);
             Route::get('rankings', [V1\App\AppRankingController::class, 'index']);
+            Route::get('ratings/summary', [V1\App\RatingController::class, 'summary']);
+            Route::get('ratings/history', [V1\App\RatingController::class, 'history']);
+            Route::get('ratings/country-breakdown', [V1\App\RatingController::class, 'countryBreakdown']);
             Route::post('sync', [V1\App\AppController::class, 'sync']);
             Route::get('sync-status', [V1\App\AppController::class, 'syncStatus']);
         });

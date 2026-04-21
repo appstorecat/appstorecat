@@ -28,6 +28,7 @@ import VersionsTab from '@/components/tabs/VersionsTab'
 import CompetitorsTab from '@/components/tabs/CompetitorsTab'
 import KeywordsTab from '@/components/tabs/KeywordsTab'
 import RankingsTab from '@/components/tabs/RankingsTab'
+import RatingsTab from '@/components/tabs/RatingsTab'
 import QueryError from '@/components/QueryError'
 import SyncingOverlay from '@/components/SyncingOverlay'
 import PartialSyncBanner from '@/components/PartialSyncBanner'
@@ -305,6 +306,7 @@ export default function AppsShow() {
                 ['competitors', 'Competitors'],
                 ['keywords', 'Keyword Density'],
                 ['rankings', 'Rankings'],
+                ['ratings', 'Ratings'],
                 ['changes', 'Changes'],
                 ['versions', 'Versions'],
               ] as [string, string][]).map(([value, label]) => (
@@ -370,6 +372,12 @@ export default function AppsShow() {
                     platform={app.platform}
                     externalId={app.external_id}
                     selectedCountry={selectedCountry}
+                  />
+                )}
+                {activeTab === 'ratings' && (
+                  <RatingsTab
+                    platform={app.platform}
+                    externalId={app.external_id}
                   />
                 )}
                 {activeTab === 'changes' && (
