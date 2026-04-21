@@ -1,30 +1,30 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
+import {
+  getAppSyncStatusQueryKey,
+  getShowAppQueryKey,
+  useAppSyncStatus,
+  useSyncApp,
+} from '@/api/endpoints/apps/apps'
+import type {
+  SyncStatusResource,
+  SyncStatusResourceFailedItemsItem,
+} from '@/api/models'
 
-export interface FailedItem {
-  type: 'listing' | 'metric'
-  country?: string
-  language?: string
-  reason?: string
-  retry_count?: number
-  permanent_failure?: boolean
-  next_retry_at?: string | null
-  last_error?: string | null
-}
-
-export interface SyncStatus {
-  app_id: number
-  status: 'queued' | 'processing' | 'completed' | 'failed'
-  current_step: 'identity' | 'listings' | 'metrics' | 'finalize' | 'reconciling' | null
-  progress: { done: number; total: number }
-  failed_items: FailedItem[]
+// Re-export the Orval resource under legacy names so existing consumers
+// (PartialSyncBanner, SyncingOverlay) keep working without edits. The runtime
+// contract asserts that `progress`, `failed_items`, `failed_items_count`, and
+// `status` are always populated by the API — narrow the optional resource
+// shape to that contract for component ergonomics.
+export type FailedItem = SyncStatusResourceFailedItemsItem
+export type SyncStatus = SyncStatusResource & {
+  status: NonNullable<SyncStatusResource['status']>
+  progress: NonNullable<SyncStatusResource['progress']> & {
+    done: number
+    total: number
+  }
+  failed_items: SyncStatusResourceFailedItemsItem[]
   failed_items_count: number
-  error_message: string | null
-  job_id: string | null
-  started_at: string | null
-  completed_at: string | null
-  next_retry_at: string | null
   elapsed_ms: number | null
 }
 
@@ -38,19 +38,21 @@ export function useSyncStatus(
   const queryClient = useQueryClient()
   const triggeredRef = useRef(false)
 
-  const query = useQuery<SyncStatus>({
-    queryKey: ['sync-status', platform, externalId],
-    queryFn: async () => {
-      const res = await axios.get(`/apps/${platform}/${externalId}/sync-status`)
-      return res.data
-    },
-    enabled,
-    refetchInterval: (q) => {
-      const data = q.state.data
-      if (!data) return 2000
-      return data.status === 'queued' || data.status === 'processing' ? 2000 : false
+  const narrowPlatform = (platform ?? 'ios') as 'ios' | 'android'
+  const narrowExternalId = externalId ?? ''
+
+  const query = useAppSyncStatus<SyncStatus>(narrowPlatform, narrowExternalId, {
+    query: {
+      enabled,
+      refetchInterval: (q) => {
+        const data = q.state.data
+        if (!data) return 2000
+        return data.status === 'queued' || data.status === 'processing' ? 2000 : false
+      },
     },
   })
+
+  const syncMutation = useSyncApp()
 
   // Auto-dispatch a sync job if the app has never been synced and no active
   // sync is in flight. Runs once per mount.
@@ -61,24 +63,28 @@ export function useSyncStatus(
       !data.completed_at && data.status !== 'processing' && data.status !== 'queued'
     if (needsSync && !triggeredRef.current) {
       triggeredRef.current = true
-      axios.post(`/apps/${platform}/${externalId}/sync`).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['sync-status', platform, externalId] })
-      })
+      syncMutation.mutate(
+        { platform: narrowPlatform, externalId: narrowExternalId },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({
+              queryKey: getAppSyncStatusQueryKey(narrowPlatform, narrowExternalId),
+            })
+          },
+        },
+      )
     }
-  }, [autoTrigger, platform, externalId, query.data, queryClient])
+  }, [autoTrigger, platform, externalId, query.data, queryClient, syncMutation, narrowPlatform, narrowExternalId])
 
   // When a sync transitions to completed, invalidate the app detail query so
   // the UI picks up freshly-synced listings/metrics.
   useEffect(() => {
-    if (query.data?.status === 'completed' && query.data.progress.done > 0) {
-      queryClient.invalidateQueries({ queryKey: ['apps', platform, externalId] })
+    if (query.data?.status === 'completed' && (query.data.progress?.done ?? 0) > 0) {
+      queryClient.invalidateQueries({
+        queryKey: getShowAppQueryKey(narrowPlatform, narrowExternalId),
+      })
     }
-  }, [query.data?.status, query.data?.progress.done, queryClient, platform, externalId])
+  }, [query.data?.status, query.data?.progress?.done, queryClient, narrowPlatform, narrowExternalId])
 
   return query
-}
-
-export async function triggerSync(platform: string, externalId: string): Promise<SyncStatus> {
-  const res = await axios.post(`/apps/${platform}/${externalId}/sync`)
-  return res.data
 }

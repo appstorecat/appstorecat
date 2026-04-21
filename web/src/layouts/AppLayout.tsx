@@ -1,5 +1,4 @@
 import { Outlet, Link, useLocation, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import {
   Building2,
   TrendingUp,
@@ -37,25 +36,25 @@ import {
 import AppLogo from '@/components/AppLogo'
 import NavUser from '@/components/NavUser'
 import Breadcrumbs, { type BreadcrumbItemData } from '@/components/Breadcrumbs'
-import axios from '@/lib/axios'
+import { useShowApp } from '@/api/endpoints/apps/apps'
+import type { AppDetailResource } from '@/api/models'
 import { useEffect } from 'react'
 
-function useAppData() {
+function useAppData(): AppDetailResource | null {
   const params = useParams()
   const location = useLocation()
   const isAppPage = location.pathname.startsWith('/apps/') && !!params.platform && !!params.externalId
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data } = useQuery<any>({
-    queryKey: ['apps', params.platform, params.externalId],
-    queryFn: () => axios.get(`/apps/${params.platform}/${params.externalId}`).then((r) => r.data),
-    enabled: isAppPage,
-  })
+  const { data } = useShowApp(
+    (params.platform ?? 'ios') as 'ios' | 'android',
+    params.externalId ?? '',
+    { query: { enabled: isAppPage } },
+  )
 
-  return isAppPage ? data : null
+  return isAppPage ? (data ?? null) : null
 }
 
-function usePageTitle(app: { name?: string } | null) {
+function usePageTitle(app: AppDetailResource | null) {
   const location = useLocation()
 
   useEffect(() => {
@@ -79,7 +78,7 @@ function usePageTitle(app: { name?: string } | null) {
   }, [location.pathname, app?.name])
 }
 
-function useBreadcrumbs(app: { name?: string; platform?: string; publisher?: { name?: string; external_id?: string; platform?: string } } | null): BreadcrumbItemData[] {
+function useBreadcrumbs(app: AppDetailResource | null): BreadcrumbItemData[] {
   const location = useLocation()
   const path = location.pathname
 

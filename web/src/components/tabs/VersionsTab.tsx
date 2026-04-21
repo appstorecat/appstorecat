@@ -1,18 +1,10 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { History } from 'lucide-react'
-
-interface AppVersionData {
-  id: number
-  version: string
-  release_date: string | null
-  whats_new: string | null
-  file_size_bytes: number | null
-  created_at: string
-}
+import type { VersionResource } from '@/api/models/versionResource'
 
 interface VersionsTabProps {
-  versions: AppVersionData[]
+  versions: VersionResource[]
 }
 
 function formatBytes(bytes: number | null): string {

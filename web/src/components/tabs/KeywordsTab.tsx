@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,7 +8,6 @@ import {
   type ColumnDef,
   flexRender,
 } from '@tanstack/react-table'
-import axios from '@/lib/axios'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,37 +24,20 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Search, ChevronsUpDown, ArrowUpDown, ArrowUp, ArrowDown, X, Plus } from 'lucide-react'
+import { useAppKeywords, useCompareKeywords } from '@/api/endpoints/apps/apps'
+import type { AppVersion } from '@/api/models/appVersion'
+import type { KeywordDensityResource } from '@/api/models/keywordDensityResource'
+import type { KeywordCompareResourceAppsItem } from '@/api/models/keywordCompareResourceAppsItem'
+import type { KeywordCompareResourceKeywords } from '@/api/models/keywordCompareResourceKeywords'
+import type { AppKeywordsNgram } from '@/api/models/appKeywordsNgram'
+import type { CompareKeywordsNgram } from '@/api/models/compareKeywordsNgram'
 
 // --- Types ---
-
-interface AppVersionData {
-  id: number
-  version: string
-}
-
-interface KeywordData {
-  id: number
-  keyword: string
-  count: number
-  density: number
-}
-
-interface CompareApp {
-  id: number
-  name: string
-  icon_url: string | null
-  versions: { id: number; version: string }[]
-}
-
-interface CompareResponse {
-  apps: CompareApp[]
-  keywords: Record<string, Record<string, { count: number; density: number }>>
-}
 
 interface KeywordsTabProps {
   platform: string
   externalId: string
-  versions: AppVersionData[]
+  versions: AppVersion[]
   selectedLocale: string
   selectedVersion: string
   allApps: { id: number; name: string; icon_url?: string | null }[]
@@ -104,42 +85,53 @@ function getDensityColor(density: number): string {
 export default function KeywordsTab({ platform, externalId, versions, selectedLocale, selectedVersion, allApps }: KeywordsTabProps) {
   const sortedVersions = useMemo(() => [...versions].sort((a, b) => b.id - a.id), [versions])
   const latestVersionId = sortedVersions[0]?.id
-  const selectedVersionId = selectedVersion === 'latest' ? String(latestVersionId ?? '') : selectedVersion
+  const selectedVersionId = selectedVersion === 'latest' ? (latestVersionId ?? null) : Number(selectedVersion)
   const [selectedNgram, setSelectedNgram] = useState<string>('1')
   const [compareAppIds, setCompareAppIds] = useState<number[]>([])
   const [compareVersionIds, setCompareVersionIds] = useState<Record<number, number>>({})
 
-  const { data: keywords, isLoading } = useQuery({
-    queryKey: ['keywords', platform, externalId, selectedVersionId, selectedLocale, selectedNgram],
-    queryFn: () =>
-      axios
-        .get(`/apps/${platform}/${externalId}/keywords`, {
-          params: { version_id: selectedVersionId, locale: selectedLocale, ngram: selectedNgram },
-        })
-        .then((r) => r.data as KeywordData[]),
-    enabled: !!selectedVersionId && !!selectedLocale,
-  })
+  // Platform type coercion at the tab boundary — backend enum is lowercase.
+  const platformParam = platform as 'ios' | 'android'
+  const ngramNumber = Number(selectedNgram)
 
-  const { data: compareData } = useQuery({
-    queryKey: ['keywords-compare', platform, externalId, compareAppIds, compareVersionIds, selectedLocale, selectedNgram],
-    queryFn: () => {
-      const versionIdsParam: Record<string, number> = {}
-      compareAppIds.forEach((id) => {
-        if (compareVersionIds[id]) versionIdsParam[String(id)] = compareVersionIds[id]
-      })
-      return axios
-        .get(`/apps/${platform}/${externalId}/keywords/compare`, {
-          params: {
-            app_ids: compareAppIds,
-            version_ids: Object.keys(versionIdsParam).length > 0 ? versionIdsParam : undefined,
-            locale: selectedLocale,
-            ngram: selectedNgram,
-          },
-        })
-        .then((r) => r.data as CompareResponse)
+  const { data: keywords, isLoading } = useAppKeywords(
+    platformParam,
+    externalId,
+    {
+      version_id: selectedVersionId ?? undefined,
+      locale: selectedLocale,
+      ngram: ngramNumber as AppKeywordsNgram,
     },
-    enabled: compareAppIds.length > 0 && !!selectedLocale,
-  })
+    {
+      query: {
+        enabled: !!selectedVersionId && !!selectedLocale,
+      },
+    },
+  )
+
+  const versionIdsParam = useMemo(() => {
+    const map: Record<string, number> = {}
+    compareAppIds.forEach((id) => {
+      if (compareVersionIds[id]) map[String(id)] = compareVersionIds[id]
+    })
+    return Object.keys(map).length > 0 ? map : undefined
+  }, [compareAppIds, compareVersionIds])
+
+  const { data: compareData } = useCompareKeywords(
+    platformParam,
+    externalId,
+    {
+      app_ids: compareAppIds,
+      version_ids: versionIdsParam,
+      locale: selectedLocale,
+      ngram: ngramNumber as CompareKeywordsNgram,
+    },
+    {
+      query: {
+        enabled: compareAppIds.length > 0 && !!selectedLocale,
+      },
+    },
+  )
 
   const addCompareApp = (id: number) => {
     if (compareAppIds.length >= 5 || compareAppIds.includes(id)) return
@@ -308,9 +300,9 @@ function KeywordTable({
   compareKeywords,
   compareAppIds,
 }: {
-  keywords: KeywordData[]
-  compareApps: CompareApp[]
-  compareKeywords: Record<string, Record<string, { count: number; density: number }>>
+  keywords: KeywordDensityResource[]
+  compareApps: KeywordCompareResourceAppsItem[]
+  compareKeywords: KeywordCompareResourceKeywords
   compareAppIds: number[]
 }) {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -320,14 +312,16 @@ function KeywordTable({
 
   const getCompareData = useCallback(
     (keyword: string, appId: number): { count: number; density: number } | null => {
-      return compareKeywords[String(appId)]?.[keyword] ?? null
+      const raw = compareKeywords[String(appId)]?.[keyword]
+      if (!raw) return null
+      return { count: raw.count ?? 0, density: raw.density ?? 0 }
     },
     [compareKeywords],
   )
 
   const tableData: KeywordRow[] = useMemo(() => {
     const rows: KeywordRow[] = keywords.map((kw) => {
-      const row: KeywordRow = { id: kw.id, keyword: kw.keyword, count: kw.count, density: kw.density }
+      const row: KeywordRow = { id: kw.keyword, keyword: kw.keyword, count: kw.count, density: kw.density }
       compareAppIds.forEach((id) => { row[`comp_${id}`] = getCompareData(kw.keyword, id) })
       return row
     })

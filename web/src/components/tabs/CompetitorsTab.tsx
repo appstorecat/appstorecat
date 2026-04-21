@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import axios from '@/lib/axios'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -23,44 +22,24 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BookmarkPlus, Plus, Search, Loader2, Trash2, Users } from 'lucide-react'
-
-interface CompetitorApp {
-  id: number
-  name: string
-  platform: string
-  external_id: string
-  publisher: { id: number; name: string; url?: string } | null
-  category: { id: number; name: string; slug: string } | null
-  icon_url: string | null
-  rating: number | null
-  rating_count: number | null
-  version: string | null
-  last_build_at: string | null
-  created_at: string
-}
-
-interface Competitor {
-  id: number
-  relationship: string
-  app: CompetitorApp
-  created_at: string
-}
+import {
+  useSearchApps,
+  useStoreCompetitor,
+  useDeleteCompetitor,
+  getListCompetitorsQueryKey,
+  getShowAppQueryKey,
+} from '@/api/endpoints/apps/apps'
+import type { CompetitorResource } from '@/api/models/competitorResource'
+import type { SearchAppsPlatform } from '@/api/models/searchAppsPlatform'
+import { StoreCompetitorRequestRelationship } from '@/api/models/storeCompetitorRequestRelationship'
 
 interface CompetitorsTabProps {
-  competitors: Competitor[]
+  competitors: CompetitorResource[]
   platform: string
   externalId: string
   isTracked: boolean
   onTrack: () => void
   trackLoading: boolean
-}
-
-interface SearchResult {
-  id: number
-  external_id: string
-  name: string
-  publisher_name: string
-  icon_url: string | null
 }
 
 const relationshipLabels: Record<string, string> = {
@@ -73,75 +52,83 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [searching, setSearching] = useState(false)
+  const [debouncedTerm, setDebouncedTerm] = useState('')
   const [selectedExternalId, setSelectedExternalId] = useState('')
-  const [relationship, setRelationship] = useState('direct')
-  const [submitting, setSubmitting] = useState(false)
-  const [deleting, setDeleting] = useState<number | null>(null)
+  const [relationship, setRelationship] = useState<StoreCompetitorRequestRelationship>(
+    StoreCompetitorRequestRelationship.direct,
+  )
 
-  const search = useCallback(async (term: string) => {
-    if (term.length < 2) {
-      setSearchResults([])
-      return
-    }
-    setSearching(true)
-    try {
-      const { data } = await axios.get(`/apps/search?term=${encodeURIComponent(term)}&platform=${platform}`)
-      setSearchResults(data)
-    } catch {
-      setSearchResults([])
-    } finally {
-      setSearching(false)
-    }
-  }, [platform])
+  // Platform comes from the parent route as a plain string. Backend enum is
+  // lowercase 'ios' | 'android'; coerce at the boundary without widening.
+  const platformParam = platform as SearchAppsPlatform
+  const platformForUrl = platform as 'ios' | 'android'
 
   useEffect(() => {
     if (selectedExternalId) return
-    const timeout = setTimeout(() => search(searchQuery), 400)
-    return () => clearTimeout(timeout)
-  }, [searchQuery, search, selectedExternalId])
+    const handle = setTimeout(() => setDebouncedTerm(searchQuery.trim()), 400)
+    return () => clearTimeout(handle)
+  }, [searchQuery, selectedExternalId])
+
+  const searchEnabled = debouncedTerm.length >= 2 && !selectedExternalId
+  const { data: searchResults = [], isFetching: searching } = useSearchApps(
+    { term: debouncedTerm, platform: platformParam },
+    { query: { enabled: searchEnabled } },
+  )
+
+  const storeCompetitorMutation = useStoreCompetitor()
+  const deleteCompetitorMutation = useDeleteCompetitor()
+
+  const invalidateApp = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: getShowAppQueryKey(platformForUrl, externalId) })
+    queryClient.invalidateQueries({ queryKey: getListCompetitorsQueryKey(platformForUrl, externalId) })
+    queryClient.invalidateQueries({ queryKey: ['apps', platform, externalId] })
+    queryClient.invalidateQueries({ queryKey: ['competitor-apps', platform, externalId] })
+  }, [queryClient, platformForUrl, externalId, platform])
 
   const handleSubmit = async () => {
     const selected = searchResults.find((r) => r.external_id === selectedExternalId)
     if (!selected) return
-    setSubmitting(true)
     try {
-      await axios.post(`/apps/${platform}/${externalId}/competitors`, {
-        competitor_app_id: selected.id,
-        relationship,
+      await storeCompetitorMutation.mutateAsync({
+        platform: platformForUrl,
+        externalId,
+        data: {
+          competitor_app_id: selected.id,
+          relationship,
+        },
       })
-
-      queryClient.invalidateQueries({ queryKey: ['apps', platform, externalId] })
-      queryClient.invalidateQueries({ queryKey: ['competitor-apps', platform, externalId] })
+      invalidateApp()
       resetForm()
       setOpen(false)
     } catch {
       // ignore
-    } finally {
-      setSubmitting(false)
     }
   }
 
   const handleDelete = async (competitorId: number) => {
-    setDeleting(competitorId)
     try {
-      await axios.delete(`/apps/${platform}/${externalId}/competitors/${competitorId}`)
-      queryClient.invalidateQueries({ queryKey: ['apps', platform, externalId] })
-      queryClient.invalidateQueries({ queryKey: ['competitor-apps', platform, externalId] })
+      await deleteCompetitorMutation.mutateAsync({
+        platform: platformForUrl,
+        externalId,
+        competitor: competitorId,
+      })
+      invalidateApp()
     } catch {
       // ignore
-    } finally {
-      setDeleting(null)
     }
   }
 
   const resetForm = () => {
     setSearchQuery('')
-    setSearchResults([])
+    setDebouncedTerm('')
     setSelectedExternalId('')
-    setRelationship('direct')
+    setRelationship(StoreCompetitorRequestRelationship.direct)
   }
+
+  const submitting = storeCompetitorMutation.isPending
+  const deletingId = deleteCompetitorMutation.isPending
+    ? deleteCompetitorMutation.variables?.competitor ?? null
+    : null
 
   if (competitors.length === 0) {
     return (
@@ -221,7 +208,7 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{result.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {((result as Record<string, any>).publisher?.name || '—').slice(0, 30)}
+                      {(result.publisher?.name ?? result.publisher_name ?? '—').slice(0, 30)}
                     </p>
                   </div>
                 </button>
@@ -231,7 +218,10 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
 
           <div className="space-y-2">
             <Label>Relationship</Label>
-            <Select value={relationship} onValueChange={(v) => v && setRelationship(v)}>
+            <Select
+              value={relationship}
+              onValueChange={(v) => v && setRelationship(v as StoreCompetitorRequestRelationship)}
+            >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="direct">Direct</SelectItem>
@@ -302,9 +292,9 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
               size="icon"
               className="shrink-0 text-muted-foreground hover:text-destructive"
               onClick={() => handleDelete(competitor.id)}
-              disabled={deleting === competitor.id}
+              disabled={deletingId === competitor.id}
             >
-              {deleting === competitor.id ? (
+              {deletingId === competitor.id ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Trash2 className="h-4 w-4" />

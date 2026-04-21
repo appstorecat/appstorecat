@@ -1,11 +1,20 @@
-import { useState } from 'react'
+import type { ComponentProps } from 'react'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import CountrySelect, { useCountries } from '@/components/CountrySelect'
 import LanguageSelect from '@/components/LanguageSelect'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useParams, useSearchParams } from 'react-router-dom'
-import axios from '@/lib/axios'
+import {
+  getListAppsQueryKey,
+  getListCompetitorsQueryKey,
+  getShowAppQueryKey,
+  useListCompetitors,
+  useShowApp,
+  useTrackApp,
+  useUntrackApp,
+} from '@/api/endpoints/apps/apps'
+import type { AppDetailResource, VersionResource } from '@/api/models'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,13 +43,13 @@ import SyncingOverlay from '@/components/SyncingOverlay'
 import PartialSyncBanner from '@/components/PartialSyncBanner'
 import { useSyncStatus } from '@/hooks/useSyncStatus'
 
-function formatBytes(bytes: number | null): string {
+function formatBytes(bytes: number | null | undefined): string {
   if (!bytes) return ''
   const mb = bytes / (1024 * 1024)
   return `${mb.toFixed(1)} MB`
 }
 
-function formatRatingCount(count: number | null): string {
+function formatRatingCount(count: number | null | undefined): string {
   if (!count) return ''
   if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`
   if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`
@@ -51,10 +60,9 @@ const IosSvg = AppStoreSvg
 const AndroidSvg = GooglePlaySvg
 
 export default function AppsShow() {
-  const { platform, externalId } = useParams()
+  const { platform, externalId } = useParams<{ platform: 'ios' | 'android'; externalId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
   const queryClient = useQueryClient()
-  const [tracking, setTracking] = useState(false)
 
   const activeTab = searchParams.get('tab') || 'store_listing'
   const setActiveTab = (tab: string) => {
@@ -108,36 +116,49 @@ export default function AppsShow() {
     }, { replace: true })
   }
 
-  const { data: app, isLoading, isError, refetch } = useQuery({
-    queryKey: ['apps', platform, externalId],
-    queryFn: () => axios.get(`/apps/${platform}/${externalId}`).then((r) => r.data),
-  })
+  const { data: app, isLoading, isError, refetch } = useShowApp(
+    platform as 'ios' | 'android',
+    externalId as string,
+    { query: { enabled: !!platform && !!externalId } },
+  )
 
   const { data: syncStatus } = useSyncStatus(platform, externalId, { enabled: !!app })
   const isSyncing = syncStatus?.status === 'queued' || syncStatus?.status === 'processing'
 
-  const { data: competitorAppsForCompare } = useQuery({
-    queryKey: ['competitor-apps', platform, externalId],
-    queryFn: () => axios.get(`/apps/${platform}/${externalId}/competitors`).then((r) => (r.data ?? []).map((c: { app: { id: number; name: string; icon_url: string | null } }) => ({ id: c.app.id, name: c.app.name, icon_url: c.app.icon_url }))),
-    enabled: !!platform && !!externalId && app?.is_tracked === true,
-  })
+  const { data: competitorAppsForCompare } = useListCompetitors(
+    platform as 'ios' | 'android',
+    externalId as string,
+    {
+      query: {
+        enabled: !!platform && !!externalId && app?.is_tracked === true,
+        select: (competitors) =>
+          competitors.map((c) => ({
+            id: c.app.id,
+            name: c.app.name,
+            icon_url: c.app.icon_url ?? null,
+          })),
+      },
+    },
+  )
+
+  const trackMutation = useTrackApp()
+  const untrackMutation = useUntrackApp()
+  const tracking = trackMutation.isPending || untrackMutation.isPending
 
   const toggleTrack = async () => {
-    if (!app) return
-    setTracking(true)
+    if (!app || !platform || !externalId) return
     try {
       if (app.is_tracked) {
-        await axios.delete(`/apps/${platform}/${externalId}/track`)
+        await untrackMutation.mutateAsync({ platform, externalId })
       } else {
-        await axios.post(`/apps/${platform}/${externalId}/track`)
+        await trackMutation.mutateAsync({ platform, externalId })
       }
-      queryClient.invalidateQueries({ queryKey: ['apps', platform, externalId] })
-      queryClient.removeQueries({ queryKey: ['competitor-apps', platform, externalId] })
+      queryClient.invalidateQueries({ queryKey: getShowAppQueryKey(platform, externalId) })
+      queryClient.removeQueries({ queryKey: getListCompetitorsQueryKey(platform, externalId) })
+      queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() })
       queryClient.invalidateQueries({ queryKey: ['keywords-compare'] })
     } catch {
       // ignore
-    } finally {
-      setTracking(false)
     }
   }
 
@@ -155,27 +176,40 @@ export default function AppsShow() {
 
   if (!app) return null
 
+  // At runtime the backend always fills these fields; narrow here to avoid
+  // repeatedly asserting them at each render site.
+  const detail = app as Required<Pick<AppDetailResource, 'platform' | 'external_id'>> & AppDetailResource
+  const versions = detail.versions ?? []
+  const listings = detail.listings ?? []
+  const hasListingsOrVersions = listings.length > 0 || versions.length > 0
+  const sortedVersions = [...versions].sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+  const latestVersion = sortedVersions[0]
+  const activeVersion: VersionResource | undefined =
+    selectedVersion === 'latest'
+      ? latestVersion
+      : sortedVersions.find((v) => String(v.id) === selectedVersion)
+
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
       {/* App Header */}
       <div className="flex items-start gap-4 sm:gap-5">
         <div className="relative shrink-0">
-          {app.icon_url ? (
+          {detail.icon_url ? (
             <img
-              src={app.icon_url}
-              alt={app.name}
-              className={`h-16 w-16 rounded-2xl shadow-md sm:h-24 sm:w-24 sm:rounded-[20px] ${app.is_available === false ? 'opacity-70' : ''}`}
+              src={detail.icon_url}
+              alt={detail.name}
+              className={`h-16 w-16 rounded-2xl shadow-md sm:h-24 sm:w-24 sm:rounded-[20px] ${detail.is_available === false ? 'opacity-70' : ''}`}
             />
           ) : (
-            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-muted shadow-md sm:h-24 sm:w-24 sm:rounded-[20px] ${app.is_available === false ? 'opacity-50' : ''}`}>
-              {app.platform === 'ios' ? (
+            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-muted shadow-md sm:h-24 sm:w-24 sm:rounded-[20px] ${detail.is_available === false ? 'opacity-50' : ''}`}>
+              {detail.platform === 'ios' ? (
                 <IosSvg className="h-7 w-7 text-muted-foreground sm:h-10 sm:w-10" />
               ) : (
                 <AndroidSvg className="h-7 w-7 text-muted-foreground sm:h-10 sm:w-10" />
               )}
             </div>
           )}
-          {app.is_available === false && (
+          {detail.is_available === false && (
             <div className="absolute inset-x-0 bottom-0 rounded-b-2xl bg-red-900/80 py-0.5 text-center text-[9px] font-semibold text-red-200 sm:rounded-b-[20px] sm:py-1 sm:text-[10px]">
               Removed
             </div>
@@ -184,35 +218,34 @@ export default function AppsShow() {
 
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-lg font-bold sm:text-2xl">{app.name}</h1>
-            {app.platform === 'ios' ? <IosSvg /> : <AndroidSvg />}
+            <h1 className="truncate text-lg font-bold sm:text-2xl">{detail.name}</h1>
+            {detail.platform === 'ios' ? <IosSvg /> : <AndroidSvg />}
           </div>
 
           <p className="text-sm text-muted-foreground">
-            {app.publisher?.name || '\u2014'}
+            {detail.publisher?.name || '\u2014'}
           </p>
 
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground [&>span:not(:first-child)]:before:mr-1.5 [&>span:not(:first-child)]:before:content-['·']">
-            {app.category?.name && <span>{app.category.name}</span>}
-            {app.rating && Number(app.rating) > 0 ? (
+            {detail.category?.name && <span>{detail.category.name}</span>}
+            {detail.rating && Number(detail.rating) > 0 ? (
               <span className="flex items-center gap-0.5">
                 <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                {Number(app.rating).toFixed(1)}
-                {app.rating_count && (
+                {Number(detail.rating).toFixed(1)}
+                {detail.rating_count && (
                   <span className="text-muted-foreground/50">
-                    ({formatRatingCount(app.rating_count)})
+                    ({formatRatingCount(detail.rating_count)})
                   </span>
                 )}
               </span>
             ) : (
               <span className="text-muted-foreground/50">No Ratings</span>
             )}
-            {app.version && <span>v{app.version}</span>}
-            {app.file_size_bytes && <span>{formatBytes(app.file_size_bytes)}</span>}
-            {app.content_rating && <span>{app.content_rating}</span>}
+            {detail.version && <span>v{detail.version}</span>}
+            {detail.file_size_bytes && <span>{formatBytes(detail.file_size_bytes)}</span>}
             <span>
               <Badge variant="outline" className="text-[10px]">
-                {app.is_free ? 'Free' : 'Paid'}
+                {detail.is_free ? 'Free' : 'Paid'}
               </Badge>
             </span>
           </div>
@@ -221,19 +254,19 @@ export default function AppsShow() {
         <div className="flex shrink-0 flex-col items-end justify-between sm:min-h-24">
           <div className="flex items-center gap-2">
             <Button
-              variant={app.is_tracked ? 'outline' : 'default'}
+              variant={detail.is_tracked ? 'outline' : 'default'}
               size="sm"
               onClick={toggleTrack}
               disabled={tracking}
             >
               {tracking ? (
                 <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : app.is_tracked ? (
+              ) : detail.is_tracked ? (
                 <BookmarkMinus className="mr-1 h-4 w-4" />
               ) : (
                 <BookmarkPlus className="mr-1 h-4 w-4" />
               )}
-              {app.is_tracked ? 'Untrack' : 'Track'}
+              {detail.is_tracked ? 'Untrack' : 'Track'}
             </Button>
 
             <DropdownMenu>
@@ -242,22 +275,22 @@ export default function AppsShow() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
-                  render={<a href={app.platform === 'ios' ? `https://apps.apple.com/app/id${app.external_id}` : `https://play.google.com/store/apps/details?id=${app.external_id}`} target="_blank" rel="noopener noreferrer" />}
+                  render={<a href={detail.platform === 'ios' ? `https://apps.apple.com/app/id${detail.external_id}` : `https://play.google.com/store/apps/details?id=${detail.external_id}`} target="_blank" rel="noopener noreferrer" />}
                 >
                   <ExternalLink className="h-4 w-4" />
-                  {app.platform === 'ios' ? 'App Store' : 'Play Store'}
+                  {detail.platform === 'ios' ? 'App Store' : 'Play Store'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          {(app.listings?.length > 0 || app.versions?.length > 0) && (
+          {hasListingsOrVersions && (
             <div className="flex items-center gap-2">
               <CountrySelect
                 value={selectedCountry}
                 onChange={setSelectedCountry}
                 className="w-[160px]"
-                disabledCodes={app.unavailable_countries ?? []}
+                disabledCodes={detail.unavailable_countries ?? []}
               />
               {localesForCountry.length > 1 && (
                 <LanguageSelect
@@ -267,17 +300,15 @@ export default function AppsShow() {
                   className="w-[150px]"
                 />
               )}
-              {app.versions?.length > 0 && (
+              {versions.length > 0 && (
                 <Select value={selectedVersion} onValueChange={setSelectedVersion}>
                   <SelectTrigger className="w-[120px]">
                     <SelectValue>
-                      {selectedVersion === 'latest'
-                        ? `v${[...app.versions].sort((a: { id: number }, b: { id: number }) => b.id - a.id)[0]?.version}`
-                        : `v${app.versions.find((v: { id: number }) => String(v.id) === selectedVersion)?.version ?? ''}`}
+                      {activeVersion ? `v${activeVersion.version}` : ''}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {[...app.versions].sort((a: { id: number }, b: { id: number }) => b.id - a.id).map((v: { id: number; version: string }, i: number) => (
+                    {sortedVersions.map((v, i) => (
                       <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
                         {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
                       </SelectItem>
@@ -296,7 +327,7 @@ export default function AppsShow() {
       )}
 
       {/* Tabs — only show when app has data AND no active sync */}
-      {!isSyncing && (app.listings?.length > 0 || app.versions?.length > 0) && (
+      {!isSyncing && hasListingsOrVersions && (
         <>
           {/* Tab bar */}
           <div className="-mx-4 overflow-x-auto px-4">
@@ -336,32 +367,34 @@ export default function AppsShow() {
               <>
                 {activeTab === 'store_listing' && (
                   <StoreListingTab
-                    listings={app.listings ?? []}
-                    versions={app.versions ?? []}
-                    platform={app.platform}
-                    externalId={app.external_id}
+                    listings={listings}
+                    versions={versions}
+                    platform={detail.platform}
+                    externalId={detail.external_id}
                     selectedLocale={effectiveLocale}
                     selectedCountry={selectedCountry}
                     selectedCountryName={currentCountry?.name}
                     selectedVersion={selectedVersion}
-                    unavailableCountries={app.unavailable_countries ?? []}
+                    unavailableCountries={detail.unavailable_countries ?? []}
                   />
                 )}
                 {activeTab === 'competitors' && (
                   <CompetitorsTab
-                    competitors={app.competitors ?? []}
-                    platform={app.platform}
-                    externalId={app.external_id}
-                    isTracked={app.is_tracked}
+                    // CompetitorsTab still declares its own stricter inline `Competitor` type
+                    // (with `last_build_at`); cast until that component migrates to CompetitorResource.
+                    competitors={(detail.competitors ?? []) as unknown as ComponentProps<typeof CompetitorsTab>['competitors']}
+                    platform={detail.platform}
+                    externalId={detail.external_id}
+                    isTracked={detail.is_tracked ?? false}
                     onTrack={toggleTrack}
                     trackLoading={tracking}
                   />
                 )}
                 {activeTab === 'keywords' && (
                   <KeywordsTab
-                    platform={app.platform}
-                    externalId={app.external_id}
-                    versions={app.versions ?? []}
+                    platform={detail.platform}
+                    externalId={detail.external_id}
+                    versions={versions}
                     selectedLocale={effectiveLocale}
                     selectedVersion={selectedVersion}
                     allApps={competitorAppsForCompare ?? []}
@@ -369,26 +402,26 @@ export default function AppsShow() {
                 )}
                 {activeTab === 'rankings' && (
                   <RankingsTab
-                    platform={app.platform}
-                    externalId={app.external_id}
+                    platform={detail.platform}
+                    externalId={detail.external_id}
                     selectedCountry={selectedCountry}
                   />
                 )}
                 {activeTab === 'ratings' && (
                   <RatingsTab
-                    platform={app.platform}
-                    externalId={app.external_id}
+                    platform={detail.platform}
+                    externalId={detail.external_id}
                   />
                 )}
                 {activeTab === 'changes' && (
                   <ChangesTab
-                    listings={app.listings ?? []}
-                    versions={app.versions ?? []}
-                    platform={app.platform}
+                    listings={listings}
+                    versions={versions}
+                    platform={detail.platform}
                   />
                 )}
                 {activeTab === 'versions' && (
-                  <VersionsTab versions={app.versions ?? []} />
+                  <VersionsTab versions={versions} />
                 )}
               </>
             )}

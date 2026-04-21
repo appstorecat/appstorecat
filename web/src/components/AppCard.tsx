@@ -2,27 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import axios from '@/lib/axios'
+import type { AppResource } from '@/api/models'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import { Star, BookmarkPlus, BookmarkMinus, Loader2 } from 'lucide-react'
 
 interface AppCardProps {
-  app: {
-    id: number
-    name: string
-    platform: string
-    external_id: string
-    publisher: { id: number; name: string; url?: string } | null
-    category: { id: number; name: string; slug: string } | null
-    icon_url: string | null
-    rating: number | null
-    rating_count: number | null
-    version: string | null
-    created_at: string
-    is_available?: boolean
-    is_tracked?: boolean
-  }
+  app: AppResource
 }
 
 function formatRatingCount(count: number | null): string {

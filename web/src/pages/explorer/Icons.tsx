@@ -1,8 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query'
+import {
+  exploreIcons,
+  getExploreIconsQueryKey,
+} from '@/api/endpoints/explorer/explorer'
+import { useListStoreCategories } from '@/api/endpoints/store-categories/store-categories'
+import type {
+  ExploreIcons200,
+  ExploreIconsPlatform,
+  ExplorerIconResource,
+  StoreCategoryResource,
+} from '@/api/models'
 import {
   Select,
   SelectContent,
@@ -14,33 +24,11 @@ import { Input } from '@/components/ui/input'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import { Search, Smartphone, ExternalLink } from 'lucide-react'
 
-interface AppIcon {
-  app_id: number
-  external_id: string
-  platform: string
-  name: string
-  icon_url: string
-  publisher_name: string | null
-  category_name: string | null
-}
-
-interface StoreCategory {
-  id: number
-  name: string
-  platform: string
-  type: string
-}
-
-interface ApiResponse {
-  data: AppIcon[]
-  meta: { current_page: number; last_page: number; total: number }
-}
-
 export default function Icons() {
   const [searchParams, setSearchParams] = useSearchParams()
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const platform = searchParams.get('platform') || 'ios'
+  const platform = (searchParams.get('platform') || 'ios') as ExploreIconsPlatform
   const categoryId = searchParams.get('category_id') || ''
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const debouncedSearch = useDebounce(search)
@@ -67,10 +55,14 @@ export default function Icons() {
     }, { replace: true })
   }
 
-  const { data: categories } = useQuery<StoreCategory[]>({
-    queryKey: ['store-categories', platform],
-    queryFn: () => axios.get('/store-categories', { params: { platform, type: 'app' } }).then((r) => r.data),
-  })
+  const { data: categories } = useListStoreCategories({ platform, type: 'app' })
+
+  const iconParams = {
+    platform,
+    per_page: 100,
+    ...(categoryId ? { category_id: Number(categoryId) } : {}),
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+  }
 
   const {
     data,
@@ -78,27 +70,22 @@ export default function Icons() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery<ApiResponse>({
-    queryKey: ['explorer-icons', platform, categoryId, debouncedSearch],
-    queryFn: ({ pageParam }) =>
-      axios.get('/explorer/icons', {
-        params: {
-          platform,
-          per_page: 100,
-          page: pageParam,
-          ...(categoryId ? { category_id: categoryId } : {}),
-          ...(debouncedSearch ? { search: debouncedSearch } : {}),
-        },
-      }).then((r) => r.data),
+  } = useInfiniteQuery<ExploreIcons200, unknown, InfiniteData<ExploreIcons200, number>, readonly unknown[], number>({
+    queryKey: getExploreIconsQueryKey(iconParams) as readonly unknown[],
+    queryFn: ({ pageParam, signal }) =>
+      exploreIcons({ ...iconParams, page: pageParam }, undefined, signal),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.meta.current_page < lastPage.meta.last_page
-        ? lastPage.meta.current_page + 1
-        : undefined,
+    getNextPageParam: (lastPage: ExploreIcons200) => {
+      // `meta` is typed as `{ [key: string]: unknown }` upstream; narrow locally.
+      const meta = lastPage.meta as { current_page?: number; last_page?: number } | undefined
+      const current = meta?.current_page ?? 0
+      const last = meta?.last_page ?? 0
+      return current < last ? current + 1 : undefined
+    },
   })
 
-  const icons = data?.pages.flatMap((p) => p.data) ?? []
-  const total = data?.pages[0]?.meta.total ?? 0
+  const icons: ExplorerIconResource[] = data?.pages.flatMap((p) => p.data ?? []) ?? []
+  const total = (data?.pages[0]?.meta as { total?: number } | undefined)?.total ?? 0
 
   useEffect(() => {
     const el = sentinelRef.current
@@ -140,12 +127,12 @@ export default function Icons() {
         <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue>
-              {categoryId ? categories?.find((c) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
+              {categoryId ? categories?.find((c: StoreCategoryResource) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">All Categories</SelectItem>
-            {categories?.map((cat) => (
+            {categories?.map((cat: StoreCategoryResource) => (
               <SelectItem key={cat.id} value={String(cat.id)}>
                 {cat.name}
               </SelectItem>
@@ -188,7 +175,7 @@ export default function Icons() {
   )
 }
 
-function IconCard({ app }: { app: AppIcon }) {
+function IconCard({ app }: { app: ExplorerIconResource }) {
   const [hovered, setHovered] = useState(false)
   const [popoverSide, setPopoverSide] = useState<'center' | 'left' | 'right'>('center')
   const cardRef = useRef<HTMLAnchorElement>(null)

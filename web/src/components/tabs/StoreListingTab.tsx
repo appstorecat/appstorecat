@@ -1,39 +1,12 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Smartphone, Ban, Languages } from 'lucide-react'
-
-interface Screenshot {
-  url: string
-  device_type: string
-  order: number
-}
-
-interface StoreListingData {
-  id: number
-  version_id: number | null
-  locale: string
-  title: string
-  subtitle: string | null
-  description: string
-  whats_new: string | null
-  icon_url: string | null
-  screenshots: Screenshot[]
-  video_url: string | null
-  fetched_at: string
-}
-
-interface AppVersionData {
-  id: number
-  version: string
-  release_date: string | null
-  whats_new: string | null
-  file_size_bytes: number | null
-  created_at: string
-}
+import type { ListingResource } from '@/api/models/listingResource'
+import type { VersionResource } from '@/api/models/versionResource'
 
 interface StoreListingTabProps {
-  listings: StoreListingData[]
-  versions: AppVersionData[]
+  listings: ListingResource[]
+  versions: VersionResource[]
   platform: string
   externalId: string
   selectedLocale: string

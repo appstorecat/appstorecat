@@ -1,8 +1,19 @@
 import { useState } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Link } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  getListAppsQueryKey,
+  getSearchAppsQueryKey,
+  useSearchApps,
+  useTrackApp,
+  useUntrackApp,
+} from '@/api/endpoints/apps/apps'
+import {
+  type AppSearchResultResource,
+  type AppSearchResultResourcePlatform,
+  SearchAppsPlatform,
+} from '@/api/models'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,46 +21,36 @@ import PlatformSwitcher from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
 import { Search, Smartphone, BookmarkPlus, BookmarkMinus, Loader2, Star } from 'lucide-react'
 
-interface SearchApp {
-  id: number
-  name: string
-  platform: string
-  external_id: string
-  publisher: { id: number; name: string } | null
-  category: { id: number; name: string } | null
-  icon_url: string | null
-  rating: number | null
-  rating_count: number | null
-  version: string | null
-  is_available: boolean
-  is_tracked: boolean
-}
-
 export default function DiscoveryApps() {
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm)
-  const [platform, setPlatform] = useState<string>('ios')
+  const [platform, setPlatform] = useState<AppSearchResultResourcePlatform>(SearchAppsPlatform.ios)
   const [countryCode, setCountryCode] = useState<string>('us')
   const [tracking, setTracking] = useState<Set<string>>(new Set())
 
-  const { data: searchResults, isFetching: searching } = useQuery<SearchApp[]>({
-    queryKey: ['app-search', debouncedSearch, platform, countryCode],
-    queryFn: () =>
-      axios.get('/apps/search', { params: { term: debouncedSearch, platform, country_code: countryCode } }).then((r) => r.data),
-    enabled: debouncedSearch.length >= 2,
-  })
+  const { data: searchResults, isFetching: searching } = useSearchApps(
+    { term: debouncedSearch, platform, country_code: countryCode },
+    { query: { enabled: debouncedSearch.length >= 2 } },
+  )
 
-  const toggleTrack = async (app: SearchApp) => {
+  const trackMutation = useTrackApp()
+  const untrackMutation = useUntrackApp()
+
+  const invalidateAfterToggle = () => {
+    queryClient.invalidateQueries({ queryKey: getSearchAppsQueryKey() })
+    queryClient.invalidateQueries({ queryKey: getListAppsQueryKey() })
+  }
+
+  const toggleTrack = async (app: AppSearchResultResource) => {
     setTracking((prev) => new Set(prev).add(app.external_id))
     try {
       if (app.is_tracked) {
-        await axios.delete(`/apps/${platform}/${app.external_id}/track`)
+        await untrackMutation.mutateAsync({ platform, externalId: app.external_id })
       } else {
-        await axios.post(`/apps/${platform}/${app.external_id}/track`)
+        await trackMutation.mutateAsync({ platform, externalId: app.external_id })
       }
-      queryClient.invalidateQueries({ queryKey: ['app-search'] })
-      queryClient.invalidateQueries({ queryKey: ['apps'] })
+      invalidateAfterToggle()
     } finally {
       setTracking((prev) => {
         const next = new Set(prev)
@@ -76,7 +77,10 @@ export default function DiscoveryApps() {
             className="pl-9"
           />
         </div>
-        <PlatformSwitcher value={platform} onChange={setPlatform} />
+        <PlatformSwitcher
+          value={platform}
+          onChange={(value) => setPlatform(value as AppSearchResultResourcePlatform)}
+        />
         <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
       </div>
 
@@ -139,7 +143,7 @@ export default function DiscoveryApps() {
                       </div>
                     </div>
                     <p className="truncate text-xs text-muted-foreground">
-                      {app.publisher?.name || '—'}
+                      {app.publisher?.name ?? app.publisher_name ?? '—'}
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       {app.category && (

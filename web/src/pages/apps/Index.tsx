@@ -1,8 +1,8 @@
-import { useMemo, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { Search, Smartphone } from 'lucide-react'
-import axios from '@/lib/axios'
+import { useListApps } from '@/api/endpoints/apps/apps'
+import { ListAppsPlatform, type ListAppsParams } from '@/api/models'
 import AppCard from '@/components/AppCard'
 import QueryError from '@/components/QueryError'
 import { Input } from '@/components/ui/input'
@@ -40,17 +40,11 @@ export default function AppsIndex() {
     }, { replace: true })
   }
 
-  const queryParams = useMemo(() => {
-    const params: Record<string, string> = {}
-    if (platform !== 'all') params.platform = platform
-    if (debouncedSearch.trim().length > 0) params.search = debouncedSearch.trim()
-    return params
-  }, [platform, debouncedSearch])
+  const queryParams: ListAppsParams = {}
+  if (platform !== 'all') queryParams.platform = ListAppsPlatform[platform]
+  if (debouncedSearch.trim().length > 0) queryParams.search = debouncedSearch.trim()
 
-  const { data: apps, isError, refetch, isFetching } = useQuery<Record<string, unknown>[]>({
-    queryKey: ['apps', platform, debouncedSearch],
-    queryFn: () => axios.get('/apps', { params: queryParams }).then((r) => r.data),
-  })
+  const { data: apps, isError, refetch, isFetching } = useListApps(queryParams)
 
   if (isError) {
     return <QueryError message="Failed to load apps." onRetry={() => refetch()} />
@@ -98,8 +92,8 @@ export default function AppsIndex() {
 
       {apps && apps.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
-          {apps.map((app: Record<string, unknown>) => (
-            <AppCard key={app.id as number} app={app as never} />
+          {apps.map((app) => (
+            <AppCard key={app.id} app={app} />
           ))}
         </div>
       ) : (

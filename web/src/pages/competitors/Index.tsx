@@ -1,43 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import axios from '@/lib/axios'
+import { useListAllCompetitors } from '@/api/endpoints/apps/apps'
+import type { CompetitorGroupResource } from '@/api/models'
 import AppCard from '@/components/AppCard'
 import QueryError from '@/components/QueryError'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Users } from 'lucide-react'
 
-interface CompetitorApp {
-  id: number
-  name: string
-  platform: string
-  external_id: string
-  publisher: { id: number; name: string; url?: string } | null
-  category: { id: number; name: string; slug: string } | null
-  icon_url: string | null
-  rating: number | null
-  rating_count: number | null
-  version: string | null
-  created_at: string
-  is_available?: boolean
-  is_tracked?: boolean
-}
-
-interface CompetitorGroup {
-  parent: CompetitorApp
-  competitors: {
-    id: number
-    relationship: string
-    app: CompetitorApp
-    created_at: string
-  }[]
-}
-
 export default function CompetitorsIndex() {
-  const { data, isLoading, isError, refetch } = useQuery<CompetitorGroup[]>({
-    queryKey: ['competitors'],
-    queryFn: () => axios.get('/competitors').then((r) => r.data),
-  })
+  const { data, isLoading, isError, refetch } = useListAllCompetitors()
 
   if (isLoading) {
     return (
@@ -84,7 +55,7 @@ export default function CompetitorsIndex() {
   )
 }
 
-function ParentGroup({ group }: { group: CompetitorGroup }) {
+function ParentGroup({ group }: { group: CompetitorGroupResource }) {
   const { parent, competitors } = group
 
   return (

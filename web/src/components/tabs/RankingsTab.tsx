@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowUp, ArrowDown, Minus, Trophy, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
-import axios from '@/lib/axios'
 import { useCountries } from '@/components/CountrySelect'
 import QueryError from '@/components/QueryError'
+import { useListAppRankings } from '@/api/endpoints/apps/apps'
 import type { AppRankingResource } from '@/api/models/appRankingResource'
 import { AppRankingResourceStatus } from '@/api/models/appRankingResourceStatus'
 
@@ -48,13 +47,15 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
   const [selectedDate, setSelectedDate] = useState<string>(todayIso())
   const [rankType, setRankType] = useState<RankTypeFilter>('any')
 
-  const { data: current = [], isLoading, isError, refetch } = useQuery<CurrentRanking[]>({
-    queryKey: ['app-rankings', platform, externalId, selectedDate],
-    queryFn: () =>
-      axios
-        .get(`/apps/${platform}/${externalId}/rankings`, { params: { date: selectedDate } })
-        .then((r) => r.data),
-  })
+  // Platform comes from the parent as a plain string; backend enum is lowercase.
+  const platformParam = platform as 'ios' | 'android'
+
+  const { data, isLoading, isError, refetch } = useListAppRankings(
+    platformParam,
+    externalId,
+    { date: selectedDate },
+  )
+  const current = useMemo<CurrentRanking[]>(() => (data ?? []) as CurrentRanking[], [data])
 
   // Filter rows by rankType; rows are pre-scoped to overall chart on backend side.
   const filteredRows = useMemo(() => {

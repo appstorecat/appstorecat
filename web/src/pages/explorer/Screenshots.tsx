@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import axios from '@/lib/axios'
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query'
+import {
+  exploreScreenshots,
+  getExploreScreenshotsQueryKey,
+} from '@/api/endpoints/explorer/explorer'
+import { useListStoreCategories } from '@/api/endpoints/store-categories/store-categories'
+import type {
+  ExploreScreenshots200,
+  ExploreScreenshotsPlatform,
+  ExplorerScreenshotResource,
+  StoreCategoryResource,
+} from '@/api/models'
 import {
   Select,
   SelectContent,
@@ -14,40 +24,11 @@ import { Input } from '@/components/ui/input'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import { Search, Smartphone } from 'lucide-react'
 
-interface Screenshot {
-  url: string
-  device_type: string
-  order: number
-}
-
-interface AppScreenshots {
-  app_id: number
-  external_id: string
-  platform: string
-  name: string
-  icon_url: string
-  publisher_name: string | null
-  category_name: string | null
-  screenshots: Screenshot[]
-}
-
-interface StoreCategory {
-  id: number
-  name: string
-  platform: string
-  type: string
-}
-
-interface ApiResponse {
-  data: AppScreenshots[]
-  meta: { current_page: number; last_page: number; total: number }
-}
-
 export default function Screenshots() {
   const [searchParams, setSearchParams] = useSearchParams()
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const platform = searchParams.get('platform') || 'ios'
+  const platform = (searchParams.get('platform') || 'ios') as ExploreScreenshotsPlatform
   const categoryId = searchParams.get('category_id') || ''
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const debouncedSearch = useDebounce(search)
@@ -74,10 +55,14 @@ export default function Screenshots() {
     }, { replace: true })
   }
 
-  const { data: categories } = useQuery<StoreCategory[]>({
-    queryKey: ['store-categories', platform],
-    queryFn: () => axios.get('/store-categories', { params: { platform, type: 'app' } }).then((r) => r.data),
-  })
+  const { data: categories } = useListStoreCategories({ platform, type: 'app' })
+
+  const screenshotParams = {
+    platform,
+    per_page: 5,
+    ...(categoryId ? { category_id: Number(categoryId) } : {}),
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+  }
 
   const {
     data,
@@ -85,27 +70,22 @@ export default function Screenshots() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery<ApiResponse>({
-    queryKey: ['explorer-screenshots', platform, categoryId, debouncedSearch],
-    queryFn: ({ pageParam }) =>
-      axios.get('/explorer/screenshots', {
-        params: {
-          platform,
-          per_page: 5,
-          page: pageParam,
-          ...(categoryId ? { category_id: categoryId } : {}),
-          ...(debouncedSearch ? { search: debouncedSearch } : {}),
-        },
-      }).then((r) => r.data),
+  } = useInfiniteQuery<ExploreScreenshots200, unknown, InfiniteData<ExploreScreenshots200, number>, readonly unknown[], number>({
+    queryKey: getExploreScreenshotsQueryKey(screenshotParams) as readonly unknown[],
+    queryFn: ({ pageParam, signal }) =>
+      exploreScreenshots({ ...screenshotParams, page: pageParam }, undefined, signal),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.meta.current_page < lastPage.meta.last_page
-        ? lastPage.meta.current_page + 1
-        : undefined,
+    getNextPageParam: (lastPage: ExploreScreenshots200) => {
+      // `meta` is typed as `{ [key: string]: unknown }` upstream; narrow locally.
+      const meta = lastPage.meta as { current_page?: number; last_page?: number } | undefined
+      const current = meta?.current_page ?? 0
+      const last = meta?.last_page ?? 0
+      return current < last ? current + 1 : undefined
+    },
   })
 
-  const apps = data?.pages.flatMap((p) => p.data) ?? []
-  const total = data?.pages[0]?.meta.total ?? 0
+  const apps: ExplorerScreenshotResource[] = data?.pages.flatMap((p) => p.data ?? []) ?? []
+  const total = (data?.pages[0]?.meta as { total?: number } | undefined)?.total ?? 0
 
   // Infinite scroll observer
   useEffect(() => {
@@ -149,12 +129,12 @@ export default function Screenshots() {
         <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue>
-              {categoryId ? categories?.find((c) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
+              {categoryId ? categories?.find((c: StoreCategoryResource) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">All Categories</SelectItem>
-            {categories?.map((cat) => (
+            {categories?.map((cat: StoreCategoryResource) => (
               <SelectItem key={cat.id} value={String(cat.id)}>
                 {cat.name}
               </SelectItem>
@@ -238,7 +218,7 @@ function LazyScreenshot({ src, alt }: { src: string; alt: string }) {
   )
 }
 
-function ScreenshotRow({ app }: { app: AppScreenshots }) {
+function ScreenshotRow({ app }: { app: ExplorerScreenshotResource }) {
   return (
     <div className="space-y-3">
       {/* App header */}
@@ -265,7 +245,7 @@ function ScreenshotRow({ app }: { app: AppScreenshots }) {
           className="flex gap-1.5 overflow-x-auto"
           style={{ scrollbarWidth: 'none' }}
         >
-          {app.screenshots.map((ss, i) => (
+          {app.screenshots?.map((ss, i) => (
             <LazyScreenshot
               key={i}
               src={ss.url}

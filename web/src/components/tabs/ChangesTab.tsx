@@ -26,31 +26,12 @@ import {
 } from 'lucide-react'
 import ChangeCard from '@/components/ChangeCard'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
-
-interface ListingData {
-  id: number
-  version_id: number | null
-  locale: string
-  title: string
-  subtitle: string | null
-  description: string
-  whats_new: string | null
-  icon_url: string | null
-  screenshots: { url: string; device_type: string; order: number }[] | null
-}
-
-interface AppVersionData {
-  id: number
-  version: string
-  release_date: string | null
-  whats_new: string | null
-  file_size_bytes: number | null
-  created_at: string
-}
+import type { ListingResource } from '@/api/models/listingResource'
+import type { VersionResource } from '@/api/models/versionResource'
 
 interface ChangesTabProps {
-  listings: ListingData[]
-  versions: AppVersionData[]
+  listings: ListingResource[]
+  versions: VersionResource[]
   platform?: string
 }
 
@@ -65,8 +46,8 @@ interface LocaleDiff {
 }
 
 interface TimelineEntry {
-  version: AppVersionData
-  previousVersion: AppVersionData | null
+  version: VersionResource
+  previousVersion: VersionResource | null
   isInitialRelease: boolean
   localesCount: number
   releaseNotesByLocale: Record<string, string | null>
@@ -123,8 +104,8 @@ function formatRelativeDate(dateStr: string | null): string | null {
 }
 
 function computeLocaleDiffs(
-  oldListings: ListingData[],
-  newListings: ListingData[],
+  oldListings: ListingResource[],
+  newListings: ListingResource[],
 ): LocaleDiff[] {
   const diffs: LocaleDiff[] = []
   const oldByLocale = new Map(oldListings.map((l) => [l.locale, l]))
@@ -136,11 +117,11 @@ function computeLocaleDiffs(
     const newL = newByLocale.get(loc)
 
     if (!oldL && newL) {
-      diffs.push({ locale: loc, field: 'locale_added', oldValue: null, newValue: newL.title })
+      diffs.push({ locale: loc, field: 'locale_added', oldValue: null, newValue: newL.title ?? null })
       continue
     }
     if (oldL && !newL) {
-      diffs.push({ locale: loc, field: 'locale_removed', oldValue: oldL.title, newValue: null })
+      diffs.push({ locale: loc, field: 'locale_removed', oldValue: oldL.title ?? null, newValue: null })
       continue
     }
     if (oldL && newL) {
@@ -157,11 +138,11 @@ function computeLocaleDiffs(
 }
 
 function buildTimeline(
-  listings: ListingData[],
-  versions: AppVersionData[],
+  listings: ListingResource[],
+  versions: VersionResource[],
 ): TimelineEntry[] {
   const sorted = [...versions].sort((a, b) => b.id - a.id)
-  const listingsByVersion = new Map<number, ListingData[]>()
+  const listingsByVersion = new Map<number, ListingResource[]>()
   for (const l of listings) {
     if (l.version_id == null) continue
     if (!listingsByVersion.has(l.version_id)) listingsByVersion.set(l.version_id, [])
@@ -177,7 +158,7 @@ function buildTimeline(
 
     const releaseNotesByLocale: Record<string, string | null> = {}
     for (const l of currListings) {
-      releaseNotesByLocale[l.locale] = l.whats_new
+      releaseNotesByLocale[l.locale] = l.whats_new ?? null
     }
     const availableLocales = Object.keys(releaseNotesByLocale).sort()
 
@@ -382,7 +363,7 @@ function VersionCard({
   onRowClick,
 }: VersionCardProps) {
   const plat = platformLabel(platform)
-  const relative = formatRelativeDate(entry.version.release_date)
+  const relative = formatRelativeDate(entry.version.release_date ?? null)
   const notes = entry.releaseNotesByLocale[selectedLocale] ?? null
   const hasLongNotes = (notes?.length ?? 0) > 240
 
@@ -664,7 +645,7 @@ function DiffModalBody({
               newValue={d.newValue}
               beforeVersion={prev?.version}
               afterVersion={entry.version.version}
-              detectedAt={entry.version.release_date ?? entry.version.created_at}
+              detectedAt={entry.version.release_date ?? entry.version.created_at ?? ''}
               showAppInfo={false}
             />
           ))
