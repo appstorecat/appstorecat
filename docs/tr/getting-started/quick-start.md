@@ -48,11 +48,11 @@ AppStoreCat, kuyruk işçileri kullanarak arka planda verileri otomatik olarak s
 
 Varsayılan aralıklar:
 
-- **Takip edilen uygulamalar** her 24 saatte bir senkronize edilir (`SYNC_{IOS,ANDROID}_TRACKED_REFRESH_HOURS`)
-- **Keşfedilen uygulamalar** her 24 saatte bir senkronize edilir (`SYNC_{IOS,ANDROID}_DISCOVERY_REFRESH_HOURS`)
+- **Takip edilen uygulamalar** her 24 saatte bir senkronize edilir (`SYNC_{IOS,ANDROID}_TRACKED_REFRESH_HOURS`); aynı zamanlayıcı, batch dolmadığında sırasıyla rakip uygulamalara ve ardından birikmiş havuzdaki en eski uygulamalara düşer (tümü aynı 24 saatlik eskime penceresini paylaşır)
+- Zamanlayıcı her 20 dakikada bir platform başına `SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE` kadar uygulama dağıtır (varsayılan 5)
 - **Listeler** günlük olarak senkronize edilir (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED`)
 
-Tüm scraper işleri platform ayrıktır: `sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. iOS ve Android bu sayede birbirini bloklamaz.
+Tüm scraper işleri platform ayrıktır: `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. iOS ve Android bu sayede birbirini bloklamaz.
 
 Senkronizasyon aktivitesini görmek için `make logs-server` komutunu kontrol edin.
 

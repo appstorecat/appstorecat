@@ -49,12 +49,10 @@ AppStoreCat tarafindan kullanilan tum ortam degiskenlerinin tam referansi.
 |----------|------------|----------|
 | `SYNC_IOS_TRACKED_ENABLED` | `true` | Takip edilen iOS uygulama senkronizasyonunu etkinlestir |
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Takip edilen iOS senkronizasyonlari arasindaki saat |
-| `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Kesfedilen iOS uygulama senkronizasyonunu etkinlestir |
-| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Kesfedilen iOS senkronizasyonlari arasindaki saat |
+| `SYNC_IOS_TRACKED_BATCH_SIZE` | `5` | 20 dakikalik tur basina gonderilen maksimum iOS uygulamasi |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Takip edilen Android uygulama senkronizasyonunu etkinlestir |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Takip edilen Android senkronizasyonlari arasindaki saat |
-| `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Kesfedilen Android uygulama senkronizasyonunu etkinlestir |
-| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Kesfedilen Android senkronizasyonlari arasindaki saat |
+| `SYNC_ANDROID_TRACKED_BATCH_SIZE` | `5` | 20 dakikalik tur basina gonderilen maksimum Android uygulamasi |
 
 ## Kesif Kaynaklari
 

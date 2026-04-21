@@ -5,15 +5,12 @@ AppStoreCat uses platform-separated queues to ensure that the iOS and Android pi
 ## Queue Architecture
 
 ```
-                    ┌─ sync-tracked-ios ──────▶ SyncAppJob (iOS tracked)
-                    ├─ sync-tracked-android ──▶ SyncAppJob (Android tracked)
-                    ├─ sync-discovery-ios ────▶ SyncAppJob (iOS discovered)
-Scheduler ────────▶ ├─ sync-discovery-android ▶ SyncAppJob (Android discovered)
-                    ├─ sync-on-demand-ios ────▶ SyncAppJob (UI-triggered stale refresh, iOS)
+                    ┌─ sync-tracked-ios ──────▶ SyncAppJob (iOS tracked/competitor/backlog)
+                    ├─ sync-tracked-android ──▶ SyncAppJob (Android tracked/competitor/backlog)
+Scheduler ────────▶ ├─ sync-on-demand-ios ────▶ SyncAppJob (UI-triggered stale refresh, iOS)
                     ├─ sync-on-demand-android ▶ SyncAppJob (UI-triggered stale refresh, Android)
                     ├─ charts-ios ────────────▶ SyncChartSnapshotJob (iOS)
                     ├─ charts-android ────────▶ SyncChartSnapshotJob (Android)
-                    ├─ discover ──────────────▶ Discovery jobs
                     └─ default ───────────────▶ General jobs + ReconcileFailedItemsJob
 ```
 
@@ -21,15 +18,12 @@ Scheduler ────────▶ ├─ sync-discovery-android ▶ SyncAppJ
 
 | Queue | Purpose | Job |
 |-------|---------|-----|
-| `sync-tracked-ios` | Sync tracked iOS apps | `SyncAppJob` |
-| `sync-tracked-android` | Sync tracked Android apps | `SyncAppJob` |
-| `sync-discovery-ios` | Sync discovered iOS apps | `SyncAppJob` |
-| `sync-discovery-android` | Sync discovered Android apps | `SyncAppJob` |
+| `sync-tracked-ios` | Scheduled iOS app syncs (tracked → competitor → backlog) | `SyncAppJob` |
+| `sync-tracked-android` | Scheduled Android app syncs (tracked → competitor → backlog) | `SyncAppJob` |
 | `sync-on-demand-ios` | UI-triggered refresh for stale iOS apps | `SyncAppJob` |
 | `sync-on-demand-android` | UI-triggered refresh for stale Android apps | `SyncAppJob` |
 | `charts-ios` | iOS chart snapshots | `SyncChartSnapshotJob` |
 | `charts-android` | Android chart snapshots | `SyncChartSnapshotJob` |
-| `discover` | App discovery | Various |
 | `default` | General-purpose jobs | Various, including `ReconcileFailedItemsJob` |
 
 ## Jobs
@@ -38,7 +32,7 @@ Scheduler ────────▶ ├─ sync-discovery-android ▶ SyncAppJ
 
 Runs every pipeline phase for a single app (identity → listings → metrics → finalize) and tracks progress via `sync_statuses`.
 
-- **Queue:** Platform-specific sync queue (`sync-tracked-*`, `sync-discovery-*`, or `sync-on-demand-*`)
+- **Queue:** Platform-specific sync queue (`sync-tracked-*` or `sync-on-demand-*`)
 - **Unique:** Per app ID, 1-hour window (prevents re-sync)
 - **Retries:** 3 attempts with `[30, 60, 120]` second backoff
 - **Throttle:** Redis-based, per platform (iOS: 5/min, Android: 5/min)

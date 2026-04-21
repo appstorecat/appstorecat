@@ -69,12 +69,12 @@ Platform bazında otomatik uygulama senkronizasyonunu kontrol eder:
 |----------|------------|----------|
 | `SYNC_IOS_TRACKED_ENABLED` | `true` | Takip edilen iOS uygulamaları için sync'i etkinleştir |
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Takip edilen iOS uygulamaları sync aralığı (saat) |
-| `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Keşfedilen iOS uygulamaları için sync'i etkinleştir |
-| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Keşfedilen iOS uygulamaları sync aralığı (saat) |
+| `SYNC_IOS_TRACKED_BATCH_SIZE` | `5` | 20 dakikalık tur başına dağıtılan maksimum iOS uygulaması |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Takip edilen Android uygulamaları için sync'i etkinleştir |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Takip edilen Android uygulamaları sync aralığı (saat) |
-| `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Keşfedilen Android uygulamaları için sync'i etkinleştir |
-| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Keşfedilen Android uygulamaları sync aralığı (saat) |
+| `SYNC_ANDROID_TRACKED_BATCH_SIZE` | `5` | 20 dakikalık tur başına dağıtılan maksimum Android uygulaması |
+
+Zamanlayıcı her platformda `appstorecat:apps:sync-tracked` komutunu 20 dakikada bir çalıştırır. Eskimiş takip edilen uygulamalar batch'i doldurmazsa komut sırasıyla rakip uygulamalara (`app_competitors`) ve birikmiş havuzdaki en eski uygulamalara düşer; tüm katmanlar aynı 24 saatlik eskime penceresini ve `sync-tracked-{platform}` kuyruğunu paylaşır.
 
 Sync pipeline'ı fazlara ayrılmıştır ve `sync_statuses` tablosu üzerinden izlenir: **identity → listings → metrics → finalize → reconciling**. Başarısız öğeler `ReconcileFailedItemsJob` tarafından toplanıp yeniden denenir.
 

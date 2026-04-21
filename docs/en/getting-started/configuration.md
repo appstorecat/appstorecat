@@ -67,14 +67,12 @@ Control automatic app sync per platform:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SYNC_IOS_TRACKED_ENABLED` | `true` | Enable sync for tracked iOS apps |
-| `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Tracked iOS apps sync interval (hours) |
-| `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Enable sync for discovered iOS apps |
-| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Discovered iOS apps sync interval (hours) |
-| `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Enable sync for tracked Android apps |
-| `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Tracked Android apps sync interval (hours) |
-| `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Enable sync for discovered Android apps |
-| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Discovered Android apps sync interval (hours) |
+| `SYNC_IOS_TRACKED_ENABLED` | `true` | Enable scheduled iOS sync |
+| `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | iOS staleness window (hours) |
+| `SYNC_IOS_TRACKED_BATCH_SIZE` | `5` | Max iOS apps dispatched per 20-minute tick |
+| `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Enable scheduled Android sync |
+| `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Android staleness window (hours) |
+| `SYNC_ANDROID_TRACKED_BATCH_SIZE` | `5` | Max Android apps dispatched per 20-minute tick |
 
 The sync pipeline runs in phases and is tracked via the `sync_statuses` table: **identity → listings → metrics → finalize → reconciling**. Failed items are picked up and retried by `ReconcileFailedItemsJob`.
 

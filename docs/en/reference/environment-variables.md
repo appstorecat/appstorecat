@@ -49,12 +49,10 @@ Full reference of every environment variable used by AppStoreCat.
 |----------|---------|-------------|
 | `SYNC_IOS_TRACKED_ENABLED` | `true` | Enable tracked iOS app sync |
 | `SYNC_IOS_TRACKED_REFRESH_HOURS` | `24` | Hours between tracked iOS syncs |
-| `SYNC_IOS_DISCOVERY_ENABLED` | `true` | Enable discovered iOS app sync |
-| `SYNC_IOS_DISCOVERY_REFRESH_HOURS` | `24` | Hours between discovered iOS syncs |
+| `SYNC_IOS_TRACKED_BATCH_SIZE` | `5` | Max iOS apps dispatched per 20-minute tick |
 | `SYNC_ANDROID_TRACKED_ENABLED` | `true` | Enable tracked Android app sync |
 | `SYNC_ANDROID_TRACKED_REFRESH_HOURS` | `24` | Hours between tracked Android syncs |
-| `SYNC_ANDROID_DISCOVERY_ENABLED` | `true` | Enable discovered Android app sync |
-| `SYNC_ANDROID_DISCOVERY_REFRESH_HOURS` | `24` | Hours between discovered Android syncs |
+| `SYNC_ANDROID_TRACKED_BATCH_SIZE` | `5` | Max Android apps dispatched per 20-minute tick |
 
 ## Discovery Sources
 

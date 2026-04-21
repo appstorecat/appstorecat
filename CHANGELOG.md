@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - FK `app_metrics.country_code` → `countries.code` (tightened from VARCHAR(10) to CHAR(2))
 - Indexes on `apps.last_synced_at`, `apps.discovered_from`, composite `(platform, is_available, last_synced_at)`; `app_store_listings(app_id, locale, fetched_at)` and `.checksum`; `app_store_listing_changes(app_id, field_changed, detected_at)`; `app_versions.release_date` and `(app_id, release_date)`; `store_categories(platform, parent_id)`; `trending_chart_entries.app_id`; `sync_statuses.job_id`
 - `Country` row `zz` (Global) to host Android metrics that are not country-specific
+- `SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE` (default 5) controls how many apps the scheduler dispatches per 20-minute tick
 
 ### Changed
 - Renamed columns for naming consistency: `apps.origin_country` → `origin_country_code`, `apps.display_icon` → `icon_url`, `app_store_listings.language` → `locale`, `app_store_listing_changes.language` → `locale`, `trending_charts.country` → `country_code`
@@ -25,6 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Chart fetch exceptions now always propagate for retry and failed_jobs tracking
 - Fallback to web-scraped iPhone screenshots when iTunes API returns none
 - App icon aspect ratio in explorer icons page
+
+### Removed
+- Dropped the separate discovery sync command, its dedicated queues, and its env vars — replaced by a tiered fallback inside `appstorecat:apps:sync-tracked` (tracked → competitor → backlog, all sharing the `sync-tracked-{platform}` queue and the tracked staleness window)
 
 ## [1.0.1] - 2026-04-18
 
@@ -38,7 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Keyword density is now computed on-the-fly from the current `StoreListing` on every request — no persistent storage
 - Sync scheduler cadence changed from daily to every 20 minutes for both discovery and tracked pools across both platforms
 - Default scraper throttle rates raised: `APPSTORE_THROTTLE_SYNC_JOBS` 3→5, `GPLAY_THROTTLE_SYNC_JOBS` 2→5 per minute
-- Default `discovery_app_refresh_hours` lowered from 72h to 24h to match the tracked cadence
+- Default discovery app refresh window lowered from 72h to 24h to match the tracked cadence
 
 ### Fixed
 - `trending_charts.category_id` is now NOT NULL; "overall" charts use a dedicated "All" sentinel `StoreCategory` row (iOS id=1, Android id=43) with `external_id = NULL`

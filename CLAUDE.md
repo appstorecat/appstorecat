@@ -142,11 +142,8 @@ All queues are **platform-separated** (iOS and Android run independently):
 | Queue | Purpose |
 |-------|---------|
 | `default` | General jobs |
-| `discover` | App discovery |
-| `sync-discovery-ios` | Sync untracked iOS apps |
-| `sync-discovery-android` | Sync untracked Android apps |
-| `sync-tracked-ios` | Sync tracked iOS apps |
-| `sync-tracked-android` | Sync tracked Android apps |
+| `sync-tracked-ios` | Scheduled iOS app syncs (tracked → competitor → backlog) |
+| `sync-tracked-android` | Scheduled Android app syncs (tracked → competitor → backlog) |
 | `sync-on-demand-ios` | UI-triggered refresh for stale iOS apps |
 | `sync-on-demand-android` | UI-triggered refresh for stale Android apps |
 | `charts-ios` | iOS trending chart snapshots |

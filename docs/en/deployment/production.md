@@ -91,7 +91,7 @@ docker compose -f docker-compose.production.yml exec appstorecat-server php arti
 
 In production, the server container runs a Supervisor process that manages:
 
-- **Queue workers** — process background sync and chart jobs. All scraper queues are platform-separated: `sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. iOS and Android have independent rate limits and worker profiles.
+- **Queue workers** — process background sync and chart jobs. All scraper queues are platform-separated: `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. iOS and Android have independent rate limits and worker profiles.
 - **Scheduler** — dispatches recurring jobs (cron); `ReconcileFailedItemsJob` periodically re-queues failed sync items.
 
 These are configured automatically in the production Docker image.

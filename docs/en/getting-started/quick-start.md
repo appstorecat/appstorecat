@@ -49,10 +49,10 @@ AppStoreCat syncs data automatically in the background using queue workers. The 
 Default intervals:
 
 - **Tracked apps** are synced every 24 hours (`SYNC_{IOS,ANDROID}_TRACKED_REFRESH_HOURS`)
-- **Discovered apps** are synced every 24 hours (`SYNC_{IOS,ANDROID}_DISCOVERY_REFRESH_HOURS`)
+- **Competitor and discovered apps** ride the same queue; when fewer than `SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE` tracked apps are stale on a tick, the scheduler fills the batch with competitors first, then oldest discovered apps
 - **Charts** are synced daily (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED`)
 
-All scraper jobs are platform-separated: `sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. This way iOS and Android never block each other.
+All scraper jobs are platform-separated: `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. This way iOS and Android never block each other.
 
 Check `make logs-server` to see sync activity.
 

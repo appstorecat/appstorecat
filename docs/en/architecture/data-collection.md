@@ -29,17 +29,18 @@ Apps explicitly tracked by users. Synced every **24 hours** by default.
 - Queue: `sync-tracked-ios` / `sync-tracked-android`
 - Control: `SYNC_{PLATFORM}_TRACKED_REFRESH_HOURS`
 
-### Discovery Apps (Background Tier)
+### Competitor & Backlog Apps (Fallback Tiers)
 
-Apps that have been discovered but are not tracked. Synced every **24 hours** by default.
+When fewer than `SYNC_{PLATFORM}_TRACKED_BATCH_SIZE` tracked apps are stale on a given tick, the scheduler keeps the pipeline busy by falling back to:
 
-- Same full sync as tracked apps, but at a lower priority
-- Queue: `sync-discovery-ios` / `sync-discovery-android`
-- Control: `SYNC_{PLATFORM}_DISCOVERY_REFRESH_HOURS`
+1. Competitor apps (`app_competitors.competitor_app_id`) that are not themselves tracked
+2. Any other available app, oldest `last_synced_at` first (never-synced apps picked before stale ones)
+
+All three tiers share the same 24-hour staleness window and run on `sync-tracked-{platform}`; they're just different selection priorities inside `appstorecat:apps:sync-tracked`.
 
 ### On-demand Refresh from the UI
 
-When a user opens an app detail or listing page whose `last_synced_at` is older than the refresh threshold, the API dispatches a `SyncAppJob` onto the platform's `sync-on-demand-ios` / `sync-on-demand-android` queue. This dedicated lane keeps user-triggered refreshes from waiting behind the cron-driven discovery backlog. The UI polls progress via `GET /apps/{platform}/{externalId}/sync-status`, and the user can also trigger an explicit refresh with `POST /apps/{platform}/{externalId}/sync`.
+When a user opens an app detail or listing page whose `last_synced_at` is older than the refresh threshold, the API dispatches a `SyncAppJob` onto the platform's `sync-on-demand-ios` / `sync-on-demand-android` queue. This dedicated lane keeps user-triggered refreshes from waiting behind the scheduled tracked queue. The UI polls progress via `GET /apps/{platform}/{externalId}/sync-status`, and the user can also trigger an explicit refresh with `POST /apps/{platform}/{externalId}/sync`.
 
 ## What Gets Synced
 
@@ -68,7 +69,7 @@ Each platform has independent Redis-based throttle rates to avoid breaching stor
 
 Jobs exceeding the throttle wait for a slot to open (up to 300 seconds). This enables steady, sustainable data collection without triggering rate limits.
 
-The Laravel scheduler dispatches the `sync-discovery` and `sync-tracked` commands on each platform every **20 minutes** — at 5 apps per minute, this lines up ~100 apps per cycle and keeps the sync pool in sync with the schedule.
+The Laravel scheduler dispatches `appstorecat:apps:sync-tracked` on each platform every **20 minutes**, capped at `SYNC_{PLATFORM}_TRACKED_BATCH_SIZE` apps per tick (default 5). The command walks the priority tiers above until the batch is full.
 
 ## Chart Collection
 

@@ -19,23 +19,17 @@ Her kaynak `config/appstorecat.php` dosyasinda platform bazinda etkinlestirilebi
 
 ## Senkronizasyon Katmanlari
 
-Kesfedildikten sonra uygulamalar iki farkli takvimde senkronize edilir:
+Kesfedildikten sonra uygulamalar tek bir zamanlayici komutu (`appstorecat:apps:sync-tracked`) tarafindan katmanli geri dusus ile senkronize edilir. Her platform icin 20 dakikada bir `SYNC_{PLATFORM}_TRACKED_BATCH_SIZE` kadar uygulama su siraya gore secilir:
 
-### Takip Edilen Uygulamalar (Oncelikli Katman)
+1. Eskiyen takip edilen uygulamalar (kullanicilarin `user_apps` kayitlari)
+2. Kendisi takip edilmeyen, eskiyen rakip uygulamalar (`app_competitors.competitor_app_id`)
+3. Birikmis havuzdan en eski senkronize edilmis diger uygulamalar
 
-Kullanicilar tarafindan acikca takip edilen uygulamalar. Varsayilan olarak her **24 saatte** bir senkronize edilir.
+Tum katmanlar ayni **24 saatlik** eskime penceresini ve ayni `sync-tracked-{platform}` kuyrugunu paylasir.
 
 - Tam veri senkronizasyonu: kimlik, listeler, metrikler, surumler
 - Kuyruk: `sync-tracked-ios` / `sync-tracked-android`
-- Kontrol: `SYNC_{PLATFORM}_TRACKED_REFRESH_HOURS`
-
-### Kesif Uygulamalari (Arka Plan Katmani)
-
-Kesfedilmis ancak takip edilmeyen uygulamalar. Varsayilan olarak her **24 saatte** bir senkronize edilir.
-
-- Takip edilen uygulamalarla ayni tam senkronizasyon, ancak daha dusuk oncelik
-- Kuyruk: `sync-discovery-ios` / `sync-discovery-android`
-- Kontrol: `SYNC_{PLATFORM}_DISCOVERY_REFRESH_HOURS`
+- Kontrol: `SYNC_{PLATFORM}_TRACKED_REFRESH_HOURS`, `SYNC_{PLATFORM}_TRACKED_BATCH_SIZE`
 
 ### Arayuzden Talep Uzerine Yenileme
 
@@ -68,7 +62,7 @@ Her platformun magaza hiz sinirlarini asmayi onlemek icin bagimsiz Redis tabanli
 
 Throttle'i asan job'lar bir slot acilana kadar bekler (en fazla 300 saniye). Bu, hiz sinirlarini tetiklemeden istikrarli ve surdurulebilir veri toplama saglar.
 
-Laravel zamanlayicisi her platformda `sync-discovery` ve `sync-tracked` komutlarini her **20 dakikada** bir gonderir — dakikada 5 uygulama ile bu, dongu basina ~100 uygulama siralanmasini saglar ve senkronizasyon havuzunu takvim ile eslesik tutar.
+Laravel zamanlayicisi her platformda `appstorecat:apps:sync-tracked` komutunu her **20 dakikada** bir gonderir; takip edilen, rakip ve birikmis uygulamalar arasinda katmanli geri dusus yapar. Varsayilan dakikada 5 uygulama hiziyla bu, dongu basina ~100 uygulama siralanmasini saglar ve senkronizasyon havuzunu takvim ile eslesik tutar.
 
 ## Chart Toplama
 

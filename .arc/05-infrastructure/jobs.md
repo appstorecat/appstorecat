@@ -31,8 +31,7 @@ appstorecat:{domain}:{action}
 ```
 
 Examples:
-- `appstorecat:apps:sync-discovery` — Sync next stale untracked app
-- `appstorecat:apps:sync-tracked` — Sync next stale tracked app
+- `appstorecat:apps:sync-tracked` — Scheduled sync batch (tracked → competitor → backlog)
 
 Commands live in `app/Console/Commands/{Domain}/`.
 
@@ -42,18 +41,16 @@ All scraper-bound queues are platform-separated so iOS and Android rate limits n
 
 | Queue | Responsibility | Selection Criteria |
 |-------|---------------|-------------------|
-| `sync-discovery-ios` / `sync-discovery-android` | Untracked apps (discovered via search, trending, etc.) | `doesntHave('users')`, oldest `last_synced_at` |
-| `sync-tracked-ios` / `sync-tracked-android` | Tracked apps (user is actively following) | `whereHas('users')`, oldest `last_synced_at` |
+| `sync-tracked-ios` / `sync-tracked-android` | Scheduled batch: tracked → competitor → backlog | See `SyncTrackedCommand::findPendingApps()` (tiered selection) |
 | `sync-on-demand-ios` / `sync-on-demand-android` | UI-triggered refresh for stale apps | Dispatched from `AppController::show()` / `::listing()` |
 
-All three pools use the same `SyncAppJob` and `AppSyncer` service. Tracked apps get synced more frequently because they have their own dedicated pool; on-demand queues exist so user page views are never stuck behind a cron backlog.
+Both pools use the same `SyncAppJob` and `AppSyncer` service. Tracked apps get the first slots on every tick; on-demand queues exist so user page views are never stuck behind the scheduled batch.
 
 ### Other Queues
 
 | Queue | Purpose |
 |-------|---------|
 | `default` | General jobs |
-| `discover` | App discovery |
 | `charts-ios` / `charts-android` | Trending chart fetching |
 
 ## Sync Pipeline
@@ -76,14 +73,14 @@ Keyword density is **not** part of the sync pipeline — `KeywordAnalyzer` is in
 
 ### Scheduling
 
-Both commands run every 20 minutes via Laravel Scheduler, per platform:
+The sync-tracked command runs every 20 minutes via Laravel Scheduler, per platform:
 
 ```php
-Schedule::command('appstorecat:apps:sync-discovery --platform=ios')->cron('*/20 * * * *');
-Schedule::command('appstorecat:apps:sync-discovery --platform=android')->cron('*/20 * * * *');
-Schedule::command('appstorecat:apps:sync-tracked --platform=ios')->cron('*/20 * * * *');
-Schedule::command('appstorecat:apps:sync-tracked --platform=android')->cron('*/20 * * * *');
+Schedule::command('appstorecat:apps:sync-tracked --ios')->cron('*/20 * * * *');
+Schedule::command('appstorecat:apps:sync-tracked --android')->cron('*/20 * * * *');
 ```
+
+Each tick is capped at `SYNC_{PLATFORM}_TRACKED_BATCH_SIZE` apps (default 5). Inside the command, tiers are filled in order (tracked → competitor → backlog) until the batch is full.
 
 Each run fans out up to 100 stale apps to the matching queue. At the default 5 syncs/min per platform throttle, the 20-minute cadence is sized to drain one batch before the next one fires.
 

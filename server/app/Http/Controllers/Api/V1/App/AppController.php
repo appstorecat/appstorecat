@@ -311,10 +311,8 @@ class AppController extends BaseController
 
     private function isStale(App $app): bool
     {
-        $hours = $app->users()->exists()
-            ? config("appstorecat.sync.{$app->platform->slug()}.tracked_app_refresh_hours", 24)
-            : config("appstorecat.sync.{$app->platform->slug()}.discovery_app_refresh_hours", 72);
+        $hours = (int) config("appstorecat.sync.{$app->platform->slug()}.tracked_app_refresh_hours", 24);
 
-        return $app->last_synced_at->lt(now()->subHours((int) $hours));
+        return $app->last_synced_at->lt(now()->subHours($hours));
     }
 }

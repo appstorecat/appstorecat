@@ -26,7 +26,7 @@ Her kaynak, `config/appstorecat.php` dosyasindaki `discover` anahtari altinda pl
 1. Kullanici bir eylem gerceklestirir (arama, listeleri goruntuler, yayinci ziyaret eder)
 2. Backend, magaza verilerini cekmek icin uygun scraper'i cagrir
 3. `App::discover()`, `discovered_from` etiketiyle yeni bir uygulama kaydi olusturur
-4. Uygulama, platform ayrimli kesif kuyruguna (`sync-discovery-ios` veya `sync-discovery-android`) arka plan senkronizasyonu icin itilir
+4. Uygulama, arka plan senkronizasyonu icin zamanlayicinin katmanli geri dusus akisina (takip edilen → rakip → birikmis) birakilir; zamanlayici `sync-tracked-ios` veya `sync-tracked-android` kuyruguna bir `SyncAppJob` gonderir
 5. Senkronizasyon `sync_statuses` tablosunda faz faz (identity → listings → metrics → finalize → reconciling) takip edilir; identity asamasi basarisiz olursa tum pipeline durur ve uygulama "kullanilamaz" olarak isaretlenir
 
 ## Arama
@@ -49,6 +49,6 @@ Uygulama aramak icin **Discovery > Apps** sayfasina gidin. Arayuz sunlari saglar
 
 - **Controller:** `AppSearchController`
 - **Connector'lar:** Her iki connector uzerinde `fetchSearch()`
-- **Kesif kuyruklari:** `sync-discovery-ios`, `sync-discovery-android` (platform ayrimli)
+- **Senkronizasyon kuyruklari:** `sync-tracked-ios`, `sync-tracked-android` (platform ayrimli; zamanlayici takip edilen, rakip ve birikmis uygulamalari ayni kuyruga besler)
 - **Yapilandirma:** `appstorecat.discover.{platform}.on_search` (ve diger `on_*` anahtarlari; `on_direct_visit` varsayilan `false`)
 - **404 sozlesmesi:** Scraper'lar, bir uygulama bir magazada bulunamadiginda 404 dondurur; bu durumlar `sync_statuses.failed_items` uzerinden `ReconcileFailedItemsJob` tarafindan sonradan ele alinir.

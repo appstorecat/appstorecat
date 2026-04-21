@@ -148,7 +148,7 @@ IP adresiniz hız sınırlamasına takılmıyorsa bu değerler artırılabilir.
 
 `app_metrics` ve `trending_chart_entries` tabloları en hızlı büyüyen tablolardır. Şunları değerlendirin:
 
-- Keşif senkronizasyon sıklığını ayarlama (`SYNC_{IOS,ANDROID}_DISCOVERY_REFRESH_HOURS`)
+- Takip senkronizasyon sıklığını ayarlama (`SYNC_{IOS,ANDROID}_TRACKED_REFRESH_HOURS`) veya zamanlayıcının tur başına dağıttığı uygulama sayısını düşürme (`SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE`)
 - İhtiyacınız olmayan platformda günlük grafik senkronizasyonunu kapatma (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED=false`)
 - Aktif ülke listesini `countries.is_active_{ios,android}` üzerinden daraltma
 
@@ -165,8 +165,8 @@ make artisan tinker
 
 ### Kuyruklar bloklanıyor
 
-iOS ve Android kuyrukları platform bazında ayrıdır (`sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`). Biri yavaşsa diğerini bloklamaz. Hangi kuyruğun birikmiş iş barındırdığını görmek için:
+iOS ve Android kuyrukları platform bazında ayrıdır (`sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`). Biri yavaşsa diğerini bloklamaz. Hangi kuyruğun birikmiş iş barındırdığını görmek için:
 
 ```bash
-make artisan queue:monitor sync-discovery-ios,sync-discovery-android,sync-tracked-ios,sync-tracked-android
+make artisan queue:monitor sync-tracked-ios,sync-tracked-android,sync-on-demand-ios,sync-on-demand-android
 ```

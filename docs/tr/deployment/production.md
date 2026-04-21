@@ -91,7 +91,7 @@ docker compose -f docker-compose.production.yml exec appstorecat-server php arti
 
 Production ortamında, server container'ı aşağıdakileri yöneten bir Supervisor süreci çalıştırır:
 
-- **Kuyruk işçileri** — Arka plan senkronizasyon ve grafik işlerini işler. Tüm scraper kuyrukları platform ayrıktır: `sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. iOS ve Android bağımsız rate limit ve worker profillerine sahiptir.
+- **Kuyruk işçileri** — Arka plan senkronizasyon ve grafik işlerini işler. Tüm scraper kuyrukları platform ayrıktır: `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. iOS ve Android bağımsız rate limit ve worker profillerine sahiptir.
 - **Zamanlayıcı** — Tekrarlayan işleri dağıtır (cron), `ReconcileFailedItemsJob` başarısız sync öğelerini periyodik olarak yeniden kuyruğa alır.
 
 Bunlar production Docker image'ında otomatik olarak yapılandırılmıştır.

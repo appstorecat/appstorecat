@@ -90,10 +90,8 @@ All queues are platform-separated:
 
 | Queue | Purpose | Rate |
 |-------|---------|------|
-| sync-discovery-ios | Untracked iOS app sync | 5 app/min (shared iOS sync throttle) |
-| sync-discovery-android | Untracked Android app sync | 5 app/min (shared Android sync throttle) |
-| sync-tracked-ios | Tracked iOS app sync | 5 app/min (shared iOS sync throttle) |
-| sync-tracked-android | Tracked Android app sync | 5 app/min (shared Android sync throttle) |
+| sync-tracked-ios | Scheduled iOS app sync (tracked → competitor → backlog) | 5 app/min (shared iOS sync throttle) |
+| sync-tracked-android | Scheduled Android app sync (tracked → competitor → backlog) | 5 app/min (shared Android sync throttle) |
 | sync-on-demand-ios | UI-triggered iOS app refresh | 5 app/min (shared iOS sync throttle) |
 | sync-on-demand-android | UI-triggered Android app refresh | 5 app/min (shared Android sync throttle) |
 | charts-ios | iOS chart snapshots | 10 job/min (6s delay) |

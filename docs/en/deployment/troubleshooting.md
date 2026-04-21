@@ -148,7 +148,7 @@ These can be raised if your IP is not being rate limited.
 
 The `app_metrics` and `trending_chart_entries` tables grow fastest. Consider:
 
-- Adjusting the discovery sync cadence (`SYNC_{IOS,ANDROID}_DISCOVERY_REFRESH_HOURS`)
+- Lowering the batch size (`SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE`) to slow ingestion of competitor / discovered apps
 - Disabling daily chart sync for the platform you don't need (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED=false`)
 - Narrowing the active country list via `countries.is_active_{ios,android}`
 
@@ -165,8 +165,8 @@ make artisan tinker
 
 ### Queues are blocked
 
-iOS and Android queues are separated by platform (`sync-discovery-{ios,android}`, `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`). A slow one will not block the other. To see which queue has a backlog:
+iOS and Android queues are separated by platform (`sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`). A slow one will not block the other. To see which queue has a backlog:
 
 ```bash
-make artisan queue:monitor sync-discovery-ios,sync-discovery-android,sync-tracked-ios,sync-tracked-android
+make artisan queue:monitor sync-tracked-ios,sync-tracked-android,sync-on-demand-ios,sync-on-demand-android
 ```

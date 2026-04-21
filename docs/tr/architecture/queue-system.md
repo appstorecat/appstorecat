@@ -5,10 +5,8 @@ AppStoreCat, iOS ve Android pipeline'larinin birbirini asla engellemeyeceginden 
 ## Kuyruk Mimarisi
 
 ```
-                    ┌─ sync-tracked-ios ──────▶ SyncAppJob (iOS takip edilen)
-                    ├─ sync-tracked-android ──▶ SyncAppJob (Android takip edilen)
-                    ├─ sync-discovery-ios ────▶ SyncAppJob (iOS kesfedilen)
-Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob (Android kesfedilen)
+                    ┌─ sync-tracked-ios ──────▶ SyncAppJob (iOS takip edilen + rakip + birikmis)
+Zamanlayici ───────▶├─ sync-tracked-android ──▶ SyncAppJob (Android takip edilen + rakip + birikmis)
                     ├─ sync-on-demand-ios ────▶ SyncAppJob (UI tetikli eskimis yenileme, iOS)
                     ├─ sync-on-demand-android ▶ SyncAppJob (UI tetikli eskimis yenileme, Android)
                     ├─ charts-ios ────────────▶ SyncChartSnapshotJob (iOS)
@@ -21,10 +19,8 @@ Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob
 
 | Kuyruk | Amac | Job |
 |--------|------|-----|
-| `sync-tracked-ios` | Takip edilen iOS uygulamalarini senkronize et | `SyncAppJob` |
-| `sync-tracked-android` | Takip edilen Android uygulamalarini senkronize et | `SyncAppJob` |
-| `sync-discovery-ios` | Kesfedilen iOS uygulamalarini senkronize et | `SyncAppJob` |
-| `sync-discovery-android` | Kesfedilen Android uygulamalarini senkronize et | `SyncAppJob` |
+| `sync-tracked-ios` | Zamanlayicinin katmanli geri dususuyle iOS uygulamalarini senkronize et (takip edilen → rakip → birikmis) | `SyncAppJob` |
+| `sync-tracked-android` | Zamanlayicinin katmanli geri dususuyle Android uygulamalarini senkronize et (takip edilen → rakip → birikmis) | `SyncAppJob` |
 | `sync-on-demand-ios` | Eskimis iOS uygulamalari icin UI tetikli yenileme | `SyncAppJob` |
 | `sync-on-demand-android` | Eskimis Android uygulamalari icin UI tetikli yenileme | `SyncAppJob` |
 | `charts-ios` | iOS chart goruntuleri | `SyncChartSnapshotJob` |
@@ -38,7 +34,7 @@ Zamanlayici ───────▶├─ sync-discovery-android ▶ SyncAppJob
 
 Tek bir uygulamanin tum pipeline fazlarini (identity → listings → metrics → finalize) calistirir ve `sync_statuses` uzerinden ilerlemeyi takip eder.
 
-- **Kuyruk:** Platforma ozel senkronizasyon kuyrugu (`sync-tracked-*`, `sync-discovery-*` veya `sync-on-demand-*`)
+- **Kuyruk:** Platforma ozel senkronizasyon kuyrugu (`sync-tracked-*` veya `sync-on-demand-*`)
 - **Benzersiz:** Uygulama ID'si basina, 1 saatlik pencere (tekrar senkronizasyonu onler)
 - **Yeniden deneme:** `[30, 60, 120]` saniye geri cekilme ile 3 deneme
 - **Throttle:** Redis tabanli, platform bazinda (iOS: 5/dk, Android: 5/dk)

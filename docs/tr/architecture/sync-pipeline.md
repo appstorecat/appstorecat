@@ -75,20 +75,20 @@ Ulke basina puanlari ve fiyati getirir.
 
 ## Senkronizasyon Zamanlamasi
 
-Laravel zamanlayicisi her iki platformda da `appstorecat:apps:sync-discovery` ve `appstorecat:apps:sync-tracked` komutlarini her **20 dakikada** bir tetikler; eskiyen uygulamalari cekerek her uygulama icin eslesen kuyruga bir `SyncAppJob` gonderir.
+Laravel zamanlayicisi her iki platformda da `appstorecat:apps:sync-tracked` komutunu her **20 dakikada** bir tetikler ve her platform icin `SYNC_{PLATFORM}_TRACKED_BATCH_SIZE` (varsayilan 5) uygulamayi `sync-tracked-{platform}` kuyruguna gonderir. Komut, yeterli eskiyen takip edilen uygulama bulamadiginda katmanli geri dusus uygular: once takip edilen uygulamalar, sonra henuz takip edilmeyen rakip uygulamalar, en son birikmis havuzdan en eski senkronize edilmis uygulamalar.
 
 | Uygulama Tipi | Yenileme Araligi | Kuyruk |
 |---------------|------------------|--------|
 | Takip Edilen iOS | 24 saat | `sync-tracked-ios` |
 | Takip Edilen Android | 24 saat | `sync-tracked-android` |
-| Kesfedilen iOS | 24 saat | `sync-discovery-ios` |
-| Kesfedilen Android | 24 saat | `sync-discovery-android` |
+| Rakip / Birikmis iOS | 24 saat | `sync-tracked-ios` |
+| Rakip / Birikmis Android | 24 saat | `sync-tracked-android` |
 
 Uygulamalar yalnizca `last_synced_at` degeri yapilandirilmis yenileme araligindan eskiyse yeniden senkronize edilir.
 
 ### Talep Uzerine Yenileme Kuyrugu
 
-`AppController::show()` ve `AppController::listing()`, ziyaret edilen bir uygulamanin verisi eskiyse `SyncAppJob`'u `sync-on-demand-ios` / `sync-on-demand-android` kuyruguna gonderir. Arayuz ilerlemeyi `GET /apps/{platform}/{externalId}/sync-status` ile sorgular; kullanici `POST /apps/{platform}/{externalId}/sync` uzerinden de aciktan tetikleyebilir. Bu, kullanici tetikli yenilemelerin kendi worker havuzunda calismasini ve olagan kesif/takip kuyruklarini beklememesini saglar.
+`AppController::show()` ve `AppController::listing()`, ziyaret edilen bir uygulamanin verisi eskiyse `SyncAppJob`'u `sync-on-demand-ios` / `sync-on-demand-android` kuyruguna gonderir. Arayuz ilerlemeyi `GET /apps/{platform}/{externalId}/sync-status` ile sorgular; kullanici `POST /apps/{platform}/{externalId}/sync` uzerinden de aciktan tetikleyebilir. Bu, kullanici tetikli yenilemelerin kendi worker havuzunda calismasini ve olagan takip kuyruklarini beklememesini saglar.
 
 ## Benzersizlik Korumalari
 

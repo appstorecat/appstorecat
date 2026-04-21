@@ -75,20 +75,26 @@ Fetches per-country ratings and price.
 
 ## Sync Scheduling
 
-The Laravel scheduler fires `appstorecat:apps:sync-discovery` and `appstorecat:apps:sync-tracked` on both platforms every **20 minutes**; it pulls stale apps and dispatches a `SyncAppJob` to the matching queue for each app.
+The Laravel scheduler fires `appstorecat:apps:sync-tracked` on both platforms every **20 minutes**; it pulls stale apps and dispatches a `SyncAppJob` to `sync-tracked-{platform}` for each one. Each tick is capped at `SYNC_{PLATFORM}_TRACKED_BATCH_SIZE` apps (default 5).
+
+The command picks apps in tiered priority order so idle ticks still do useful work:
+
+1. Tracked apps (via `user_apps`)
+2. Competitor apps (`app_competitors.competitor_app_id`) that are not themselves tracked
+3. Any other available app, oldest first
+
+Within each tier, apps that have never been synced are picked before apps with a stale `last_synced_at`.
 
 | App Type | Refresh Interval | Queue |
 |----------|------------------|-------|
-| Tracked iOS | 24 hours | `sync-tracked-ios` |
-| Tracked Android | 24 hours | `sync-tracked-android` |
-| Discovered iOS | 24 hours | `sync-discovery-ios` |
-| Discovered Android | 24 hours | `sync-discovery-android` |
+| Tracked / competitor / backlog iOS | 24 hours | `sync-tracked-ios` |
+| Tracked / competitor / backlog Android | 24 hours | `sync-tracked-android` |
 
 Apps are only re-synced if their `last_synced_at` is older than the configured refresh interval.
 
 ### On-demand Refresh Queue
 
-`AppController::show()` and `AppController::listing()` dispatch a `SyncAppJob` to `sync-on-demand-ios` / `sync-on-demand-android` when the visited app's data is stale. The UI polls progress via `GET /apps/{platform}/{externalId}/sync-status`; the user can also trigger an explicit refresh via `POST /apps/{platform}/{externalId}/sync`. This keeps user-triggered refreshes on their own worker pool and prevents them from waiting behind the regular discovery/tracked queues.
+`AppController::show()` and `AppController::listing()` dispatch a `SyncAppJob` to `sync-on-demand-ios` / `sync-on-demand-android` when the visited app's data is stale. The UI polls progress via `GET /apps/{platform}/{externalId}/sync-status`; the user can also trigger an explicit refresh via `POST /apps/{platform}/{externalId}/sync`. This keeps user-triggered refreshes on their own worker pool and prevents them from waiting behind the scheduled tracked queue.
 
 ## Uniqueness Safeguards
 

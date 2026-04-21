@@ -26,7 +26,7 @@ Each source can be enabled/disabled per platform under the `discover` key in `co
 1. The user performs an action (search, view charts, visit publisher)
 2. The backend calls the appropriate scraper to fetch store data
 3. `App::discover()` creates a new app record with a `discovered_from` tag
-4. The app is pushed onto the platform-separated discovery queue (`sync-discovery-ios` or `sync-discovery-android`) for background sync
+4. The app waits for the next `appstorecat:apps:sync-tracked` tick, which picks it up in the competitor/backlog tier and dispatches a `SyncAppJob` onto `sync-tracked-{platform}`
 5. The sync is tracked phase-by-phase in the `sync_statuses` table (identity → listings → metrics → finalize → reconciling); if the identity phase fails, the entire pipeline stops and the app is marked "unavailable"
 
 ## Search
@@ -49,6 +49,6 @@ Go to **Discovery > Apps** to search for apps. The UI offers:
 
 - **Controller:** `AppSearchController`
 - **Connectors:** `fetchSearch()` on both connectors
-- **Discovery queues:** `sync-discovery-ios`, `sync-discovery-android` (platform-separated)
+- **Sync queue:** `sync-tracked-ios` / `sync-tracked-android` (no separate discovery lane; discovered apps ride the scheduler's fallback tiers)
 - **Configuration:** `appstorecat.discover.{platform}.on_search` (and the other `on_*` keys; `on_direct_visit` defaults to `false`)
 - **404 contract:** Scrapers return 404 when an app is not found in a store; such cases are handled later by `ReconcileFailedItemsJob` via `sync_statuses.failed_items`.

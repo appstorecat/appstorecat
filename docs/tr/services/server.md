@@ -99,7 +99,6 @@ Laravel zamanlayicisi senkronizasyon ve grafik gorevlerini gonderir. Tum senkron
 
 | Kuyruk |
 |--------|
-| `sync-discovery-ios`, `sync-discovery-android` |
 | `sync-tracked-ios`, `sync-tracked-android` |
 | `sync-on-demand-ios`, `sync-on-demand-android` |
 | `charts-ios`, `charts-android` |

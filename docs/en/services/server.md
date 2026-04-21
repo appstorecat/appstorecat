@@ -99,7 +99,6 @@ The Laravel scheduler dispatches sync and chart jobs. All sync/chart queues are 
 
 | Queue |
 |-------|
-| `sync-discovery-ios`, `sync-discovery-android` |
 | `sync-tracked-ios`, `sync-tracked-android` |
 | `sync-on-demand-ios`, `sync-on-demand-android` |
 | `charts-ios`, `charts-android` |
