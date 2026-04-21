@@ -21,6 +21,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetCharts200,
   GetChartsParams
 } from '../../models';
 
@@ -32,7 +33,7 @@ import type {
  * @summary Get chart rankings
  */
 export type getChartsResponse200 = {
-  data: void
+  data: GetCharts200
   status: 200
 }
 

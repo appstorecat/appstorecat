@@ -21,7 +21,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ExploreIcons200,
   ExploreIconsParams,
+  ExploreScreenshots200,
   ExploreScreenshotsParams
 } from '../../models';
 
@@ -33,7 +35,7 @@ import type {
  * @summary Browse screenshots across all apps
  */
 export type exploreScreenshotsResponse200 = {
-  data: void
+  data: ExploreScreenshots200
   status: 200
 }
 
@@ -156,7 +158,7 @@ export function useExploreScreenshots<TData = Awaited<ReturnType<typeof exploreS
  * @summary Browse app icons across all apps
  */
 export type exploreIconsResponse200 = {
-  data: void
+  data: ExploreIcons200
   status: 200
 }
 

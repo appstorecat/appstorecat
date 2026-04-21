@@ -22,7 +22,7 @@ import type {
 
 import type {
   ListStoreCategoriesParams,
-  StoreCategory
+  StoreCategoryResource
 } from '../../models';
 
 
@@ -33,7 +33,7 @@ import type {
  * @summary List store categories
  */
 export type listStoreCategoriesResponse200 = {
-  data: StoreCategory[]
+  data: StoreCategoryResource[]
   status: 200
 }
 

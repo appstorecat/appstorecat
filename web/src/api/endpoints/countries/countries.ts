@@ -21,7 +21,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  Country
+  CountryResource
 } from '../../models';
 
 
@@ -32,7 +32,7 @@ import type {
  * @summary List active countries
  */
 export type listCountriesResponse200 = {
-  data: Country[]
+  data: CountryResource[]
   status: 200
 }
 

@@ -31,6 +31,7 @@ import type {
   AppRankingResource,
   AppResource,
   CompareKeywordsParams,
+  CompetitorGroupResource,
   CompetitorResource,
   KeywordCompareResource,
   KeywordDensityResource,
@@ -1423,10 +1424,10 @@ export const useStoreCompetitor = <TError = void,
       return useMutation(getStoreCompetitorMutationOptions(options), queryClient);
     }
     /**
- * @summary List all competitor apps across all user apps
+ * @summary List competitors grouped by parent app across all user apps
  */
 export type listAllCompetitorsResponse200 = {
-  data: AppResource[]
+  data: CompetitorGroupResource[]
   status: 200
 }
 
@@ -1520,7 +1521,7 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary List all competitor apps across all user apps
+ * @summary List competitors grouped by parent app across all user apps
  */
 
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(

@@ -9,8 +9,9 @@ import type { AppRankingResourceCategory } from './appRankingResourceCategory';
 import type { AppRankingResourceStatus } from './appRankingResourceStatus';
 
 export interface AppRankingResource {
-  /** Expects $resource as array with keys:
-   country_code, collection, category, rank, previous_rank, status, snapshot_date. */
+  /** Expects a ChartEntry with an eager-loaded `snapshot.category` relation and
+  a `previous_rank` dynamic property attached by the controller (nullable —
+  null when the app did not appear in the previous snapshot). */
   country_code?: string;
   collection?: string;
   /** @nullable */

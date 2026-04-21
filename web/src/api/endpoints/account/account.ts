@@ -25,8 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApiTokenCreatedResource,
   ApiTokenResource,
-  CreateApiToken201,
   MessageResource,
   PasswordUpdateRequest,
   ProfileDeleteRequest,
@@ -159,7 +159,7 @@ export function useListApiTokens<TData = Awaited<ReturnType<typeof listApiTokens
  * @summary Create a new API token
  */
 export type createApiTokenResponse201 = {
-  data: CreateApiToken201
+  data: ApiTokenCreatedResource
   status: 201
 }
 

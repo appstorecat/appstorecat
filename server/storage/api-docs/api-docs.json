@@ -62,16 +62,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "token": {
-                                            "$ref": "#/components/schemas/ApiTokenResource"
-                                        },
-                                        "plain_text_token": {
-                                            "type": "string",
-                                            "example": "1|abc123..."
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/ApiTokenCreatedResource"
                                 }
                             }
                         }
@@ -988,17 +979,17 @@
                 "tags": [
                     "Apps"
                 ],
-                "summary": "List all competitor apps across all user apps",
+                "summary": "List competitors grouped by parent app across all user apps",
                 "operationId": "listAllCompetitors",
                 "responses": {
                     "200": {
-                        "description": "List of competitor apps",
+                        "description": "Competitors grouped by parent app",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/AppResource"
+                                        "$ref": "#/components/schemas/CompetitorGroupResource"
                                     }
                                 }
                             }
@@ -1410,7 +1401,50 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Chart data"
+                        "description": "Chart data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ChartEntryResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "snapshot_date": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "nullable": true
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "nullable": true
+                                                },
+                                                "platform": {
+                                                    "type": "string"
+                                                },
+                                                "collection": {
+                                                    "type": "string"
+                                                },
+                                                "country_code": {
+                                                    "type": "string"
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -1435,7 +1469,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Country"
+                                        "$ref": "#/components/schemas/CountryResource"
                                     }
                                 }
                             }
@@ -1570,7 +1604,28 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Paginated app screenshot listings"
+                        "description": "Paginated app screenshot listings",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ExplorerScreenshotResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -1637,7 +1692,28 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Paginated app icons"
+                        "description": "Paginated app icons",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ExplorerIconResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -1955,7 +2031,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/StoreCategory"
+                                        "$ref": "#/components/schemas/StoreCategoryResource"
                                     }
                                 }
                             }
@@ -2221,6 +2297,26 @@
                 },
                 "type": "object"
             },
+            "ListingRequest": {
+                "required": [
+                    "country_code",
+                    "locale"
+                ],
+                "properties": {
+                    "country_code": {
+                        "type": "string",
+                        "example": "tr",
+                        "maxLength": 2,
+                        "minLength": 2
+                    },
+                    "locale": {
+                        "type": "string",
+                        "example": "tr",
+                        "maxLength": 10
+                    }
+                },
+                "type": "object"
+            },
             "StoreAppRequest": {
                 "required": [
                     "external_id",
@@ -2259,6 +2355,142 @@
                             "indirect",
                             "aspiration"
                         ]
+                    }
+                },
+                "type": "object"
+            },
+            "ChangeAppsRequest": {
+                "properties": {
+                    "per_page": {
+                        "type": "integer",
+                        "nullable": true,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "field": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "title",
+                            "subtitle",
+                            "description",
+                            "whats_new",
+                            "screenshots",
+                            "locale_removed"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ChangeCompetitorsRequest": {
+                "properties": {
+                    "per_page": {
+                        "type": "integer",
+                        "nullable": true,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "field": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "title",
+                            "subtitle",
+                            "description",
+                            "whats_new",
+                            "screenshots",
+                            "locale_removed"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ChartIndexRequest": {
+                "required": [
+                    "platform",
+                    "collection"
+                ],
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "collection": {
+                        "type": "string",
+                        "enum": [
+                            "top_free",
+                            "top_paid",
+                            "top_grossing"
+                        ]
+                    },
+                    "country_code": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 2,
+                        "minLength": 2
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ExplorerIconsRequest": {
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "search": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 100
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "nullable": true,
+                        "maximum": 200,
+                        "minimum": 1
+                    }
+                },
+                "type": "object"
+            },
+            "ExplorerScreenshotsRequest": {
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "search": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 100
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "nullable": true,
+                        "maximum": 50,
+                        "minimum": 1
                     }
                 },
                 "type": "object"
@@ -2302,6 +2534,44 @@
                         "example": "us",
                         "maxLength": 2,
                         "minLength": 2
+                    }
+                },
+                "type": "object"
+            },
+            "StoreCategoryIndexRequest": {
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "type": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "app",
+                            "game",
+                            "magazine"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ApiTokenCreatedResource": {
+                "required": [
+                    "token",
+                    "plain_text_token"
+                ],
+                "properties": {
+                    "token": {
+                        "$ref": "#/components/schemas/ApiTokenResource"
+                    },
+                    "plain_text_token": {
+                        "type": "string",
+                        "example": "1|abc123..."
                     }
                 },
                 "type": "object"
@@ -2434,7 +2704,7 @@
             "AppRankingResource": {
                 "properties": {
                     "country_code": {
-                        "description": "Expects $resource as array with keys:\n country_code, collection, category, rank, previous_rank, status, snapshot_date.",
+                        "description": "Expects a ChartEntry with an eager-loaded `snapshot.category` relation and\na `previous_rank` dynamic property attached by the controller (nullable —\nnull when the app did not appear in the previous snapshot).",
                         "type": "string"
                     },
                     "collection": {
@@ -2518,6 +2788,24 @@
                         "type": "object"
                     }
                 ]
+            },
+            "CompetitorGroupResource": {
+                "required": [
+                    "parent",
+                    "competitors"
+                ],
+                "properties": {
+                    "parent": {
+                        "$ref": "#/components/schemas/AppResource"
+                    },
+                    "competitors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CompetitorResource"
+                        }
+                    }
+                },
+                "type": "object"
             },
             "CompetitorResource": {
                 "required": [
@@ -2753,6 +3041,88 @@
                     }
                 ]
             },
+            "ChartEntryResource": {
+                "properties": {
+                    "rank": {
+                        "type": "integer"
+                    },
+                    "rank_change": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "app_id": {
+                        "type": "integer"
+                    },
+                    "app_external_id": {
+                        "type": "string"
+                    },
+                    "app_name": {
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "platform": {
+                        "$ref": "#/components/schemas/Platform"
+                    },
+                    "publisher": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "category_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "is_free": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "CountryResource": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Country"
+                    },
+                    {
+                        "properties": {
+                            "ios_languages": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "nullable": true
+                            },
+                            "android_languages": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
             "DashboardResource": {
                 "properties": {
                     "total_apps": {
@@ -2771,6 +3141,70 @@
                         "type": "array",
                         "items": {
                             "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ExplorerIconResource": {
+                "properties": {
+                    "app_id": {
+                        "type": "integer"
+                    },
+                    "external_id": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "publisher_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "category_name": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ExplorerScreenshotResource": {
+                "properties": {
+                    "app_id": {
+                        "type": "integer"
+                    },
+                    "external_id": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "publisher_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "category_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "screenshots": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
                         }
                     }
                 },
@@ -2904,6 +3338,31 @@
                     }
                 },
                 "type": "object"
+            },
+            "StoreCategoryResource": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/StoreCategory"
+                    },
+                    {
+                        "properties": {
+                            "parent_id": {
+                                "type": "integer",
+                                "nullable": true
+                            },
+                            "type": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "external_id": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
             },
             "App": {
                 "required": [
