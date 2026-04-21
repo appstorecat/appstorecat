@@ -9,11 +9,8 @@
 /**
  * @nullable
  */
-export type ChangeResourceApp = {
+export type AppSearchResultResourceCategory = {
   id?: number;
   name?: string;
-  platform?: 'ios' | 'android';
-  external_id?: string;
-  /** @nullable */
-  icon_url?: string | null;
+  slug?: string;
 } | null;

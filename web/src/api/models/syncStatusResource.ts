@@ -5,6 +5,7 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { SyncStatusResourceCurrentStep } from './syncStatusResourceCurrentStep';
 import type { SyncStatusResourceFailedItemsItem } from './syncStatusResourceFailedItemsItem';
 import type { SyncStatusResourceProgress } from './syncStatusResourceProgress';
 import type { SyncStatusResourceStatus } from './syncStatusResourceStatus';
@@ -13,7 +14,7 @@ export interface SyncStatusResource {
   app_id?: number;
   status?: SyncStatusResourceStatus;
   /** @nullable */
-  current_step?: string | null;
+  current_step?: SyncStatusResourceCurrentStep;
   progress?: SyncStatusResourceProgress;
   failed_items?: SyncStatusResourceFailedItemsItem[];
   failed_items_count?: number;

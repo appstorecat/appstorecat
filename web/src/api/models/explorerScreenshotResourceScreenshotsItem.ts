@@ -6,10 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type Platform = typeof Platform[keyof typeof Platform];
-
-
-export const Platform = {
-  Ios: 'Ios',
-  Android: 'Android',
-} as const;
+export type ExplorerScreenshotResourceScreenshotsItem = {
+  url: string;
+  device_type: string;
+  order: number;
+};

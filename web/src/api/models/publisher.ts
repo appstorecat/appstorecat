@@ -5,14 +5,14 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
-import type { Platform } from './platform';
+import type { PublisherPlatform } from './publisherPlatform';
 
 export interface Publisher {
   id: number;
   name: string;
   /** @nullable */
   external_id?: string | null;
-  platform: Platform;
+  platform: PublisherPlatform;
   /** @nullable */
   url?: string | null;
 }

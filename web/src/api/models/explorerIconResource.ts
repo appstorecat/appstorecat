@@ -5,11 +5,12 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { ExplorerIconResourcePlatform } from './explorerIconResourcePlatform';
 
 export interface ExplorerIconResource {
   app_id?: number;
   external_id?: string;
-  platform?: string;
+  platform?: ExplorerIconResourcePlatform;
   name?: string;
   /** @nullable */
   icon_url?: string | null;

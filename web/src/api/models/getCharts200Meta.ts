@@ -5,13 +5,14 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { GetCharts200MetaPlatform } from './getCharts200MetaPlatform';
 
 export type GetCharts200Meta = {
   /** @nullable */
   snapshot_date?: string | null;
   /** @nullable */
   updated_at?: string | null;
-  platform?: string;
+  platform?: GetCharts200MetaPlatform;
   collection?: string;
   country_code?: string;
   /** @nullable */

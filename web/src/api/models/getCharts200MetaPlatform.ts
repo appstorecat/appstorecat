@@ -6,14 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * @nullable
- */
-export type ChangeResourceApp = {
-  id?: number;
-  name?: string;
-  platform?: 'ios' | 'android';
-  external_id?: string;
-  /** @nullable */
-  icon_url?: string | null;
-} | null;
+export type GetCharts200MetaPlatform = typeof GetCharts200MetaPlatform[keyof typeof GetCharts200MetaPlatform];
+
+
+export const GetCharts200MetaPlatform = {
+  ios: 'ios',
+  android: 'android',
+} as const;

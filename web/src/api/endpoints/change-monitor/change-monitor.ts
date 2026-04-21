@@ -21,8 +21,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AppChanges200,
   AppChangesParams,
-  ChangeResource,
+  CompetitorChanges200,
   CompetitorChangesParams
 } from '../../models';
 
@@ -42,7 +43,7 @@ export const appChanges = (
 ) => {
 
 
-      return orvalMutator<ChangeResource[]>(
+      return orvalMutator<AppChanges200>(
       {url: `/changes/apps`, method: 'GET',
         params, signal
     },
@@ -133,7 +134,7 @@ export const competitorChanges = (
 ) => {
 
 
-      return orvalMutator<ChangeResource[]>(
+      return orvalMutator<CompetitorChanges200>(
       {url: `/changes/competitors`, method: 'GET',
         params, signal
     },

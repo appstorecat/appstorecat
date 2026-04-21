@@ -5,8 +5,8 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { ChartEntryResourcePlatform } from './chartEntryResourcePlatform';
 import type { ChartEntryResourcePublisher } from './chartEntryResourcePublisher';
-import type { Platform } from './platform';
 
 export interface ChartEntryResource {
   rank?: number;
@@ -17,7 +17,7 @@ export interface ChartEntryResource {
   app_name?: string;
   /** @nullable */
   icon_url?: string | null;
-  platform?: Platform;
+  platform?: ChartEntryResourcePlatform;
   /** @nullable */
   publisher?: ChartEntryResourcePublisher;
   /** @nullable */

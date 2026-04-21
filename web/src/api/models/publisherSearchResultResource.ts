@@ -5,6 +5,7 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { PublisherSearchResultResourcePlatform } from './publisherSearchResultResourcePlatform';
 import type { PublisherSearchResultResourceSampleAppsItem } from './publisherSearchResultResourceSampleAppsItem';
 
 export interface PublisherSearchResultResource {
@@ -12,7 +13,7 @@ export interface PublisherSearchResultResource {
   name: string;
   /** @nullable */
   url?: string | null;
-  platform: string;
+  platform: PublisherSearchResultResourcePlatform;
   app_count?: number;
   sample_apps?: PublisherSearchResultResourceSampleAppsItem[];
 }

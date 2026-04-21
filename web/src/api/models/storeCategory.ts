@@ -5,11 +5,11 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
-import type { Platform } from './platform';
+import type { StoreCategoryPlatform } from './storeCategoryPlatform';
 
 export interface StoreCategory {
   id: number;
   name: string;
   slug: string;
-  platform: Platform;
+  platform: StoreCategoryPlatform;
 }

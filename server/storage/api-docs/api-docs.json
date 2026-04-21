@@ -844,7 +844,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/AppResource"
+                                        "$ref": "#/components/schemas/AppSearchResultResource"
                                     }
                                 }
                             }
@@ -1442,14 +1442,25 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "App changes list",
+                        "description": "Paginated app changes list",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ChangeResource"
-                                    }
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ChangeResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1498,14 +1509,25 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Competitor changes list",
+                        "description": "Paginated competitor changes list",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ChangeResource"
-                                    }
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ChangeResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1595,7 +1617,11 @@
                                                     "nullable": true
                                                 },
                                                 "platform": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "ios",
+                                                        "android"
+                                                    ]
                                                 },
                                                 "collection": {
                                                     "type": "string"
@@ -2225,14 +2251,6 @@
                     "direct",
                     "indirect",
                     "aspiration"
-                ]
-            },
-            "Platform": {
-                "type": "string",
-                "example": "ios",
-                "enum": [
-                    "Ios",
-                    "Android"
                 ]
             },
             "LoginRequest": {
@@ -2976,6 +2994,109 @@
                     }
                 ]
             },
+            "AppSearchResultResource": {
+                "required": [
+                    "id",
+                    "platform",
+                    "external_id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "platform": {
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "external_id": {
+                        "type": "string",
+                        "example": "389801252"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Instagram"
+                    },
+                    "icon_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "publisher_name": {
+                        "type": "string",
+                        "example": "Instagram, Inc.",
+                        "nullable": true
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 4.68,
+                        "nullable": true
+                    },
+                    "rating_count": {
+                        "type": "integer",
+                        "example": 31,
+                        "nullable": true
+                    },
+                    "version": {
+                        "type": "string",
+                        "example": "1.2.4",
+                        "nullable": true
+                    },
+                    "is_available": {
+                        "type": "boolean",
+                        "example": true,
+                        "nullable": true
+                    },
+                    "is_tracked": {
+                        "type": "boolean",
+                        "example": false,
+                        "nullable": true
+                    },
+                    "publisher": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "external_id": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "platform": {
+                                "type": "string",
+                                "enum": [
+                                    "ios",
+                                    "android"
+                                ]
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "category": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "CompetitorGroupResource": {
                 "required": [
                     "parent",
@@ -3232,7 +3353,14 @@
                     },
                     "current_step": {
                         "type": "string",
-                        "nullable": true
+                        "nullable": true,
+                        "enum": [
+                            "identity",
+                            "listings",
+                            "metrics",
+                            "finalize",
+                            "reconciling"
+                        ]
                     },
                     "progress": {
                         "properties": {
@@ -3248,6 +3376,47 @@
                     "failed_items": {
                         "type": "array",
                         "items": {
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "listing",
+                                        "metric"
+                                    ]
+                                },
+                                "locale": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "country_code": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "reason": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "retry_count": {
+                                    "type": "integer"
+                                },
+                                "last_attempted_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                },
+                                "next_retry_at": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                },
+                                "permanent_failure": {
+                                    "type": "boolean"
+                                },
+                                "last_error": {
+                                    "type": "string",
+                                    "nullable": true
+                                }
+                            },
                             "type": "object"
                         }
                     },
@@ -3308,7 +3477,11 @@
                                         "type": "string"
                                     },
                                     "platform": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "enum": [
+                                            "ios",
+                                            "android"
+                                        ]
                                     },
                                     "external_id": {
                                         "type": "string"
@@ -3357,7 +3530,11 @@
                         "nullable": true
                     },
                     "platform": {
-                        "$ref": "#/components/schemas/Platform"
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
                     },
                     "publisher": {
                         "properties": {
@@ -3448,7 +3625,11 @@
                         "type": "string"
                     },
                     "platform": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
                     },
                     "name": {
                         "type": "string"
@@ -3477,7 +3658,11 @@
                         "type": "string"
                     },
                     "platform": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
                     },
                     "name": {
                         "type": "string"
@@ -3497,7 +3682,24 @@
                     "screenshots": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "required": [
+                                "url",
+                                "device_type",
+                                "order"
+                            ],
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "device_type": {
+                                    "type": "string",
+                                    "example": "iphone"
+                                },
+                                "order": {
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -3568,7 +3770,11 @@
                     },
                     "platform": {
                         "type": "string",
-                        "example": "ios"
+                        "example": "ios",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
                     },
                     "app_count": {
                         "type": "integer",
@@ -3646,7 +3852,12 @@
                             },
                             "type": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "enum": [
+                                    "app",
+                                    "game",
+                                    "magazine"
+                                ]
                             },
                             "external_id": {
                                 "type": "string",
@@ -3669,7 +3880,11 @@
                         "example": 1
                     },
                     "platform": {
-                        "$ref": "#/components/schemas/Platform"
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
                     },
                     "external_id": {
                         "type": "string",
@@ -3906,7 +4121,11 @@
                         "nullable": true
                     },
                     "platform": {
-                        "$ref": "#/components/schemas/Platform"
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
                     },
                     "url": {
                         "type": "string",
@@ -3937,7 +4156,11 @@
                         "example": "photo-video"
                     },
                     "platform": {
-                        "$ref": "#/components/schemas/Platform"
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
                     }
                 },
                 "type": "object"

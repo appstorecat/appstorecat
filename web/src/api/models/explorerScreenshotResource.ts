@@ -5,11 +5,13 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { ExplorerScreenshotResourcePlatform } from './explorerScreenshotResourcePlatform';
+import type { ExplorerScreenshotResourceScreenshotsItem } from './explorerScreenshotResourceScreenshotsItem';
 
 export interface ExplorerScreenshotResource {
   app_id?: number;
   external_id?: string;
-  platform?: string;
+  platform?: ExplorerScreenshotResourcePlatform;
   name?: string;
   /** @nullable */
   icon_url?: string | null;
@@ -17,5 +19,5 @@ export interface ExplorerScreenshotResource {
   publisher_name?: string | null;
   /** @nullable */
   category_name?: string | null;
-  screenshots?: string[];
+  screenshots?: ExplorerScreenshotResourceScreenshotsItem[];
 }

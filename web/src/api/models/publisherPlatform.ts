@@ -6,14 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * @nullable
- */
-export type ChangeResourceApp = {
-  id?: number;
-  name?: string;
-  platform?: 'ios' | 'android';
-  external_id?: string;
-  /** @nullable */
-  icon_url?: string | null;
-} | null;
+export type PublisherPlatform = typeof PublisherPlatform[keyof typeof PublisherPlatform];
+
+
+export const PublisherPlatform = {
+  ios: 'ios',
+  android: 'android',
+} as const;

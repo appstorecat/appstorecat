@@ -5,5 +5,22 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { SyncStatusResourceFailedItemsItemType } from './syncStatusResourceFailedItemsItemType';
 
-export type SyncStatusResourceFailedItemsItem = { [key: string]: unknown };
+export type SyncStatusResourceFailedItemsItem = {
+  type?: SyncStatusResourceFailedItemsItemType;
+  /** @nullable */
+  locale?: string | null;
+  /** @nullable */
+  country_code?: string | null;
+  /** @nullable */
+  reason?: string | null;
+  retry_count?: number;
+  /** @nullable */
+  last_attempted_at?: string | null;
+  /** @nullable */
+  next_retry_at?: string | null;
+  permanent_failure?: boolean;
+  /** @nullable */
+  last_error?: string | null;
+};

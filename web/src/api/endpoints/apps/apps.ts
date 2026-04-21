@@ -30,6 +30,7 @@ import type {
   AppListingParams,
   AppRankingResource,
   AppResource,
+  AppSearchResultResource,
   CompareKeywordsParams,
   CompetitorGroupResource,
   CompetitorResource,
@@ -808,7 +809,7 @@ export const searchApps = (
 ) => {
 
 
-      return orvalMutator<AppResource[]>(
+      return orvalMutator<AppSearchResultResource[]>(
       {url: `/apps/search`, method: 'GET',
         params, signal
     },

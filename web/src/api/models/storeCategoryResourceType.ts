@@ -9,11 +9,11 @@
 /**
  * @nullable
  */
-export type ChangeResourceApp = {
-  id?: number;
-  name?: string;
-  platform?: 'ios' | 'android';
-  external_id?: string;
-  /** @nullable */
-  icon_url?: string | null;
-} | null;
+export type StoreCategoryResourceType = typeof StoreCategoryResourceType[keyof typeof StoreCategoryResourceType] | null;
+
+
+export const StoreCategoryResourceType = {
+  app: 'app',
+  game: 'game',
+  magazine: 'magazine',
+} as const;
