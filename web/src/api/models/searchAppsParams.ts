@@ -19,4 +19,5 @@ platform: SearchAppsPlatform;
  * @maxLength 2
  */
 country_code?: string;
+'exclude_external_ids[]'?: string[];
 };

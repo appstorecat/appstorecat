@@ -6,9 +6,31 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { KeywordIndexRequestNgram } from './keywordIndexRequestNgram';
+import type { KeywordIndexRequestOrder } from './keywordIndexRequestOrder';
+import type { KeywordIndexRequestSort } from './keywordIndexRequestSort';
 
 export interface KeywordIndexRequest {
   locale?: string;
   ngram?: KeywordIndexRequestNgram;
   version_id?: number;
+  /**
+     * @maxLength 100
+     * @nullable
+     */
+  search?: string | null;
+  /** @nullable */
+  sort?: KeywordIndexRequestSort;
+  /** @nullable */
+  order?: KeywordIndexRequestOrder;
+  /**
+     * @minimum 1
+     * @maximum 500
+     * @nullable
+     */
+  per_page?: number | null;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  page?: number | null;
 }

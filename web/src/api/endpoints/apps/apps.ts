@@ -26,6 +26,7 @@ import type {
 
 import type {
   AppDetailResource,
+  AppKeywords200,
   AppKeywordsParams,
   AppListingParams,
   AppRankingResource,
@@ -36,7 +37,7 @@ import type {
   CompetitorResource,
   GetRatingHistoryParams,
   KeywordCompareResource,
-  KeywordDensityResource,
+  ListAllCompetitorsParams,
   ListAppRankingsParams,
   ListAppsParams,
   ListingResource,
@@ -1057,13 +1058,14 @@ export const useStoreCompetitor = <TError = void,
  * @summary List competitors grouped by parent app across all user apps
  */
 export const listAllCompetitors = (
-
+    params?: ListAllCompetitorsParams,
  options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
 ) => {
 
 
       return orvalMutator<CompetitorGroupResource[]>(
-      {url: `/competitors`, method: 'GET', signal
+      {url: `/competitors`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -1071,23 +1073,23 @@ export const listAllCompetitors = (
 
 
 
-export const getListAllCompetitorsQueryKey = () => {
+export const getListAllCompetitorsQueryKey = (params?: ListAllCompetitorsParams,) => {
     return [
-    `/competitors`
+    `/competitors`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListAllCompetitorsQueryOptions = <TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+export const getListAllCompetitorsQueryOptions = <TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(params?: ListAllCompetitorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAllCompetitorsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListAllCompetitorsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllCompetitors>>> = ({ signal }) => listAllCompetitors(requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllCompetitors>>> = ({ signal }) => listAllCompetitors(params, requestOptions, signal);
 
 
 
@@ -1101,7 +1103,7 @@ export type ListAllCompetitorsQueryError = unknown
 
 
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>> & Pick<
+ params: undefined |  ListAllCompetitorsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllCompetitors>>,
           TError,
@@ -1111,7 +1113,7 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>> & Pick<
+ params?: ListAllCompetitorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllCompetitors>>,
           TError,
@@ -1121,7 +1123,7 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+ params?: ListAllCompetitorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1129,11 +1131,11 @@ export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllC
  */
 
 export function useListAllCompetitors<TData = Awaited<ReturnType<typeof listAllCompetitors>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
+ params?: ListAllCompetitorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllCompetitors>>, TError, TData>>, request?: SecondParameter<typeof orvalMutator>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListAllCompetitorsQueryOptions(options)
+  const queryOptions = getListAllCompetitorsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -1217,7 +1219,7 @@ export const appKeywords = (
 ) => {
 
 
-      return orvalMutator<KeywordDensityResource[]>(
+      return orvalMutator<AppKeywords200>(
       {url: `/apps/${platform}/${externalId}/keywords`, method: 'GET',
         params, signal
     },

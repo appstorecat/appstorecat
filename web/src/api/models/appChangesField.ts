@@ -15,5 +15,6 @@ export const AppChangesField = {
   description: 'description',
   whats_new: 'whats_new',
   screenshots: 'screenshots',
+  locale_added: 'locale_added',
   locale_removed: 'locale_removed',
 } as const;

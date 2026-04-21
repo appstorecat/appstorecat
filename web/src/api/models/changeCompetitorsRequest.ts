@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ChangeCompetitorsRequestField } from './changeCompetitorsRequestField';
+import type { ChangeCompetitorsRequestPlatform } from './changeCompetitorsRequestPlatform';
 
 export interface ChangeCompetitorsRequest {
   /**
@@ -16,4 +17,11 @@ export interface ChangeCompetitorsRequest {
   per_page?: number | null;
   /** @nullable */
   field?: ChangeCompetitorsRequestField;
+  /** @nullable */
+  platform?: ChangeCompetitorsRequestPlatform;
+  /**
+     * @maxLength 100
+     * @nullable
+     */
+  search?: string | null;
 }

@@ -6,8 +6,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AppChangesField } from './appChangesField';
+import type { AppChangesPlatform } from './appChangesPlatform';
 
 export type AppChangesParams = {
 per_page?: number;
 field?: AppChangesField;
+platform?: AppChangesPlatform;
+/**
+ * @maxLength 100
+ */
+search?: string;
 };

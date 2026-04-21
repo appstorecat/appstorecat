@@ -6,8 +6,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { CompetitorChangesField } from './competitorChangesField';
+import type { CompetitorChangesPlatform } from './competitorChangesPlatform';
 
 export type CompetitorChangesParams = {
 per_page?: number;
 field?: CompetitorChangesField;
+platform?: CompetitorChangesPlatform;
+/**
+ * @maxLength 100
+ */
+search?: string;
 };

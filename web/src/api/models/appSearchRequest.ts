@@ -19,4 +19,6 @@ export interface AppSearchRequest {
      * @maxLength 2
      */
   country_code?: string;
+  /** @nullable */
+  exclude_external_ids?: string[] | null;
 }

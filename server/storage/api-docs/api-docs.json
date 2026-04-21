@@ -767,6 +767,20 @@
                             "type": "string",
                             "format": "date"
                         }
+                    },
+                    {
+                        "name": "collection",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "top_free",
+                                "top_paid",
+                                "top_grossing",
+                                "all"
+                            ]
+                        }
                     }
                 ],
                 "responses": {
@@ -833,6 +847,20 @@
                             "default": "us",
                             "maxLength": 2,
                             "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "exclude_external_ids[]",
+                        "in": "query",
+                        "required": false,
+                        "style": "form",
+                        "explode": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "maxLength": 255
+                            }
                         }
                     }
                 ],
@@ -981,6 +1009,29 @@
                 ],
                 "summary": "List competitors grouped by parent app across all user apps",
                 "operationId": "listAllCompetitors",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Competitors grouped by parent app",
@@ -1113,18 +1164,86 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "density",
+                            "enum": [
+                                "keyword",
+                                "count",
+                                "density"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "maximum": 500,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Keyword density list",
+                        "description": "Paginated keyword density list",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/KeywordDensityResource"
-                                    }
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/KeywordDensityResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1435,8 +1554,30 @@
                                 "description",
                                 "whats_new",
                                 "screenshots",
+                                "locale_added",
                                 "locale_removed"
                             ]
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
                         }
                     }
                 ],
@@ -1502,8 +1643,30 @@
                                 "description",
                                 "whats_new",
                                 "screenshots",
+                                "locale_added",
                                 "locale_removed"
                             ]
+                        }
+                    },
+                    {
+                        "name": "platform",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ios",
+                                "android"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
                         }
                     }
                 ],
@@ -2387,6 +2550,16 @@
                         "type": "string",
                         "format": "date",
                         "example": "2026-04-17"
+                    },
+                    "collection": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "top_free",
+                            "top_paid",
+                            "top_grossing",
+                            "all"
+                        ]
                     }
                 },
                 "type": "object"
@@ -2416,6 +2589,32 @@
                         "example": "us",
                         "maxLength": 2,
                         "minLength": 2
+                    },
+                    "exclude_external_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 255
+                        },
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CompetitorAllRequest": {
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "search": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 100
                     }
                 },
                 "type": "object"
@@ -2481,6 +2680,39 @@
                     "version_id": {
                         "type": "integer",
                         "example": 1
+                    },
+                    "search": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 100
+                    },
+                    "sort": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "keyword",
+                            "count",
+                            "density"
+                        ]
+                    },
+                    "order": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ]
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "nullable": true,
+                        "maximum": 500,
+                        "minimum": 1
+                    },
+                    "page": {
+                        "type": "integer",
+                        "nullable": true,
+                        "minimum": 1
                     }
                 },
                 "type": "object"
@@ -2581,8 +2813,22 @@
                             "description",
                             "whats_new",
                             "screenshots",
+                            "locale_added",
                             "locale_removed"
                         ]
+                    },
+                    "platform": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "search": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 100
                     }
                 },
                 "type": "object"
@@ -2604,8 +2850,22 @@
                             "description",
                             "whats_new",
                             "screenshots",
+                            "locale_added",
                             "locale_removed"
                         ]
+                    },
+                    "platform": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
+                    "search": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 100
                     }
                 },
                 "type": "object"

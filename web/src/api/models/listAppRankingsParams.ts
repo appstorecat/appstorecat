@@ -5,7 +5,9 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { ListAppRankingsCollection } from './listAppRankingsCollection';
 
 export type ListAppRankingsParams = {
 date?: string;
+collection?: ListAppRankingsCollection;
 };

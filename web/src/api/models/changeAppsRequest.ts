@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ChangeAppsRequestField } from './changeAppsRequestField';
+import type { ChangeAppsRequestPlatform } from './changeAppsRequestPlatform';
 
 export interface ChangeAppsRequest {
   /**
@@ -16,4 +17,11 @@ export interface ChangeAppsRequest {
   per_page?: number | null;
   /** @nullable */
   field?: ChangeAppsRequestField;
+  /** @nullable */
+  platform?: ChangeAppsRequestPlatform;
+  /**
+     * @maxLength 100
+     * @nullable
+     */
+  search?: string | null;
 }

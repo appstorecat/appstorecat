@@ -5,10 +5,15 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
-import type { AppRankingIndexRequestCollection } from './appRankingIndexRequestCollection';
 
-export interface AppRankingIndexRequest {
-  date?: string;
-  /** @nullable */
-  collection?: AppRankingIndexRequestCollection;
-}
+/**
+ * @nullable
+ */
+export type KeywordIndexRequestSort = typeof KeywordIndexRequestSort[keyof typeof KeywordIndexRequestSort] | null;
+
+
+export const KeywordIndexRequestSort = {
+  keyword: 'keyword',
+  count: 'count',
+  density: 'density',
+} as const;

@@ -6,9 +6,26 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AppKeywordsNgram } from './appKeywordsNgram';
+import type { AppKeywordsOrder } from './appKeywordsOrder';
+import type { AppKeywordsSort } from './appKeywordsSort';
 
 export type AppKeywordsParams = {
 locale?: string;
 ngram?: AppKeywordsNgram;
 version_id?: number;
+/**
+ * @maxLength 100
+ */
+search?: string;
+sort?: AppKeywordsSort;
+order?: AppKeywordsOrder;
+/**
+ * @minimum 1
+ * @maximum 500
+ */
+per_page?: number;
+/**
+ * @minimum 1
+ */
+page?: number;
 };
