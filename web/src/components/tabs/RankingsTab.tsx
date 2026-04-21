@@ -53,17 +53,12 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
   const { data, isLoading, isError, refetch } = useListAppRankings(
     platformParam,
     externalId,
-    { date: selectedDate },
+    {
+      date: selectedDate,
+      collection: rankType === 'any' ? 'all' : rankType,
+    },
   )
   const current = useMemo<CurrentRanking[]>(() => (data ?? []) as CurrentRanking[], [data])
-
-  // Filter rows by rankType; rows are pre-scoped to overall chart on backend side.
-  const filteredRows = useMemo(() => {
-    return current.filter((row) => {
-      if (rankType !== 'any' && row.collection !== rankType) return false
-      return true
-    })
-  }, [current, rankType])
 
   // Each column represents a (collection, category) tuple.
   type Column = {
@@ -75,7 +70,7 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
 
   const visibleColumns = useMemo<Column[]>(() => {
     const map = new Map<string, Column>()
-    for (const row of filteredRows) {
+    for (const row of current) {
       const categoryId = row.category ? String(row.category.id) : 'overall'
       const categoryName = row.category?.name ?? 'Overall'
       const key = `${row.collection}|${categoryId}`
@@ -92,11 +87,11 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
       if (b.categoryId === 'overall') return 1
       return a.categoryName.localeCompare(b.categoryName)
     })
-  }, [filteredRows])
+  }, [current])
 
   const pivoted = useMemo(() => {
     const byCountry = new Map<string, Record<string, CurrentRanking>>()
-    for (const row of filteredRows) {
+    for (const row of current) {
       const categoryId = row.category ? String(row.category.id) : 'overall'
       const key = `${row.collection}|${categoryId}`
       if (!byCountry.has(row.country_code)) byCountry.set(row.country_code, {})
@@ -111,7 +106,7 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
     })
     entries.sort((a, b) => a.best - b.best)
     return entries
-  }, [filteredRows])
+  }, [current])
 
   const countryCount = pivoted.length
   const isToday = selectedDate === todayIso()

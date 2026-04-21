@@ -182,12 +182,12 @@ export default function AppsShow() {
   const versions = detail.versions ?? []
   const listings = detail.listings ?? []
   const hasListingsOrVersions = listings.length > 0 || versions.length > 0
-  const sortedVersions = [...versions].sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
-  const latestVersion = sortedVersions[0]
+  // Backend returns versions newest-first (App::versions() relation orders by id desc).
+  const latestVersion = versions[0]
   const activeVersion: VersionResource | undefined =
     selectedVersion === 'latest'
       ? latestVersion
-      : sortedVersions.find((v) => String(v.id) === selectedVersion)
+      : versions.find((v) => String(v.id) === selectedVersion)
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
@@ -308,7 +308,7 @@ export default function AppsShow() {
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {sortedVersions.map((v, i) => (
+                    {versions.map((v, i) => (
                       <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
                         {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
                       </SelectItem>

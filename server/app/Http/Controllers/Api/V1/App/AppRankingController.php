@@ -25,6 +25,7 @@ class AppRankingController extends BaseController
             new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'date', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'collection', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['top_free', 'top_paid', 'top_grossing', 'all'])),
         ],
         responses: [
             new OA\Response(response: 200, description: 'Rankings on the selected date', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/AppRankingResource'))),
@@ -35,6 +36,7 @@ class AppRankingController extends BaseController
     {
         $app = $this->resolveApp($platform, $externalId);
         $selectedDate = $request->input('date') ?? now()->toDateString();
+        $collection = $request->validated('collection');
 
         $entries = ChartEntry::query()
             ->select('trending_chart_entries.*')
@@ -42,6 +44,10 @@ class AppRankingController extends BaseController
             ->where('trending_chart_entries.app_id', $app->id)
             ->where('trending_charts.platform', Platform::fromSlug($platform)->value)
             ->where('trending_charts.snapshot_date', $selectedDate)
+            ->when(
+                $collection !== null && $collection !== 'all',
+                fn ($q) => $q->where('trending_charts.collection', $collection),
+            )
             ->with(['snapshot.category'])
             ->get();
 

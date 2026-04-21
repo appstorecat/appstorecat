@@ -141,7 +141,8 @@ function buildTimeline(
   listings: ListingResource[],
   versions: VersionResource[],
 ): TimelineEntry[] {
-  const sorted = [...versions].sort((a, b) => b.id - a.id)
+  // Backend returns versions newest-first (App::versions() relation orders by id desc).
+  const sorted = versions
   const listingsByVersion = new Map<number, ListingResource[]>()
   for (const l of listings) {
     if (l.version_id == null) continue

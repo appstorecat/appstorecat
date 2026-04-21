@@ -27,12 +27,8 @@ export default function StoreListingTab({
   selectedVersion,
   unavailableCountries = [],
 }: StoreListingTabProps) {
-  const sortedVersions = useMemo(
-    () => [...versions].sort((a, b) => b.id - a.id),
-    [versions],
-  )
-
-  const latestVersionId = sortedVersions.length > 0 ? sortedVersions[0].id : null
+  // Backend returns versions newest-first (App::versions() relation orders by id desc).
+  const latestVersionId = versions.length > 0 ? versions[0].id : null
   const selectedVersionId = selectedVersion
 
   const filteredListings = useMemo(() => {
