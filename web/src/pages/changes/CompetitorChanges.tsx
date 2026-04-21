@@ -1,8 +1,12 @@
 import { useCompetitorChanges } from '@/api/endpoints/change-monitor/change-monitor'
+import type { ChangeResource } from '@/api/models'
 import ChangeCard from '@/components/ChangeCard'
 
+type PaginatedChanges = { data?: ChangeResource[] }
+
 export default function CompetitorChanges() {
-  const { data: changes = [], isLoading } = useCompetitorChanges({ per_page: 50 })
+  const { data, isLoading } = useCompetitorChanges({ per_page: 50 })
+  const changes = (data as unknown as PaginatedChanges | undefined)?.data ?? []
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
