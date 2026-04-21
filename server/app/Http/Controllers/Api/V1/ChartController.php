@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Chart\ChartIndexRequest;
+use App\Http\Resources\Api\Chart\ChartEntryResource;
 use App\Jobs\Chart\FetchChartSnapshotJob;
 use App\Models\ChartEntry;
 use App\Models\ChartSnapshot;
 use App\Models\StoreCategory;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
 
 class ChartController extends BaseController
@@ -28,24 +29,33 @@ class ChartController extends BaseController
             new OA\Parameter(name: 'category_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Chart data'),
+            new OA\Response(
+                response: 200,
+                description: 'Chart data',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/ChartEntryResource')),
+                        new OA\Property(property: 'meta', type: 'object', properties: [
+                            new OA\Property(property: 'snapshot_date', type: 'string', format: 'date', nullable: true),
+                            new OA\Property(property: 'updated_at', type: 'string', format: 'date-time', nullable: true),
+                            new OA\Property(property: 'platform', type: 'string'),
+                            new OA\Property(property: 'collection', type: 'string'),
+                            new OA\Property(property: 'country_code', type: 'string'),
+                            new OA\Property(property: 'message', type: 'string', nullable: true),
+                        ]),
+                    ],
+                ),
+            ),
         ],
     )]
-    public function index(Request $request): JsonResponse
+    public function index(ChartIndexRequest $request): AnonymousResourceCollection
     {
-        $request->validate([
-            'platform' => 'required|in:ios,android',
-            'collection' => 'required|in:top_free,top_paid,top_grossing',
-            'country_code' => 'sometimes|string|size:2|exists:countries,code',
-            'category_id' => 'sometimes|integer|exists:store_categories,id',
-        ]);
-
-        $platform = $request->input('platform');
-        $collection = $request->input('collection');
-        $countryCode = $request->input('country_code', 'us');
+        $platform = $request->validated('platform');
+        $collection = $request->validated('collection');
+        $countryCode = $request->validated('country_code') ?? 'us';
         // Default to the platform's "All" category when no explicit filter is given.
-        $categoryId = $request->input('category_id')
-            ? (int) $request->input('category_id')
+        $categoryId = $request->validated('category_id')
+            ? (int) $request->validated('category_id')
             : StoreCategory::platform($platform)->whereNull('external_id')->where('type', 'app')->value('id');
 
         $snapshot = ChartSnapshot::forChart($platform, $collection, $countryCode, $categoryId)
@@ -65,10 +75,15 @@ class ChartController extends BaseController
         }
 
         if (! $snapshot) {
-            return response()->json([
-                'message' => 'No chart data available.',
-                'entries' => [],
-                'snapshot_date' => null,
+            return ChartEntryResource::collection([])->additional([
+                'meta' => [
+                    'message' => 'No chart data available.',
+                    'snapshot_date' => null,
+                    'updated_at' => null,
+                    'platform' => $platform,
+                    'collection' => $collection,
+                    'country_code' => $countryCode,
+                ],
             ]);
         }
 
@@ -86,37 +101,20 @@ class ChartController extends BaseController
                 ->toArray();
         }
 
-        $data = $entries->map(function (ChartEntry $entry) use ($previousRanks) {
-            $prevRank = $previousRanks[$entry->app_id] ?? null;
-            $rankChange = $prevRank !== null ? $prevRank - $entry->rank : null;
-            $app = $entry->app;
-
-            return [
-                'rank' => $entry->rank,
-                'rank_change' => $rankChange,
-                'app_id' => $app->id,
-                'app_external_id' => $app->external_id,
-                'app_name' => $app->displayName(),
-                'icon_url' => $app->displayIcon(),
-                'platform' => $app->platform,
-                'publisher' => $app->publisher ? [
-                    'id' => $app->publisher->id,
-                    'name' => $app->publisher->name,
-                ] : null,
-                'category_name' => $app->category?->name,
-                'price' => (float) $entry->price,
-                'currency' => $entry->currency,
-                'is_free' => $entry->price == 0,
-            ];
+        // Attach `previous_rank` as a dynamic property so the resource can
+        // compute `rank_change` without a second DB pass per row.
+        $entries->each(function (ChartEntry $entry) use ($previousRanks) {
+            $entry->previous_rank = $previousRanks[$entry->app_id] ?? null;
         });
 
-        return response()->json([
-            'snapshot_date' => $snapshot->snapshot_date->toDateString(),
-            'updated_at' => $snapshot->created_at->toIso8601String(),
-            'platform' => $platform,
-            'collection' => $collection,
-            'country_code' => $countryCode,
-            'entries' => $data,
+        return ChartEntryResource::collection($entries)->additional([
+            'meta' => [
+                'snapshot_date' => $snapshot->snapshot_date->toDateString(),
+                'updated_at' => $snapshot->created_at->toIso8601String(),
+                'platform' => $platform,
+                'collection' => $collection,
+                'country_code' => $countryCode,
+            ],
         ]);
     }
 }

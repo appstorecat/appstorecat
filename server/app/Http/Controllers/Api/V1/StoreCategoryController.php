@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\StoreCategory\StoreCategoryIndexRequest;
+use App\Http\Resources\Api\StoreCategory\StoreCategoryResource;
 use App\Models\StoreCategory;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
 
 class StoreCategoryController extends BaseController
@@ -23,21 +24,21 @@ class StoreCategoryController extends BaseController
             new OA\Parameter(name: 'type', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['app', 'game', 'magazine'])),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'List of categories', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/StoreCategory'))),
+            new OA\Response(response: 200, description: 'List of categories', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/StoreCategoryResource'))),
         ],
     )]
-    public function index(Request $request): JsonResponse
+    public function index(StoreCategoryIndexRequest $request): AnonymousResourceCollection
     {
         $query = StoreCategory::query()->orderBy('name');
 
         if ($request->has('platform')) {
-            $query->platform($request->input('platform'));
+            $query->platform($request->validated('platform'));
         }
 
         if ($request->has('type')) {
-            $query->where('type', $request->input('type'));
+            $query->where('type', $request->validated('type'));
         }
 
-        return response()->json($query->get());
+        return StoreCategoryResource::collection($query->get());
     }
 }

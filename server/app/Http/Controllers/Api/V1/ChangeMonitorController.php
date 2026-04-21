@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Api\Change\ChangeAppsRequest;
+use App\Http\Requests\Api\Change\ChangeCompetitorsRequest;
 use App\Http\Resources\Api\ChangeResource;
 use App\Models\AppCompetitor;
 use App\Models\StoreListingChange;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
 
@@ -32,7 +33,7 @@ class ChangeMonitorController extends BaseController
             ),
         ],
     )]
-    public function apps(Request $request): AnonymousResourceCollection
+    public function apps(ChangeAppsRequest $request): AnonymousResourceCollection
     {
         $competitorAppIds = AppCompetitor::where('user_id', $request->user()->id)
             ->pluck('competitor_app_id')
@@ -46,10 +47,10 @@ class ChangeMonitorController extends BaseController
             ->orderByDesc('detected_at');
 
         if ($request->filled('field')) {
-            $query->where('field_changed', $request->input('field'));
+            $query->where('field_changed', $request->validated('field'));
         }
 
-        return ChangeResource::collection($query->paginate($request->integer('per_page', 25)));
+        return ChangeResource::collection($query->paginate((int) ($request->validated('per_page') ?? 25)));
     }
 
     #[OA\Get(
@@ -70,7 +71,7 @@ class ChangeMonitorController extends BaseController
             ),
         ],
     )]
-    public function competitors(Request $request): AnonymousResourceCollection
+    public function competitors(ChangeCompetitorsRequest $request): AnonymousResourceCollection
     {
         $competitorAppIds = AppCompetitor::where('user_id', $request->user()->id)
             ->whereIn('app_id', $request->user()->apps()->pluck('apps.id'))
@@ -82,9 +83,9 @@ class ChangeMonitorController extends BaseController
             ->orderByDesc('detected_at');
 
         if ($request->filled('field')) {
-            $query->where('field_changed', $request->input('field'));
+            $query->where('field_changed', $request->validated('field'));
         }
 
-        return ChangeResource::collection($query->paginate($request->integer('per_page', 25)));
+        return ChangeResource::collection($query->paginate((int) ($request->validated('per_page') ?? 25)));
     }
 }

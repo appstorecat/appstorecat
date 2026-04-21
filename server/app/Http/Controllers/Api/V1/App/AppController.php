@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1\App;
 use App\Enums\Platform;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\App\AppIndexRequest;
+use App\Http\Requests\Api\App\ListingRequest;
 use App\Http\Requests\Api\App\StoreAppRequest;
 use App\Http\Resources\Api\App\AppDetailResource;
 use App\Http\Resources\Api\App\AppResource;
@@ -17,7 +18,6 @@ use App\Models\App;
 use App\Models\AppCompetitor;
 use App\Models\StoreListing;
 use App\Models\SyncStatus;
-use App\Rules\AppAvailableCountry;
 use App\Services\AppRegistrar;
 use App\Services\AppSyncer;
 use Illuminate\Http\JsonResponse;
@@ -151,18 +151,10 @@ class AppController extends BaseController
             new OA\Response(response: 200, description: 'Store listing', content: new OA\JsonContent(ref: '#/components/schemas/ListingResource')),
         ],
     )]
-    public function listing(Request $request, string $platform, string $externalId): ListingResource
+    public function listing(ListingRequest $request, string $platform, string $externalId): ListingResource
     {
-        $request->validate([
-            'country_code' => [
-                'required', 'string', 'size:2', 'exists:countries,code',
-                new AppAvailableCountry($platform, $externalId),
-            ],
-            'locale' => 'required|string|max:10',
-        ]);
-
         $app = $this->resolveApp($platform, $externalId);
-        $locale = $request->input('locale');
+        $locale = $request->validated('locale');
         $latestVersion = $app->versions()->orderByDesc('id')->first();
 
         $existing = StoreListing::where('app_id', $app->id)
