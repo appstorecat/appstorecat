@@ -1,11 +1,13 @@
 import { type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { keepPreviousData } from '@tanstack/react-query'
 import { Search, Smartphone } from 'lucide-react'
 import { useListApps } from '@/api/endpoints/apps/apps'
 import { ListAppsPlatform, type ListAppsParams } from '@/api/models'
 import AppCard from '@/components/AppCard'
 import QueryError from '@/components/QueryError'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import { useDebounce } from '@/hooks/use-debounce'
 
@@ -44,7 +46,9 @@ export default function AppsIndex() {
   if (platform !== 'all') queryParams.platform = ListAppsPlatform[platform]
   if (debouncedSearch.trim().length > 0) queryParams.search = debouncedSearch.trim()
 
-  const { data: apps, isError, refetch, isFetching } = useListApps(queryParams)
+  const { data: apps, isError, refetch, isFetching, isPending } = useListApps(queryParams, {
+    query: { placeholderData: keepPreviousData },
+  })
 
   if (isError) {
     return <QueryError message="Failed to load apps." onRetry={() => refetch()} />
@@ -90,7 +94,13 @@ export default function AppsIndex() {
         </div>
       </div>
 
-      {apps && apps.length > 0 ? (
+      {isPending || apps === undefined ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+      ) : apps.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {apps.map((app) => (
             <AppCard key={app.id} app={app} />

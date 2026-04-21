@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { keepPreviousData } from '@tanstack/react-query'
 import { Search, Users } from 'lucide-react'
 import { useListAllCompetitors } from '@/api/endpoints/apps/apps'
 import type { CompetitorGroupResource } from '@/api/models'
@@ -44,14 +45,17 @@ export default function CompetitorsIndex() {
   }
 
   const trimmedSearch = debouncedSearch.trim()
-  const { data, isLoading, isError, refetch } = useListAllCompetitors({
-    platform: platform === 'all' ? undefined : (platform as ListAllCompetitorsPlatform),
-    search: trimmedSearch.length > 0 ? trimmedSearch : undefined,
-  })
+  const { data, isPending, isError, refetch } = useListAllCompetitors(
+    {
+      platform: platform === 'all' ? undefined : (platform as ListAllCompetitorsPlatform),
+      search: trimmedSearch.length > 0 ? trimmedSearch : undefined,
+    },
+    { query: { placeholderData: keepPreviousData } },
+  )
 
   const groups: CompetitorGroupResource[] = data ?? []
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
         <Skeleton className="h-16 w-64" />

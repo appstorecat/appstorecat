@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { keepPreviousData } from '@tanstack/react-query'
 import { useListPublishers, useSearchPublishers } from '@/api/endpoints/publishers/publishers'
 import { SearchPublishersPlatform } from '@/api/models/searchPublishersPlatform'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +29,7 @@ export default function PublishersIndex() {
       country_code: countryCode,
     },
     {
-      query: { enabled: searchTerm.length >= 2 },
+      query: { enabled: searchTerm.length >= 2, placeholderData: keepPreviousData },
     },
   )
 

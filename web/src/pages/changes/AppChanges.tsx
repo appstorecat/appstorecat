@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { keepPreviousData } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useAppChanges } from '@/api/endpoints/change-monitor/change-monitor'
 import {
@@ -85,7 +86,9 @@ export default function AppChanges() {
   if (field !== 'all') queryParams.field = AppChangesField[field as keyof typeof AppChangesField]
   if (debouncedSearch.trim().length > 0) queryParams.search = debouncedSearch.trim()
 
-  const { data, isLoading } = useAppChanges(queryParams)
+  const { data, isPending } = useAppChanges(queryParams, {
+    query: { placeholderData: keepPreviousData },
+  })
   const changes = (data as unknown as PaginatedChanges | undefined)?.data ?? []
 
   return (
@@ -137,7 +140,7 @@ export default function AppChanges() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isPending ? (
         <div className="space-y-3">
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />

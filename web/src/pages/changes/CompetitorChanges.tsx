@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { keepPreviousData } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useCompetitorChanges } from '@/api/endpoints/change-monitor/change-monitor'
 import {
@@ -83,7 +84,9 @@ export default function CompetitorChanges() {
   if (field !== 'all') queryParams.field = CompetitorChangesField[field as keyof typeof CompetitorChangesField]
   if (debouncedSearch.trim().length > 0) queryParams.search = debouncedSearch.trim()
 
-  const { data, isLoading } = useCompetitorChanges(queryParams)
+  const { data, isPending } = useCompetitorChanges(queryParams, {
+    query: { placeholderData: keepPreviousData },
+  })
   const changes = (data as unknown as PaginatedChanges | undefined)?.data ?? []
 
   return (
@@ -135,7 +138,7 @@ export default function CompetitorChanges() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isPending ? (
         <div className="space-y-3">
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
