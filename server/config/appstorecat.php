@@ -45,12 +45,14 @@ return [
         'ios' => [
             'tracked_app_sync_enabled' => env('SYNC_IOS_TRACKED_ENABLED', true),
             'tracked_app_refresh_hours' => env('SYNC_IOS_TRACKED_REFRESH_HOURS', 24),
+            'tracked_batch_size' => env('SYNC_IOS_TRACKED_BATCH_SIZE', 5),
             'discovery_app_sync_enabled' => env('SYNC_IOS_DISCOVERY_ENABLED', true),
             'discovery_app_refresh_hours' => env('SYNC_IOS_DISCOVERY_REFRESH_HOURS', 24),
         ],
         'android' => [
             'tracked_app_sync_enabled' => env('SYNC_ANDROID_TRACKED_ENABLED', true),
             'tracked_app_refresh_hours' => env('SYNC_ANDROID_TRACKED_REFRESH_HOURS', 24),
+            'tracked_batch_size' => env('SYNC_ANDROID_TRACKED_BATCH_SIZE', 5),
             'discovery_app_sync_enabled' => env('SYNC_ANDROID_DISCOVERY_ENABLED', true),
             'discovery_app_refresh_hours' => env('SYNC_ANDROID_DISCOVERY_REFRESH_HOURS', 24),
         ],

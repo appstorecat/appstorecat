@@ -75,6 +75,17 @@ class SyncTrackedCommand extends Command
                         ->where('last_synced_at', '<', now()->subHours(config('appstorecat.sync.android.tracked_app_refresh_hours', 24)));
                 });
             }
-        })->orderBy('last_synced_at')->limit(100)->get();
+        })->orderBy('last_synced_at')->limit($this->batchLimit($platform))->get();
+    }
+
+    private function batchLimit(?string $platform): int
+    {
+        if ($platform) {
+            return (int) config("appstorecat.sync.{$platform}.tracked_batch_size", 5);
+        }
+
+        // No platform filter: schedule both platforms worth of work in one tick.
+        return (int) config('appstorecat.sync.ios.tracked_batch_size', 5)
+            + (int) config('appstorecat.sync.android.tracked_batch_size', 5);
     }
 }
