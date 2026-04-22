@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
+import { useAnalyticsPageViews } from '@/hooks/useAnalyticsPageViews'
 import AppLayout from '@/layouts/AppLayout'
 import Landing from '@/pages/Landing'
 import Login from '@/pages/auth/Login'
@@ -50,9 +51,15 @@ function GuestGuard() {
   return <Outlet />
 }
 
+function AnalyticsTracker() {
+  useAnalyticsPageViews()
+  return null
+}
+
 export default function Router() {
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route element={<GuestGuard />}>

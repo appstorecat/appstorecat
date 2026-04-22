@@ -44,6 +44,7 @@ services:
             - NODE_ENV=development
             - PORT=${FRONTEND_PORT}
             - BACKEND_URL=http://appstorecat-server:80
+            - GA_MEASUREMENT_ID=${GA_MEASUREMENT_ID:-}
         networks:
             - appstorecat
         depends_on:

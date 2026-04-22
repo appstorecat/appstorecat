@@ -45,6 +45,7 @@ services:
         environment:
             BACKEND_API_URL: '${BACKEND_API_URL}'
             FRONTEND_PORT: '${FRONTEND_PORT}'
+            GA_MEASUREMENT_ID: '${GA_MEASUREMENT_ID:-}'
         networks:
             - dokploy-network
             - appstorecat
