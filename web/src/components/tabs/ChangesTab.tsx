@@ -30,7 +30,7 @@ import {
   ChevronRight,
   Globe,
 } from 'lucide-react'
-import ChangeCard from '@/components/ChangeCard'
+import ChangeFieldRow from '@/components/changes/ChangeFieldRow'
 import type { ListingResource } from '@/api/models/listingResource'
 import type { VersionResource } from '@/api/models/versionResource'
 
@@ -626,16 +626,14 @@ function DiffModalBody({
           <p className="text-sm text-muted-foreground">No differences for this field.</p>
         ) : (
           fieldDiffs.map((d, i) => (
-            <ChangeCard
+            <ChangeFieldRow
               key={`${d.locale}-${d.field}-${i}`}
               locale={d.locale}
-              fieldChanged={d.field}
+              field={d.field}
               oldValue={d.oldValue}
               newValue={d.newValue}
               beforeVersion={prev?.version}
               afterVersion={entry.version.version}
-              detectedAt={entry.version.release_date ?? entry.version.created_at ?? ''}
-              showAppInfo={false}
             />
           ))
         )}

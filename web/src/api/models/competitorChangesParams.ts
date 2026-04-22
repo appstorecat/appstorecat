@@ -10,10 +10,15 @@ import type { CompetitorChangesPlatform } from './competitorChangesPlatform';
 
 export type CompetitorChangesParams = {
 per_page?: number;
+page?: number;
 field?: CompetitorChangesField;
 platform?: CompetitorChangesPlatform;
 /**
  * @maxLength 100
  */
 search?: string;
+/**
+ * @minimum 1
+ */
+app_id?: number;
 };

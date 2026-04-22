@@ -11,6 +11,7 @@ use App\Http\Resources\Api\ChangeResource;
 use App\Models\AppCompetitor;
 use App\Models\StoreListingChange;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Collection;
 use OpenApi\Attributes as OA;
 
 class ChangeMonitorController extends BaseController
@@ -22,45 +23,36 @@ class ChangeMonitorController extends BaseController
         operationId: 'appChanges',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 25)),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 50)),
+            new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
             new OA\Parameter(name: 'field', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_added', 'locale_removed'])),
             new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
+            new OA\Parameter(name: 'app_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1)),
         ],
         responses: [
             new OA\Response(
                 response: 200,
                 description: 'Paginated app changes list',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/ChangeResource')),
-                        new OA\Property(property: 'links', type: 'object'),
-                        new OA\Property(property: 'meta', type: 'object'),
-                    ],
-                ),
+                content: new OA\JsonContent(ref: '#/components/schemas/PaginatedChangeResponse'),
             ),
         ],
     )]
     public function apps(ChangeAppsRequest $request): AnonymousResourceCollection
     {
-        $competitorAppIds = AppCompetitor::where('user_id', $request->user()->id)
+        $user = $request->user();
+
+        $competitorAppIds = AppCompetitor::where('user_id', $user->id)
             ->pluck('competitor_app_id')
             ->unique();
 
-        $trackedAppIds = $request->user()->apps()->pluck('apps.id')
-            ->diff($competitorAppIds);
+        $trackedAppIds = $user->apps()->pluck('apps.id')->diff($competitorAppIds);
 
-        $query = StoreListingChange::whereIn('app_id', $trackedAppIds)
-            ->with('app')
-            ->orderByDesc('detected_at')
-            ->when($request->validated('field'), fn ($q, $field) => $q->where('field_changed', $field))
-            ->when($request->validated('platform'), fn ($q, $platform) => $q->whereHas('app', fn ($a) => $a->platform($platform)))
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $term = '%'.$request->validated('search').'%';
-                $q->whereHas('app', fn ($a) => $a->where('display_name', 'like', $term));
-            });
-
-        return ChangeResource::collection($query->paginate((int) ($request->validated('per_page') ?? 25)));
+        return $this->buildResponse(
+            $request->validated(),
+            $trackedAppIds,
+            $request->filled('search') ? (string) $request->validated('search') : null,
+        );
     }
 
     #[OA\Get(
@@ -70,42 +62,67 @@ class ChangeMonitorController extends BaseController
         operationId: 'competitorChanges',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 25)),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 50)),
+            new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
             new OA\Parameter(name: 'field', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['title', 'subtitle', 'description', 'whats_new', 'screenshots', 'locale_added', 'locale_removed'])),
             new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
+            new OA\Parameter(name: 'app_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1)),
         ],
         responses: [
             new OA\Response(
                 response: 200,
                 description: 'Paginated competitor changes list',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/ChangeResource')),
-                        new OA\Property(property: 'links', type: 'object'),
-                        new OA\Property(property: 'meta', type: 'object'),
-                    ],
-                ),
+                content: new OA\JsonContent(ref: '#/components/schemas/PaginatedChangeResponse'),
             ),
         ],
     )]
     public function competitors(ChangeCompetitorsRequest $request): AnonymousResourceCollection
     {
-        $competitorAppIds = AppCompetitor::where('user_id', $request->user()->id)
-            ->whereIn('app_id', $request->user()->apps()->pluck('apps.id'))
+        $user = $request->user();
+
+        $competitorAppIds = AppCompetitor::where('user_id', $user->id)
+            ->whereIn('app_id', $user->apps()->pluck('apps.id'))
             ->pluck('competitor_app_id')
             ->unique();
 
-        $query = StoreListingChange::whereIn('app_id', $competitorAppIds)
+        return $this->buildResponse(
+            $request->validated(),
+            $competitorAppIds,
+            $request->filled('search') ? (string) $request->validated('search') : null,
+        );
+    }
+
+    /**
+     * Shared assembly for both tracked and competitor feeds.
+     *
+     * @param  array<string, mixed>  $validated
+     * @param  Collection<int, int>  $scopeAppIds
+     */
+    private function buildResponse(array $validated, $scopeAppIds, ?string $search): AnonymousResourceCollection
+    {
+        $requestedAppId = $validated['app_id'] ?? null;
+        $effectiveAppIds = $requestedAppId !== null
+            ? $scopeAppIds->filter(fn ($id) => (int) $id === (int) $requestedAppId)->values()
+            : $scopeAppIds;
+
+        $perPage = (int) ($validated['per_page'] ?? 50);
+
+        $paginated = StoreListingChange::whereIn('app_id', $effectiveAppIds)
             ->with('app')
             ->orderByDesc('detected_at')
-            ->when($request->validated('field'), fn ($q, $field) => $q->where('field_changed', $field))
-            ->when($request->validated('platform'), fn ($q, $platform) => $q->whereHas('app', fn ($a) => $a->platform($platform)))
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $term = '%'.$request->validated('search').'%';
-                $q->whereHas('app', fn ($a) => $a->where('display_name', 'like', $term));
-            });
+            ->when($validated['field'] ?? null, fn ($q, $field) => $q->where('field_changed', $field))
+            ->when($validated['platform'] ?? null, fn ($q, $platform) => $q->whereHas('app', fn ($a) => $a->platform($platform)))
+            ->when($search, function ($q, $term) {
+                $q->whereHas('app', fn ($a) => $a->where('display_name', 'like', '%'.$term.'%'));
+            })
+            ->paginate($perPage);
 
-        return ChangeResource::collection($query->paginate((int) ($request->validated('per_page') ?? 25)));
+        return ChangeResource::collection($paginated)
+            ->additional([
+                'meta_ext' => [
+                    'has_scope_apps' => $scopeAppIds->isNotEmpty(),
+                ],
+            ]);
     }
 }

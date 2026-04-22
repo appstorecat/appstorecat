@@ -21,10 +21,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  AppChanges200,
   AppChangesParams,
-  CompetitorChanges200,
-  CompetitorChangesParams
+  CompetitorChangesParams,
+  PaginatedChangeResponse
 } from '../../models';
 
 import { orvalMutator } from '../../../lib/orval-mutator';
@@ -43,7 +42,7 @@ export const appChanges = (
 ) => {
 
 
-      return orvalMutator<AppChanges200>(
+      return orvalMutator<PaginatedChangeResponse>(
       {url: `/changes/apps`, method: 'GET',
         params, signal
     },
@@ -134,7 +133,7 @@ export const competitorChanges = (
 ) => {
 
 
-      return orvalMutator<CompetitorChanges200>(
+      return orvalMutator<PaginatedChangeResponse>(
       {url: `/changes/competitors`, method: 'GET',
         params, signal
     },

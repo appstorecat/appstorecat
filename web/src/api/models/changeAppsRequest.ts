@@ -24,4 +24,14 @@ export interface ChangeAppsRequest {
      * @nullable
      */
   search?: string | null;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  app_id?: number | null;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  page?: number | null;
 }

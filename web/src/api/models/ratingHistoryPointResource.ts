@@ -5,9 +5,18 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { RatingHistoryPointResourceBreakdown } from './ratingHistoryPointResourceBreakdown';
+import type { RatingHistoryPointResourceDeltaBreakdown } from './ratingHistoryPointResourceDeltaBreakdown';
 
 export interface RatingHistoryPointResource {
   date: string;
-  rating: number;
-  rating_count: number;
+  /** @nullable */
+  rating: number | null;
+  /** @nullable */
+  rating_count: number | null;
+  breakdown: RatingHistoryPointResourceBreakdown;
+  /** @nullable */
+  delta_breakdown?: RatingHistoryPointResourceDeltaBreakdown;
+  /** @nullable */
+  delta_total?: number | null;
 }
