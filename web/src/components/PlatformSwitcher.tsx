@@ -17,30 +17,34 @@ interface PlatformSwitcherProps {
 
 export default function PlatformSwitcher({ value, onChange }: PlatformSwitcherProps) {
   return (
-    <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
+    <div className="flex w-full items-center rounded-lg border bg-background p-0.5 sm:inline-flex sm:w-auto">
       <button
         type="button"
         onClick={() => onChange('ios')}
-        className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+        title="App Store"
+        aria-label="App Store"
+        className={`inline-flex flex-1 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-initial ${
           value === 'ios'
             ? 'bg-accent text-accent-foreground shadow-sm'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         <AppStoreSvg className="h-4 w-4" />
-        App Store
+        <span className="hidden sm:inline">App Store</span>
       </button>
       <button
         type="button"
         onClick={() => onChange('android')}
-        className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+        title="Google Play"
+        aria-label="Google Play"
+        className={`inline-flex flex-1 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-initial ${
           value === 'android'
             ? 'bg-accent text-accent-foreground shadow-sm'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         <GooglePlaySvg className="h-4 w-4" />
-        Google Play
+        <span className="hidden sm:inline">Google Play</span>
       </button>
     </div>
   )

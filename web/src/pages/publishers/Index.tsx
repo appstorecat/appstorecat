@@ -64,7 +64,7 @@ export default function PublishersIndex() {
         />
         <FilterBar.Controls>
           <PlatformSwitcher value={platform} onChange={setPlatform} />
-          <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
+          <CountrySelect value={countryCode} onChange={setCountryCode} className="w-full sm:w-[180px]" />
         </FilterBar.Controls>
       </FilterBar>
 

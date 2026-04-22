@@ -105,7 +105,7 @@ export default function AppChanges() {
         />
         <FilterBar.Controls>
           <Select value={field} onValueChange={setField}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue>
                 {field === 'all' ? 'All fields' : FIELD_LABELS[field] ?? field}
               </SelectValue>
@@ -120,17 +120,17 @@ export default function AppChanges() {
             </SelectContent>
           </Select>
 
-          <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
+          <div className="flex w-full items-center rounded-lg border bg-background p-0.5 sm:inline-flex sm:w-auto">
             <PlatformTab active={platform === 'all'} onClick={() => setPlatform('all')}>
               All
             </PlatformTab>
             <PlatformTab active={platform === 'ios'} onClick={() => setPlatform('ios')}>
               <AppStoreSvg className="h-4 w-4" />
-              App Store
+              <span className="hidden sm:inline">App Store</span>
             </PlatformTab>
             <PlatformTab active={platform === 'android'} onClick={() => setPlatform('android')}>
               <GooglePlaySvg className="h-4 w-4" />
-              Google Play
+              <span className="hidden sm:inline">Google Play</span>
             </PlatformTab>
           </div>
         </FilterBar.Controls>
@@ -185,7 +185,7 @@ function PlatformTab({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`inline-flex flex-1 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-initial ${
         active
           ? 'bg-accent text-accent-foreground shadow-sm'
           : 'text-muted-foreground hover:text-foreground'

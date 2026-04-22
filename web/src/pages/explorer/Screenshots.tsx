@@ -86,7 +86,6 @@ export default function Screenshots() {
   })
 
   const apps: ExplorerScreenshotResource[] = data?.pages.flatMap((p) => p.data ?? []) ?? []
-  const total = (data?.pages[0]?.meta as { total?: number } | undefined)?.total ?? 0
 
   // Infinite scroll observer
   useEffect(() => {
@@ -125,7 +124,7 @@ export default function Screenshots() {
           <PlatformSwitcher value={platform} onChange={setPlatform} />
 
           <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue>
                 {categoryId ? categories?.find((c: StoreCategoryResource) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
               </SelectValue>
@@ -140,11 +139,6 @@ export default function Screenshots() {
             </SelectContent>
           </Select>
 
-          {total > 0 && (
-            <span className="whitespace-nowrap text-xs text-muted-foreground">
-              {total} app{total !== 1 ? 's' : ''}
-            </span>
-          )}
         </FilterBar.Controls>
       </FilterBar>
 

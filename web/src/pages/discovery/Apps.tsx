@@ -78,7 +78,7 @@ export default function DiscoveryApps() {
             value={platform}
             onChange={(value) => setPlatform(value as AppSearchResultResourcePlatform)}
           />
-          <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
+          <CountrySelect value={countryCode} onChange={setCountryCode} className="w-full sm:w-[180px]" />
         </FilterBar.Controls>
       </FilterBar>
 

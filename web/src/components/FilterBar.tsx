@@ -44,7 +44,7 @@ function FilterBarSearch({ value, onChange, placeholder, className }: SearchProp
 function FilterBarControls({ children, className }: ControlsProps) {
   return (
     <div
-      className={`-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 [&>*]:shrink-0 ${className ?? ''}`}
+      className={`grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto ${className ?? ''}`}
     >
       {children}
     </div>

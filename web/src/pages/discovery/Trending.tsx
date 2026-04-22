@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
-import { ArrowUp, ArrowDown, Minus, Smartphone, Clock } from 'lucide-react'
+import { ArrowUp, ArrowDown, Minus, Smartphone, Clock, Zap, DollarSign, Trophy } from 'lucide-react'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -94,34 +94,38 @@ export default function Trending() {
       </div>
 
       {/* Filters */}
-      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0 [&>*]:shrink-0">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
         <PlatformSwitcher value={platform} onChange={setPlatform} />
-
-        <CountrySelect value={countryCode} onChange={(v) => setParam('country_code', v)} />
-
-        <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
+        <div className="flex w-full items-center rounded-lg border bg-background p-0.5 sm:inline-flex sm:w-auto">
           {([
-            ['top_free', 'Top Free'],
-            ['top_paid', 'Top Paid'],
-            ['top_grossing', 'Top Grossing'],
-          ] as const).map(([value, label]) => (
+            ['top_free', 'Top Free', Zap],
+            ['top_paid', 'Top Paid', DollarSign],
+            ['top_grossing', 'Top Grossing', Trophy],
+          ] as const).map(([value, label, Icon]) => (
             <button
               key={value}
               type="button"
               onClick={() => setCollection(value)}
-              className={`inline-flex cursor-pointer items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              title={label}
+              aria-label={label}
+              className={`inline-flex flex-1 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-initial ${
                 collection === value
                   ? 'bg-accent text-accent-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {label}
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
         </div>
-
+        <CountrySelect
+          value={countryCode}
+          onChange={(v) => setParam('country_code', v)}
+          className="w-full sm:w-auto"
+        />
         <Select value={categoryId || ''} onValueChange={setCategoryId}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue>
               {categories?.find((c) => String(c.id) === categoryId)?.name
                 ?? categories?.find((c) => c.external_id === null)?.name
