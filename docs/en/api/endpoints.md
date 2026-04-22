@@ -74,8 +74,10 @@ All API endpoints start with the `/api/v1` prefix and require Sanctum token auth
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/changes/apps` | Store listing changes for tracked apps (`?field=title`) |
-| GET | `/changes/competitors` | Store listing changes for competitor apps |
+| GET | `/changes/apps` | Store listing changes for tracked apps (`?field=title&app_id=123&page=2`) |
+| GET | `/changes/competitors` | Store listing changes for competitor apps (same query params) |
+
+Both endpoints return a paginated envelope (`PaginatedChangeResponse`: `data`, `links`, `meta`) plus `meta_ext.has_scope_apps: boolean` so the UI can distinguish "no results" from "user has nothing tracked yet". Optional query params: `field`, `app_id` (integer, filter to a single app from the user's scope), `page` (integer).
 
 ## Rankings
 

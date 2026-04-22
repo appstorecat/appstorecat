@@ -74,8 +74,8 @@ Tum API endpoint'leri `/api/v1` on eki ile baslar ve Sanctum token ile kimlik do
 
 | Metod | Endpoint | Aciklama |
 |-------|----------|----------|
-| GET | `/changes/apps` | Takip edilen uygulamalarin magaza listesi degisiklikleri (`?field=title`) |
-| GET | `/changes/competitors` | Rakip uygulamalarin magaza listesi degisiklikleri |
+| GET | `/changes/apps` | Takip edilen uygulamalarin magaza listesi degisiklikleri. Query: `?field=title`, `?app_id=<int>` (tek uygulamayla sinirla), `?page=<int>`. Yanit sayfalanmistir (`PaginatedChangeResponse`: `data`, `links`, `meta`, `meta_ext.has_scope_apps: boolean`) |
+| GET | `/changes/competitors` | Rakip uygulamalarin magaza listesi degisiklikleri. `/changes/apps` ile ayni query param'lari ve sayfalanmis yanit sekli |
 
 ## Siralamalalar
 

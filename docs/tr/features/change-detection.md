@@ -25,7 +25,7 @@ AppStoreCat, her senkronizasyon dongusunde uygulama magaza listelerindeki degisi
 
 1. Her senkronizasyonda, liste icerigi bir `checksum` olarak hashlenir
 2. Checksum onceki senkronizasyonla eslesirse degisiklik olmamistir -- atlanir
-3. Checksum farkliysa her alan ayri ayri karsilastirilir
+3. Checksum farkliysa **ve** onceki liste farkli bir `app_version`'a aitse her alan ayri ayri karsilastirilir. Ayni surum icinde yapilan upsert'ler (ornegin scraper ayni pass'te ayni locale'i iki defa dondurdugunde) sessizce atlanir; boylece tek surumlu yeni uygulamalarda sahte degisiklik kayitlari olusmaz
 4. Degisen her alan icin asagidaki bilgilerle bir `StoreListingChange` kaydi olusturulur:
    - Alan adi (`field_changed`)
    - Eski deger
@@ -47,10 +47,10 @@ Bunlar, senkronizasyonlar arasinda `supported_locales` dizisinin karsilastirilma
 ### Takip Edilen Uygulama Degisiklikleri
 
 ```
-GET /api/v1/changes/apps?field=title
+GET /api/v1/changes/apps?field=title&app_id=42&page=2
 ```
 
-Tum takip edilen uygulamalar icin degisiklikleri dondurur. Alan turune gore filtrelenebilir.
+Tum takip edilen uygulamalar icin degisiklikleri dondurur. Opsiyonel query param'lari: `field` (alan turune gore filtre), `app_id` (tek bir uygulamayla sinirla — kullanicinin kapsami disinda bir id gelirse sessizce bos liste doner) ve `page`. Yanit sayfalanmis zarf halindedir (`PaginatedChangeResponse` semasi: `data`, `links`, `meta`, `meta_ext.has_scope_apps: boolean`).
 
 ### Rakip Degisiklikleri
 
@@ -58,7 +58,7 @@ Tum takip edilen uygulamalar icin degisiklikleri dondurur. Alan turune gore filt
 GET /api/v1/changes/competitors?field=description
 ```
 
-Tum rakip uygulamalar icin degisiklikleri dondurur.
+Tum rakip uygulamalar icin degisiklikleri dondurur. `/changes/apps` ile ayni query param'lari (`field`, `app_id`, `page`) ve ayni sayfalanmis yanit semasini paylasir.
 
 ## Arayuz
 

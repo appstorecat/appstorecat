@@ -46,7 +46,7 @@ Her aktif ulke icin o ulkede desteklenen her locale'de magaza listesini getirir.
 - `StoreListing` kaydi olusturur (`(app_id, version_id, locale)` benzersiz)
 - `title`, `subtitle`, `promotional_text` (iOS-only), `description`, `whats_new`, `screenshots`, `icon_url` alanlarini yazar
 - Liste iceriginden bir `checksum` olusturur
-- Checksum oncekinden farkliysa her alani karsilastirir ve `StoreListingChange` kayitlari olusturur
+- Checksum oncekinden farkliysa her alani karsilastirir ve `StoreListingChange` kayitlari olusturur — degisiklik algilama yalnizca onceki liste *farkli bir* `app_version` ile iliskiliyse tetiklenir; ayni surum icinde yapilan upsert'ler (ornegin ayni pass'te iki defa yakalanan bir locale) sessizce atlanir
 - `supported_locales` karsilastirmasinda eklenen/kaldirilan locale'ler `locale_added` / `locale_removed` olarak isaretlenir
 - Storefront locale'i dondurmezse hicbir kayit yazilmaz
 

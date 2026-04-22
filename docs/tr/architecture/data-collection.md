@@ -75,11 +75,13 @@ Trend chart'lari her aktif ulke icin gunluk olarak senkronize edilir:
 
 ## Degisiklik Tespiti
 
-Bir liste senkronize edildiginde icerigi bir `checksum` olarak hashlenir. Checksum onceki senkronizasyondan farkliysa:
+Bir liste senkronize edildiginde icerigi bir `checksum` olarak hashlenir. Checksum onceki senkronizasyondan farkliysa **ve** onceki liste farkli bir `app_version`'a aitse:
 
 1. Her alan (title, subtitle, promotional_text, description, whats_new, screenshots) tek tek karsilastirilir
 2. Degisen alanlar eski/yeni degerleriyle `StoreListingChange` kayitlari olusturur
 3. Locale eklemeleri ve kaldirmalari da `locale_added` / `locale_removed` olarak takip edilir
+
+Ayni surum icinde yapilan upsert'ler atlanir, bu da scraper'in tek bir pass'te ayni locale'i birden fazla kez yakaladigi durumlarda olusabilecek sahte kayitlari onler.
 
 Bu ozellik, web'deki **Degisiklikler** sekmesini besler; takip edilen ve rakip uygulamalar arasindaki magaza listesi degisikliklerinin zaman cizelgesini gosterir.
 

@@ -47,18 +47,33 @@ These are detected by comparing the `supported_locales` array between syncs.
 ### Tracked App Changes
 
 ```
-GET /api/v1/changes/apps?field=title
+GET /api/v1/changes/apps?field=title&app_id=123&page=2
 ```
 
-Returns changes for all tracked apps. Can be filtered by field type.
+Returns changes for all tracked apps. Optional query params: `field` (filter by field type), `app_id` (restrict to a single tracked app the caller owns), `page` (page cursor).
 
 ### Competitor Changes
 
 ```
-GET /api/v1/changes/competitors?field=description
+GET /api/v1/changes/competitors?field=description&app_id=123&page=2
 ```
 
-Returns changes for all competitor apps.
+Returns changes for all competitor apps. Same optional query params as `/changes/apps`.
+
+### Response Shape
+
+Both endpoints return a paginated envelope (`PaginatedChangeResponse`) rather than a bare array:
+
+```json
+{
+  "data": [ /* ChangeResource[] */ ],
+  "links": { "first": "…", "last": "…", "prev": null, "next": "…" },
+  "meta":  { "current_page": 1, "last_page": 4, "per_page": 50, "total": 183, "…": "…" },
+  "meta_ext": { "has_scope_apps": true }
+}
+```
+
+`meta_ext.has_scope_apps` lets the UI distinguish "no changes yet — keep watching" from "you have not tracked any apps yet".
 
 ## UI
 

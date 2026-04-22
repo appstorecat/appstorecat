@@ -46,7 +46,7 @@ For each active country, fetches the store listing in every locale the country s
 - Creates a `StoreListing` record (unique `(app_id, version_id, locale)`)
 - Writes `title`, `subtitle`, `promotional_text` (iOS-only), `description`, `whats_new`, `screenshots`, `icon_url`
 - Produces a `checksum` over the listing contents
-- If the checksum differs from the previous one, compares each field and creates `StoreListingChange` records
+- If the checksum differs from the previous one **and** the previous listing belongs to a different `app_versions` row, compares each field and creates `StoreListingChange` records. Upserts within the same version are silent — this prevents phantom diffs when the scraper re-ingests the same version twice in one pass (e.g. a freshly-discovered single-version app no longer accumulates per-locale noise for that single version)
 - Added/removed locales from the `supported_locales` comparison are marked as `locale_added` / `locale_removed`
 - No record is written if the storefront does not return the locale
 
