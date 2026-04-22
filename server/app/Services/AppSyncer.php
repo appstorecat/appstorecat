@@ -256,7 +256,17 @@ class AppSyncer
             ->orderByDesc('id')
             ->first();
 
-        if ($existing && $existing->checksum !== $checksum) {
+        // Only treat this as a real field diff when the row we're comparing
+        // against belongs to a strictly earlier version. Otherwise we'd log
+        // phantom changes when the scraper upserts the same version twice in
+        // one sync (e.g. partial/null fallbacks between passes).
+        if (
+            $existing
+            && $version !== null
+            && $existing->version_id !== null
+            && $existing->version_id !== $version->id
+            && $existing->checksum !== $checksum
+        ) {
             $this->detectChanges($app, $existing, $data, $version);
         }
 
