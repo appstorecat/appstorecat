@@ -12,7 +12,7 @@ function DashboardOrCloudCta() {
     return (
       <Link
         to={DASHBOARD_URL}
-        className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm h-11 px-5 transition-colors"
+        className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm h-11 px-5 transition-colors whitespace-nowrap"
       >
         <Rocket className="h-4 w-4" />
         Dashboard
@@ -22,7 +22,7 @@ function DashboardOrCloudCta() {
   return (
     <Link
       to="/register"
-      className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm h-11 px-5 transition-colors"
+      className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm h-11 px-5 transition-colors whitespace-nowrap"
     >
       <Rocket className="h-4 w-4" />
       Open Cloud Version
@@ -67,14 +67,14 @@ function InstallButton() {
     <button
       onClick={onCopy}
       aria-label="Copy install command"
-      className="group relative inline-flex items-center gap-3 border border-[#262626] bg-[#0a0a0a] hover:bg-[#151515] px-4 h-11 font-mono text-sm text-white/90 transition-colors"
+      className="group relative flex w-full sm:w-auto sm:max-w-full items-center gap-3 border border-[#262626] bg-[#0a0a0a] hover:bg-[#151515] px-4 h-11 font-mono text-sm text-white/90 transition-colors overflow-hidden"
     >
-      <span className="text-emerald-400">$</span>
-      <span className="select-all">{cmd}</span>
+      <span className="text-emerald-400 shrink-0">$</span>
+      <span className="select-all truncate">{cmd}</span>
       {copied ? (
-        <Check className="h-4 w-4 text-emerald-400" />
+        <Check className="h-4 w-4 text-emerald-400 shrink-0" />
       ) : (
-        <Copy className="h-4 w-4 text-white/40 group-hover:text-white/70" />
+        <Copy className="h-4 w-4 text-white/40 group-hover:text-white/70 shrink-0" />
       )}
     </button>
   )
@@ -86,9 +86,29 @@ function SecondaryLink({ href, children }: { href: string; children: ReactNode }
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 border border-[#262626] bg-[#0a0a0a] hover:bg-[#151515] text-white font-semibold text-sm h-11 px-5 transition-colors"
+      className="inline-flex items-center justify-center gap-2 border border-[#262626] bg-[#0a0a0a] hover:bg-[#151515] text-white font-semibold text-sm h-11 px-5 transition-colors whitespace-nowrap"
     >
       {children}
+    </a>
+  )
+}
+
+function ProductHuntBadge() {
+  return (
+    <a
+      href="https://www.producthunt.com/products/appstorecat?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-appstorecat"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center shrink-0"
+    >
+      <img
+        src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1128947&theme=light&t=1776849718522"
+        alt="AppStoreCat - Open-source app intelligence for iOS & Android. | Product Hunt"
+        width={250}
+        height={54}
+        loading="lazy"
+        className="block h-[54px] w-[250px]"
+      />
     </a>
   )
 }
@@ -193,13 +213,20 @@ function Hero() {
               Track competitors on the App Store and Play Store, monitor listing changes, analyze
               reviews, and discover trending apps. Free and open source. Your data, your servers.
             </p>
-            <div className="mt-6 md:mt-10 flex flex-wrap items-center gap-3 md:gap-4">
-              <InstallButton />
-              <SecondaryLink href={GITHUB_URL}>
-                <GithubIcon className="h-4 w-4" />
-                View on GitHub
-              </SecondaryLink>
-              <DashboardOrCloudCta />
+            <div className="mt-6 md:mt-10 flex flex-col items-stretch gap-3 sm:gap-4">
+              <div className="max-w-full">
+                <InstallButton />
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                <SecondaryLink href={GITHUB_URL}>
+                  <GithubIcon className="h-4 w-4" />
+                  View on GitHub
+                </SecondaryLink>
+                <DashboardOrCloudCta />
+                <div className="sm:ml-auto">
+                  <ProductHuntBadge />
+                </div>
+              </div>
             </div>
           </div>
           {/* Right: live terminal */}
