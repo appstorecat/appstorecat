@@ -1516,7 +1516,7 @@ export function useGetRatingSummary<TData = Awaited<ReturnType<typeof getRatingS
 
 
 /**
- * @summary Get monthly rating history (last N months)
+ * @summary Get daily rating history (last N days)
  */
 export const getRatingHistory = (
     platform: 'ios' | 'android',
@@ -1600,7 +1600,7 @@ export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingH
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get monthly rating history (last N months)
+ * @summary Get daily rating history (last N days)
  */
 
 export function useGetRatingHistory<TData = Awaited<ReturnType<typeof getRatingHistory>>, TError = void>(

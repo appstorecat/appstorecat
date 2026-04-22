@@ -68,48 +68,98 @@ class RatingController extends BaseController
 
     #[OA\Get(
         path: '/apps/{platform}/{externalId}/ratings/history',
-        summary: 'Get monthly rating history (last N months)',
+        summary: 'Get daily rating history (last N days)',
         tags: ['Apps'],
         operationId: 'getRatingHistory',
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'months', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 24, default: 12)),
+            new OA\Parameter(name: 'days', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 90, default: 30)),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Monthly history points', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/RatingHistoryPointResource'))),
+            new OA\Response(response: 200, description: 'Daily history points', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/RatingHistoryPointResource'))),
             new OA\Response(response: 404, description: 'App not found'),
         ],
     )]
     public function history(RatingHistoryRequest $request, string $platform, string $externalId): AnonymousResourceCollection
     {
         $app = $this->resolveApp($platform, $externalId);
-        $months = $request->months();
+        $days = $request->days();
 
-        $startDate = now()->startOfMonth()->subMonths($months - 1)->toDateString();
+        $start = now()->startOfDay()->subDays($days - 1);
+        $startDate = $start->toDateString();
 
-        // For each calendar month, use the last date that has data and
-        // aggregate all countries on that date into a single global snapshot.
-        $distinctDates = AppMetric::query()
+        // Look one day further back so we can compute a delta for the first
+        // day of the window when earlier data is available.
+        $baselineDate = AppMetric::query()
+            ->where('app_id', $app->id)
+            ->where('date', '<', $startDate)
+            ->max('date');
+
+        $baselineSnapshot = $baselineDate
+            ? $this->aggregateSnapshot($app, $platform, $baselineDate)
+            : null;
+
+        // Index aggregated snapshots inside the window by date string.
+        $snapshotsByDate = AppMetric::query()
             ->where('app_id', $app->id)
             ->where('date', '>=', $startDate)
             ->orderBy('date')
             ->pluck('date')
             ->unique()
-            ->values();
+            ->mapWithKeys(function ($date) use ($app, $platform) {
+                $snap = $this->aggregateSnapshot($app, $platform, $date->toDateString());
 
-        $lastDateByMonth = [];
-        foreach ($distinctDates as $date) {
-            $key = $date->format('Y-m');
-            $lastDateByMonth[$key] = $date;
+                return [$date->toDateString() => $snap];
+            })
+            ->filter();
+
+        // Walk every day in the window and emit a point — real snapshot if we
+        // have one, otherwise a null placeholder so the X axis stays fixed.
+        // Each point also carries a per-star "delta" against the previous
+        // snapshot we saw (baseline or previous day) so the UI can plot the
+        // daily inflow of new reviews per star bucket.
+        $prev = $baselineSnapshot;
+        $points = collect();
+
+        for ($i = 0; $i < $days; $i++) {
+            $date = $start->copy()->addDays($i)->toDateString();
+            $snap = $snapshotsByDate->get($date);
+
+            if ($snap === null) {
+                $placeholder = new AppMetric;
+                $placeholder->app_id = $app->id;
+                $placeholder->date = $date;
+                $placeholder->rating = null;
+                $placeholder->rating_count = null;
+                $placeholder->rating_breakdown = ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0];
+                $placeholder->setAttribute('delta_breakdown', null);
+                $placeholder->setAttribute('delta_total', null);
+                $points->push($placeholder);
+
+                continue;
+            }
+
+            $delta = null;
+            $deltaTotal = null;
+
+            if ($prev !== null) {
+                $delta = ['1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0];
+                foreach (['1', '2', '3', '4', '5'] as $star) {
+                    $curr = (int) ($snap->rating_breakdown[$star] ?? 0);
+                    $before = (int) ($prev->rating_breakdown[$star] ?? 0);
+                    $delta[$star] = $curr - $before;
+                }
+                $deltaTotal = array_sum($delta);
+            }
+
+            $snap->setAttribute('delta_breakdown', $delta);
+            $snap->setAttribute('delta_total', $deltaTotal);
+
+            $points->push($snap);
+            $prev = $snap;
         }
-
-        $points = collect($lastDateByMonth)
-            ->sortKeys()
-            ->map(fn ($date) => $this->aggregateSnapshot($app, $platform, $date->toDateString()))
-            ->filter()
-            ->values();
 
         return RatingHistoryPointResource::collection($points);
     }

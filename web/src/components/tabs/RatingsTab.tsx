@@ -1,11 +1,13 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -41,10 +43,21 @@ interface RatingSummary {
   }
 }
 
+interface RatingBreakdownBucket {
+  '1': number
+  '2': number
+  '3': number
+  '4': number
+  '5': number
+}
+
 interface RatingHistoryPoint {
-  month: string
+  date: string
   rating: number | null
   rating_count: number | null
+  breakdown: RatingBreakdownBucket
+  delta_breakdown: RatingBreakdownBucket | null
+  delta_total: number | null
 }
 
 interface RatingByCountry {
@@ -53,9 +66,7 @@ interface RatingByCountry {
   rating_count: number | null
 }
 
-interface RatingHistoryResponse {
-  data: RatingHistoryPoint[]
-}
+type RatingHistoryResponse = RatingHistoryPoint[] | { data: RatingHistoryPoint[] }
 
 interface RatingCountryBreakdownResponse {
   data: RatingByCountry[]
@@ -74,12 +85,12 @@ function formatNumber(n: number | null | undefined): string {
   return n.toString()
 }
 
-function formatMonth(month: string): string {
-  // month format: YYYY-MM
-  const [y, m] = month.split('-')
-  if (!y || !m) return month
-  const date = new Date(Number(y), Number(m) - 1, 1)
-  return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+function formatDay(dateStr: string): string {
+  // date format: YYYY-MM-DD
+  const [y, m, d] = dateStr.split('-')
+  if (!y || !m || !d) return dateStr
+  const date = new Date(Number(y), Number(m) - 1, Number(d))
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 export default function RatingsTab({ platform, externalId }: RatingsTabProps) {
@@ -92,11 +103,11 @@ export default function RatingsTab({ platform, externalId }: RatingsTabProps) {
   })
 
   const historyQuery = useQuery<RatingHistoryResponse>({
-    queryKey: ['ratings-history', platform, externalId, 12],
+    queryKey: ['ratings-history', platform, externalId, 30],
     queryFn: () =>
       axios
         .get(`/apps/${platform}/${externalId}/ratings/history`, {
-          params: { months: 12 },
+          params: { days: 30 },
         })
         .then((r) => r.data),
   })
@@ -141,13 +152,17 @@ export default function RatingsTab({ platform, externalId }: RatingsTabProps) {
   }
 
   const summary = summaryQuery.data
-  const history = historyQuery.data?.data ?? []
+  const historyData = historyQuery.data
+  const history: RatingHistoryPoint[] = Array.isArray(historyData)
+    ? historyData
+    : historyData?.data ?? []
   const countryData = countryQuery.data
 
   return (
     <div className="flex flex-col gap-6">
       {summary && <RatingsSummaryCards summary={summary} />}
 
+      <NewReviewsChart points={history} />
       <RatingsHistoryChart points={history} />
 
       <RatingsCountryBreakdown platform={platform} response={countryData} />
@@ -308,67 +323,223 @@ function TrendCell({
   )
 }
 
-// ---------- History Chart ----------
+// ---------- New Reviews Chart (daily stacked bar) ----------
 
-function RatingsHistoryChart({ points }: { points: RatingHistoryPoint[] }) {
-  const hasData = points.length > 0
-  const hasMultiplePoints = points.length >= 2
+const STAR_COLORS: Record<'1' | '2' | '3' | '4' | '5', string> = {
+  '1': '#ef4444',
+  '2': '#f97316',
+  '3': '#eab308',
+  '4': '#84cc16',
+  '5': '#22c55e',
+}
+
+type StarKey = '1' | '2' | '3' | '4' | '5'
+
+function NewReviewsChart({ points }: { points: RatingHistoryPoint[] }) {
+  const [hidden, setHidden] = useState<Set<StarKey>>(new Set())
 
   const chartData = useMemo(
     () =>
       points.map((p) => ({
-        month: p.month,
-        label: formatMonth(p.month),
+        date: p.date,
+        label: formatDay(p.date),
+        star1: p.delta_breakdown?.['1'] ?? null,
+        star2: p.delta_breakdown?.['2'] ?? null,
+        star3: p.delta_breakdown?.['3'] ?? null,
+        star4: p.delta_breakdown?.['4'] ?? null,
+        star5: p.delta_breakdown?.['5'] ?? null,
+        total: p.delta_total,
+      })),
+    [points],
+  )
+
+  const hasAnyDelta = chartData.some((p) =>
+    [p.star1, p.star2, p.star3, p.star4, p.star5].some((v) => v !== null && v !== 0),
+  )
+
+  const tickInterval = Math.max(1, Math.floor(chartData.length / 6)) - 1
+
+  const toggle = (key: StarKey) => {
+    setHidden((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Daily Rating Changes</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Per-star net change — last 30 days
+        </p>
+      </CardHeader>
+      <CardContent>
+        {!hasAnyDelta ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-12">
+            <TrendingUp className="h-8 w-8 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">
+              Not enough history yet to compute daily changes.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-border"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 12 }}
+                    interval={tickInterval}
+                    className="text-muted-foreground"
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    className="text-muted-foreground"
+                    domain={['auto', 'auto']}
+                  />
+                  <Tooltip content={<NewReviewsTooltip />} />
+                  <Legend content={() => null} />
+                  <ReferenceLine y={0} stroke="var(--color-border)" />
+                  {(['1', '2', '3', '4', '5'] as StarKey[]).map((k) =>
+                    hidden.has(k) ? null : (
+                      <Bar
+                        key={k}
+                        dataKey={`star${k}`}
+                        name={`${k}★`}
+                        stackId="stars"
+                        fill={STAR_COLORS[k]}
+                      />
+                    ),
+                  )}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              {(['5', '4', '3', '2', '1'] as StarKey[]).map((k) => {
+                const off = hidden.has(k)
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => toggle(k)}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                      off
+                        ? 'border-border/40 text-muted-foreground/50'
+                        : 'border-border text-foreground hover:bg-accent/30'
+                    }`}
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: off ? 'transparent' : STAR_COLORS[k], borderColor: STAR_COLORS[k], borderWidth: off ? 1 : 0, borderStyle: 'solid' }}
+                    />
+                    {k}★
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+type NewReviewsTooltipPayload = {
+  name: string
+  value: number | null
+  color: string
+}
+
+function formatSigned(n: number): string {
+  if (n > 0) return `+${n}`
+  return n.toString()
+}
+
+function NewReviewsTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: NewReviewsTooltipPayload[]
+  label?: string
+}) {
+  if (!active || !payload || payload.length === 0) return null
+  const total = payload.reduce((acc, p) => acc + (p.value ?? 0), 0)
+  return (
+    <div className="rounded-lg border bg-popover p-2 text-xs text-popover-foreground shadow-md">
+      <p className="mb-1 font-medium">{label}</p>
+      {[...payload].reverse().map((p) => (
+        <p key={p.name} className="flex items-center gap-1.5">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: p.color }}
+          />
+          <span>{p.name}</span>
+          <span
+            className={`ml-auto font-medium tabular-nums ${
+              (p.value ?? 0) < 0 ? 'text-red-500' : ''
+            }`}
+          >
+            {formatSigned(p.value ?? 0)}
+          </span>
+        </p>
+      ))}
+      <p className="mt-1 border-t pt-1 flex justify-between font-medium">
+        <span>Net</span>
+        <span
+          className={`tabular-nums ${total < 0 ? 'text-red-500' : ''}`}
+        >
+          {formatSigned(total)}
+        </span>
+      </p>
+    </div>
+  )
+}
+
+// ---------- Average Rating Chart ----------
+
+function RatingsHistoryChart({ points }: { points: RatingHistoryPoint[] }) {
+  const hasAnyValue = points.some((p) => p.rating !== null)
+
+  const chartData = useMemo(
+    () =>
+      points.map((p) => ({
+        date: p.date,
+        label: formatDay(p.date),
         rating: p.rating,
         rating_count: p.rating_count,
       })),
     [points],
   )
 
+  // Show every ~5th tick so the X axis stays legible on a 30-day chart.
+  const tickInterval = Math.max(1, Math.floor(chartData.length / 6)) - 1
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Rating History</CardTitle>
-        <p className="text-xs text-muted-foreground">Last 12 months</p>
+        <CardTitle className="text-base">Average Rating</CardTitle>
+        <p className="text-xs text-muted-foreground">Daily average — last 30 days</p>
       </CardHeader>
       <CardContent>
-        {!hasData ? (
+        {!hasAnyValue ? (
           <div className="flex flex-col items-center justify-center gap-2 py-12">
             <TrendingUp className="h-8 w-8 text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground">
               No rating history yet.
             </p>
-          </div>
-        ) : !hasMultiplePoints ? (
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  className="stroke-border"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                />
-                <YAxis
-                  domain={[0, 5]}
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar
-                  dataKey="rating"
-                  fill="var(--color-primary)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         ) : (
           <div className="h-56">
@@ -385,6 +556,7 @@ function RatingsHistoryChart({ points }: { points: RatingHistoryPoint[] }) {
                 <XAxis
                   dataKey="label"
                   tick={{ fontSize: 12 }}
+                  interval={tickInterval}
                   className="text-muted-foreground"
                 />
                 <YAxis

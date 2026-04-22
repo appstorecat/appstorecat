@@ -9,7 +9,7 @@
 export interface RatingHistoryRequest {
   /**
      * @minimum 1
-     * @maximum 24
+     * @maximum 90
      */
-  months?: number;
+  days?: number;
 }

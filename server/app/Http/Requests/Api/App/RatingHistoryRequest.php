@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'RatingHistoryRequest',
     properties: [
-        new OA\Property(property: 'months', type: 'integer', minimum: 1, maximum: 24, example: 12),
+        new OA\Property(property: 'days', type: 'integer', minimum: 1, maximum: 90, example: 30),
     ],
 )]
 class RatingHistoryRequest extends FormRequest
@@ -27,12 +27,12 @@ class RatingHistoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'months' => ['sometimes', 'integer', 'min:1', 'max:24'],
+            'days' => ['sometimes', 'integer', 'min:1', 'max:90'],
         ];
     }
 
-    public function months(): int
+    public function days(): int
     {
-        return (int) ($this->validated('months') ?? 12);
+        return (int) ($this->validated('days') ?? 30);
     }
 }

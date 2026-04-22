@@ -7,7 +7,7 @@
  */
 
 export interface RatingHistoryPointResource {
-  month: string;
+  date: string;
   rating: number;
   rating_count: number;
 }

@@ -1411,7 +1411,7 @@
                 "tags": [
                     "Apps"
                 ],
-                "summary": "Get monthly rating history (last N months)",
+                "summary": "Get daily rating history (last N days)",
                 "operationId": "getRatingHistory",
                 "parameters": [
                     {
@@ -1435,20 +1435,20 @@
                         }
                     },
                     {
-                        "name": "months",
+                        "name": "days",
                         "in": "query",
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "default": 12,
-                            "maximum": 24,
+                            "default": 30,
+                            "maximum": 90,
                             "minimum": 1
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Monthly history points",
+                        "description": "Daily history points",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2742,10 +2742,10 @@
             },
             "RatingHistoryRequest": {
                 "properties": {
-                    "months": {
+                    "days": {
                         "type": "integer",
-                        "example": 12,
-                        "maximum": 24,
+                        "example": 30,
+                        "maximum": 90,
                         "minimum": 1
                     }
                 },
@@ -3516,14 +3516,15 @@
             },
             "RatingHistoryPointResource": {
                 "required": [
-                    "month",
+                    "date",
                     "rating",
                     "rating_count"
                 ],
                 "properties": {
-                    "month": {
+                    "date": {
                         "type": "string",
-                        "example": "2026-03"
+                        "format": "date",
+                        "example": "2026-03-15"
                     },
                     "rating": {
                         "type": "number",
