@@ -18,6 +18,7 @@ use App\Http\Resources\Api\Publisher\StoreAppResource;
 use App\Models\App;
 use App\Models\Publisher;
 use App\Services\AppRegistrar;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -148,7 +149,7 @@ class PublisherController extends BaseController
             ),
         ],
     )]
-    public function storeApps(Request $request, string $platform, string $externalId, ITunesLookupConnector $ios, GooglePlayConnector $android): AnonymousResourceCollection
+    public function storeApps(Request $request, string $platform, string $externalId, ITunesLookupConnector $ios, GooglePlayConnector $android): JsonResponse
     {
         $platformEnum = Platform::fromSlug($platform);
 
@@ -163,7 +164,7 @@ class PublisherController extends BaseController
         $result = $connector->fetchDeveloperApps($externalId);
 
         if (! $result->success) {
-            return StoreAppResource::collection([]);
+            return response()->json(['apps' => []]);
         }
 
         $userAppIds = $request->user()->apps()->pluck('apps.external_id')->toArray();
@@ -188,7 +189,9 @@ class PublisherController extends BaseController
         // controller having to reshape the payload.
         $request->attributes->set('store_app_tracked_external_ids', $userAppIds);
 
-        return StoreAppResource::collection($apps);
+        return response()->json([
+            'apps' => StoreAppResource::collection($apps)->resolve($request),
+        ]);
     }
 
     #[OA\Post(
