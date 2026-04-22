@@ -255,13 +255,13 @@ export default function CompetitorsTab({ competitors, platform, externalId, isTr
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">{competitors.length} competitor{competitors.length !== 1 ? 's' : ''}</p>
         {isTracked && (
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm() }}>
-            <DialogTrigger render={<Button variant="outline" size="sm" />}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Competitor
+            <DialogTrigger render={<Button variant="outline" size="sm" className="shrink-0" />}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add Competitor</span>
             </DialogTrigger>
             {renderAddDialog()}
           </Dialog>

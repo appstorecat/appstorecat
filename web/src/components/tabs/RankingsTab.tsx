@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { ArrowUp, ArrowDown, Minus, Trophy, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { ArrowUp, ArrowDown, Minus, Trophy, ChevronLeft, ChevronRight, Calendar, Layers, Gift, DollarSign, TrendingUp } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useCountries } from '@/components/CountrySelect'
 import QueryError from '@/components/QueryError'
 import { useListAppRankings } from '@/api/endpoints/apps/apps'
@@ -118,26 +119,29 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
   return (
     <div className="flex flex-col gap-5">
       {/* Filter bar */}
-      <div className="flex flex-wrap items-end gap-6">
+      <div className="flex flex-row flex-wrap items-end gap-3 sm:gap-6">
         <FilterGroup label="Rank Type">
           <div className="inline-flex h-9 items-center rounded-md border bg-background p-0.5">
             {([
-              ['any', 'Any'],
-              ['top_free', 'Top Free'],
-              ['top_paid', 'Top Paid'],
-              ['top_grossing', 'Top Grossing'],
-            ] as [RankTypeFilter, string][]).map(([value, label]) => (
+              ['any', 'Any', Layers],
+              ['top_free', 'Top Free', Gift],
+              ['top_paid', 'Top Paid', DollarSign],
+              ['top_grossing', 'Top Grossing', TrendingUp],
+            ] as [RankTypeFilter, string, LucideIcon][]).map(([value, label, Icon]) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setRankType(value)}
-                className={`flex h-full items-center rounded px-3 text-xs font-medium transition-colors ${
+                aria-label={label}
+                title={label}
+                className={`flex h-full shrink-0 items-center gap-1.5 whitespace-nowrap rounded px-2 text-xs font-medium transition-colors sm:px-3 ${
                   rankType === value
                     ? 'bg-accent text-accent-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {label}
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{label}</span>
               </button>
             ))}
           </div>

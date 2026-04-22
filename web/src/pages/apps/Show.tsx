@@ -19,19 +19,21 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
   ExternalLink,
   Star,
-  Ellipsis,
   Loader2,
   BookmarkPlus,
   BookmarkMinus,
+  FileText,
+  Users as UsersIcon,
+  Key as KeyIcon,
+  Trophy,
+  Star as StarIcon,
+  History as HistoryIcon,
+  GitCommit,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { useDominantColor, rgbToCss } from '@/hooks/useDominantColor'
 import StoreListingTab from '@/components/tabs/StoreListingTab'
 import ChangesTab from '@/components/tabs/ChangesTab'
 import VersionsTab from '@/components/tabs/VersionsTab'
@@ -59,6 +61,35 @@ function formatRatingCount(count: number | null | undefined): string {
 
 const IosSvg = AppStoreSvg
 const AndroidSvg = GooglePlaySvg
+
+function EstimateCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-1 flex-col items-start justify-center rounded-lg border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm sm:flex-none sm:min-w-[120px] sm:items-end sm:rounded-xl sm:px-4 sm:py-3 sm:text-right">
+      <span className="text-[9px] font-medium uppercase tracking-wider text-white/70 sm:text-[10px]">
+        {label}
+      </span>
+      <span className="text-base font-semibold text-white sm:mt-1 sm:text-xl">
+        {value}
+      </span>
+    </div>
+  )
+}
+
+type TabConfig = {
+  value: string
+  label: string
+  icon: LucideIcon
+}
+
+const TABS: TabConfig[] = [
+  { value: 'store_listing', label: 'Store Listing', icon: FileText },
+  { value: 'competitors', label: 'Competitors', icon: UsersIcon },
+  { value: 'keywords', label: 'Keywords', icon: KeyIcon },
+  { value: 'rankings', label: 'Rankings', icon: Trophy },
+  { value: 'ratings', label: 'Ratings', icon: StarIcon },
+  { value: 'changes', label: 'Changes', icon: HistoryIcon },
+  { value: 'versions', label: 'Versions', icon: GitCommit },
+]
 
 export default function AppsShow() {
   const { platform, externalId } = useParams<{ platform: 'ios' | 'android'; externalId: string }>()
@@ -168,6 +199,8 @@ export default function AppsShow() {
     }
   }
 
+  const dominant = useDominantColor(app?.icon_url)
+
   if (isLoading) {
     return (
       <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
@@ -206,138 +239,101 @@ export default function AppsShow() {
       ? latestVersion
       : versions.find((v) => String(v.id) === selectedVersion)
 
+  const storeUrl = detail.platform === 'ios'
+    ? `https://apps.apple.com/app/id${detail.external_id}`
+    : `https://play.google.com/store/apps/details?id=${detail.external_id}`
+
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
-      {/* App Header */}
-      <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="flex items-start gap-4 sm:gap-5">
-        <div className="relative shrink-0">
-          {detail.icon_url ? (
-            <img
-              src={detail.icon_url}
-              alt={detail.name}
-              className={`h-16 w-16 rounded-2xl shadow-md sm:h-24 sm:w-24 sm:rounded-[20px] ${detail.is_available === false ? 'opacity-70' : ''}`}
-            />
-          ) : (
-            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-muted shadow-md sm:h-24 sm:w-24 sm:rounded-[20px] ${detail.is_available === false ? 'opacity-50' : ''}`}>
-              {detail.platform === 'ios' ? (
-                <IosSvg className="h-7 w-7 text-muted-foreground sm:h-10 sm:w-10" />
+      {/* App Header — dominant-color gradient */}
+      <div className="-mx-4 -mt-4 overflow-hidden border-b border-border sm:mx-0 sm:mt-0 sm:rounded-2xl sm:border">
+        <div
+          className="relative px-4 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-7"
+          style={{
+            background: dominant
+              ? `linear-gradient(135deg, ${rgbToCss(dominant, 0.95)} 0%, ${rgbToCss(dominant, 0.55)} 50%, ${rgbToCss(dominant, 0.2)} 100%)`
+              : 'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--background)) 100%)',
+          }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: 'radial-gradient(60% 80% at 15% 20%, rgba(255,255,255,0.18) 0%, transparent 60%)' }}
+          />
+
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+            <div className="relative shrink-0">
+              {detail.icon_url ? (
+                <img
+                  src={detail.icon_url}
+                  alt={detail.name}
+                  className={`h-20 w-20 rounded-2xl shadow-xl ring-1 ring-black/5 sm:h-28 sm:w-28 sm:rounded-[22px] ${detail.is_available === false ? 'opacity-70' : ''}`}
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
+                />
               ) : (
-                <AndroidSvg className="h-7 w-7 text-muted-foreground sm:h-10 sm:w-10" />
+                <div className={`flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 shadow-xl ring-1 ring-black/5 backdrop-blur-sm sm:h-28 sm:w-28 sm:rounded-[22px] ${detail.is_available === false ? 'opacity-50' : ''}`}>
+                  {detail.platform === 'ios' ? (
+                    <IosSvg className="h-8 w-8 text-white sm:h-12 sm:w-12" />
+                  ) : (
+                    <AndroidSvg className="h-8 w-8 text-white sm:h-12 sm:w-12" />
+                  )}
+                </div>
+              )}
+              {detail.is_available === false && (
+                <div className="absolute inset-x-0 bottom-0 rounded-b-2xl bg-red-900/80 py-0.5 text-center text-[9px] font-semibold text-red-200 sm:rounded-b-[22px] sm:py-1 sm:text-[10px]">
+                  Removed
+                </div>
               )}
             </div>
-          )}
-          {detail.is_available === false && (
-            <div className="absolute inset-x-0 bottom-0 rounded-b-2xl bg-red-900/80 py-0.5 text-center text-[9px] font-semibold text-red-200 sm:rounded-b-[20px] sm:py-1 sm:text-[10px]">
-              Removed
-            </div>
-          )}
-        </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate text-lg font-bold sm:text-2xl">{detail.name}</h1>
-            <span className="shrink-0 [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">
-              {detail.platform === 'ios' ? <IosSvg /> : <AndroidSvg />}
-            </span>
-          </div>
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex items-start gap-2">
+                <h1 className="text-balance text-xl font-bold leading-tight text-white drop-shadow-sm sm:text-3xl">
+                  {detail.name}
+                </h1>
+                <span className="mt-1 shrink-0 text-white/80 [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">
+                  {detail.platform === 'ios' ? <IosSvg /> : <AndroidSvg />}
+                </span>
+              </div>
 
-          <p className="truncate text-sm text-muted-foreground">
-            {detail.publisher?.name || '\u2014'}
-          </p>
+              <p className="truncate text-sm font-medium text-white/85 sm:text-base">
+                {detail.publisher?.name || '\u2014'}
+              </p>
 
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground [&>span:not(:first-child)]:before:mr-1.5 [&>span:not(:first-child)]:before:content-['·']">
-            {detail.category?.name && <span>{detail.category.name}</span>}
-            {detail.rating && Number(detail.rating) > 0 ? (
-              <span className="flex items-center gap-0.5">
-                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                {Number(detail.rating).toFixed(1)}
-                {detail.rating_count && (
-                  <span className="text-muted-foreground/50">
-                    ({formatRatingCount(detail.rating_count)})
+              <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-white/70 [&>span:not(:first-child)]:before:mr-1.5 [&>span:not(:first-child)]:before:content-['·']">
+                {detail.category?.name && <span>{detail.category.name}</span>}
+                {detail.rating && Number(detail.rating) > 0 ? (
+                  <span className="flex items-center gap-0.5">
+                    <Star className="h-3 w-3 fill-yellow-300 text-yellow-300" />
+                    {Number(detail.rating).toFixed(1)}
+                    {detail.rating_count && (
+                      <span className="text-white/55">
+                        ({formatRatingCount(detail.rating_count)})
+                      </span>
+                    )}
                   </span>
+                ) : (
+                  <span className="text-white/55">No Ratings</span>
                 )}
-              </span>
-            ) : (
-              <span className="text-muted-foreground/50">No Ratings</span>
-            )}
-            {detail.version && <span>v{detail.version}</span>}
-            {detail.file_size_bytes && <span>{formatBytes(detail.file_size_bytes)}</span>}
-            <span>
-              <Badge variant="outline" className="text-[10px]">
-                {detail.is_free ? 'Free' : 'Paid'}
-              </Badge>
-            </span>
+                {detail.version && <span>v{detail.version}</span>}
+                {detail.file_size_bytes && <span>{formatBytes(detail.file_size_bytes)}</span>}
+                <span>
+                  <Badge variant="outline" className="border-white/40 bg-white/10 text-[10px] text-white">
+                    {detail.is_free ? 'Free' : 'Paid'}
+                  </Badge>
+                </span>
+              </div>
+
+            </div>
+
+            {/* 30-day estimates — stacked full-width on mobile, right-aligned on desktop */}
+            <div className="flex w-full items-stretch gap-2 sm:w-auto sm:shrink-0 sm:gap-4">
+              <EstimateCard label="Downloads (30d)" value="N/A" />
+              <EstimateCard label="Revenue (30d)" value="N/A" />
+            </div>
           </div>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <Button
-            variant={detail.is_tracked ? 'outline' : 'default'}
-            size="sm"
-            onClick={toggleTrack}
-            disabled={tracking}
-          >
-            {tracking ? (
-              <Loader2 className="h-4 w-4 animate-spin sm:mr-1" />
-            ) : detail.is_tracked ? (
-              <BookmarkMinus className="h-4 w-4 sm:mr-1" />
-            ) : (
-              <BookmarkPlus className="h-4 w-4 sm:mr-1" />
-            )}
-            <span className="hidden sm:inline">{detail.is_tracked ? 'Untrack' : 'Track'}</span>
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-              <Ellipsis className="h-5 w-5" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                render={<a href={detail.platform === 'ios' ? `https://apps.apple.com/app/id${detail.external_id}` : `https://play.google.com/store/apps/details?id=${detail.external_id}`} target="_blank" rel="noopener noreferrer" />}
-              >
-                <ExternalLink className="h-4 w-4" />
-                {detail.platform === 'ios' ? 'App Store' : 'Play Store'}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        </div>
-
-        {hasListingsOrVersions && (
-          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:justify-end md:overflow-visible md:px-0 md:pb-0 [&>*]:shrink-0">
-            <CountrySelect
-              value={selectedCountry}
-              onChange={setSelectedCountry}
-              className="w-[160px]"
-              disabledCodes={detail.unavailable_countries ?? []}
-            />
-            {localesForCountry.length > 1 && (
-              <LanguageSelect
-                languages={localesForCountry}
-                value={effectiveLocale}
-                onChange={setSelectedLocale}
-                className="w-[150px]"
-              />
-            )}
-            {versions.length > 0 && (
-              <Select value={selectedVersion} onValueChange={setSelectedVersion}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue>
-                    {activeVersion ? `v${activeVersion.version}` : ''}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {versions.map((v, i) => (
-                    <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
-                      {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Sync overlay: blocks tabs while queued/processing */}
@@ -347,105 +343,218 @@ export default function AppsShow() {
 
       {/* Tabs — only show when app has data AND no active sync */}
       {!isSyncing && hasListingsOrVersions && (
-        <>
-          {/* Tab bar */}
-          <div className="-mx-4 overflow-x-auto px-4">
-            <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
-              {([
-                ['store_listing', 'Store Listing'],
-                ['competitors', 'Competitors'],
-                ['keywords', 'Keyword Density'],
-                ['rankings', 'Rankings'],
-                ['ratings', 'Ratings'],
-                ['changes', 'Changes'],
-                ['versions', 'Versions'],
-              ] as [string, string][]).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setActiveTab(value)}
-                  className={`inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    activeTab === value
-                      ? 'bg-accent text-accent-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+          {/* Mobile/tablet: track + tab bar + store (last) */}
+          <div className="flex flex-col gap-2 lg:hidden">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={detail.is_tracked ? 'outline' : 'default'}
+                size="sm"
+                onClick={toggleTrack}
+                disabled={tracking}
+                className="shrink-0 whitespace-nowrap"
+              >
+                {tracking ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : detail.is_tracked ? (
+                  <BookmarkMinus className="mr-1 h-4 w-4" />
+                ) : (
+                  <BookmarkPlus className="mr-1 h-4 w-4" />
+                )}
+                {detail.is_tracked ? 'Untrack' : 'Track'}
+              </Button>
+              <div className="min-w-0 flex-1 overflow-x-auto">
+                <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab.value}
+                      type="button"
+                      onClick={() => setActiveTab(tab.value)}
+                      aria-label={tab.label}
+                      title={tab.label}
+                      className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                        activeTab === tab.value
+                          ? 'bg-accent text-accent-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <tab.icon className="h-4 w-4" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <a
+                href={storeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={detail.platform === 'ios' ? 'Open App Store' : 'Open Play Store'}
+                title={detail.platform === 'ios' ? 'Open App Store' : 'Open Play Store'}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-accent"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
             </div>
           </div>
 
-          <div className="mt-1">
+          {/* Desktop: vertical tab sidebar */}
+          <nav className="hidden w-48 shrink-0 flex-col gap-4 lg:flex">
+            <Button
+              variant={detail.is_tracked ? 'outline' : 'default'}
+              onClick={toggleTrack}
+              disabled={tracking}
+              className="w-full justify-center"
+            >
+              {tracking ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : detail.is_tracked ? (
+                <BookmarkMinus className="mr-2 h-4 w-4" />
+              ) : (
+                <BookmarkPlus className="mr-2 h-4 w-4" />
+              )}
+              {detail.is_tracked ? 'Untrack' : 'Track'}
+            </Button>
+
+            <ul className="flex flex-col gap-0.5">
+              {TABS.map((tab) => {
+                const active = activeTab === tab.value
+                return (
+                  <li key={tab.value}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab(tab.value)}
+                      className={`group relative flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
+                        active
+                          ? 'bg-accent font-medium text-accent-foreground'
+                          : 'text-muted-foreground hover:bg-accent/40 hover:text-foreground'
+                      }`}
+                    >
+                      {active && (
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-sm bg-emerald-500" />
+                      )}
+                      <tab.icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{tab.label}</span>
+                    </button>
+                  </li>
+                )
+              })}
+
+              <li className="mt-1 border-t border-border pt-2">
+                <a
+                  href={storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+                >
+                  <ExternalLink className="h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    {detail.platform === 'ios' ? 'App Store' : 'Play Store'}
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Tab content */}
+          <div className="min-w-0 flex-1">
             {syncStatus && syncStatus.failed_items_count > 0 && (
               <div className="mb-3">
                 <PartialSyncBanner status={syncStatus} />
               </div>
             )}
-            {(
-              <>
-                {activeTab === 'store_listing' && (
-                  <StoreListingTab
-                    listings={listings}
-                    versions={versions}
-                    platform={detail.platform}
-                    externalId={detail.external_id}
-                    selectedLocale={effectiveLocale}
-                    selectedCountry={selectedCountry}
-                    selectedCountryName={currentCountry?.name}
-                    selectedVersion={selectedVersion}
-                    unavailableCountries={detail.unavailable_countries ?? []}
-                  />
-                )}
-                {activeTab === 'competitors' && (
-                  <CompetitorsTab
-                    // CompetitorsTab still declares its own stricter inline `Competitor` type
-                    // (with `last_build_at`); cast until that component migrates to CompetitorResource.
-                    competitors={(detail.competitors ?? []) as unknown as ComponentProps<typeof CompetitorsTab>['competitors']}
-                    platform={detail.platform}
-                    externalId={detail.external_id}
-                    isTracked={detail.is_tracked ?? false}
-                    onTrack={toggleTrack}
-                    trackLoading={tracking}
-                  />
-                )}
-                {activeTab === 'keywords' && (
-                  <KeywordsTab
-                    platform={detail.platform}
-                    externalId={detail.external_id}
-                    versions={versions}
-                    selectedLocale={effectiveLocale}
-                    selectedVersion={selectedVersion}
-                    allApps={competitorAppsForCompare ?? []}
-                  />
-                )}
-                {activeTab === 'rankings' && (
-                  <RankingsTab
-                    platform={detail.platform}
-                    externalId={detail.external_id}
-                    selectedCountry={selectedCountry}
-                  />
-                )}
-                {activeTab === 'ratings' && (
-                  <RatingsTab
-                    platform={detail.platform}
-                    externalId={detail.external_id}
-                  />
-                )}
-                {activeTab === 'changes' && (
-                  <ChangesTab
-                    listings={listings}
-                    versions={versions}
-                    platform={detail.platform}
-                  />
-                )}
-                {activeTab === 'versions' && (
-                  <VersionsTab versions={versions} />
-                )}
-              </>
+            {activeTab === 'store_listing' && (
+              <StoreListingTab
+                listings={listings}
+                versions={versions}
+                platform={detail.platform}
+                externalId={detail.external_id}
+                selectedLocale={effectiveLocale}
+                selectedCountry={selectedCountry}
+                selectedCountryName={currentCountry?.name}
+                selectedVersion={selectedVersion}
+                unavailableCountries={detail.unavailable_countries ?? []}
+                controls={
+                  <>
+                    <CountrySelect
+                      value={selectedCountry}
+                      onChange={setSelectedCountry}
+                      className="h-9 w-[160px]"
+                      disabledCodes={detail.unavailable_countries ?? []}
+                    />
+                    {localesForCountry.length > 1 && (
+                      <LanguageSelect
+                        languages={localesForCountry}
+                        value={effectiveLocale}
+                        onChange={setSelectedLocale}
+                        className="h-9 w-[150px]"
+                      />
+                    )}
+                    {versions.length > 0 && (
+                      <Select value={selectedVersion} onValueChange={setSelectedVersion}>
+                        <SelectTrigger className="h-9 w-[120px]">
+                          <SelectValue>
+                            {activeVersion ? `v${activeVersion.version}` : ''}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {versions.map((v, i) => (
+                            <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
+                              {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </>
+                }
+              />
+            )}
+            {activeTab === 'competitors' && (
+              <CompetitorsTab
+                // CompetitorsTab still declares its own stricter inline `Competitor` type
+                // (with `last_build_at`); cast until that component migrates to CompetitorResource.
+                competitors={(detail.competitors ?? []) as unknown as ComponentProps<typeof CompetitorsTab>['competitors']}
+                platform={detail.platform}
+                externalId={detail.external_id}
+                isTracked={detail.is_tracked ?? false}
+                onTrack={toggleTrack}
+                trackLoading={tracking}
+              />
+            )}
+            {activeTab === 'keywords' && (
+              <KeywordsTab
+                platform={detail.platform}
+                externalId={detail.external_id}
+                versions={versions}
+                selectedLocale={effectiveLocale}
+                selectedVersion={selectedVersion}
+                allApps={competitorAppsForCompare ?? []}
+              />
+            )}
+            {activeTab === 'rankings' && (
+              <RankingsTab
+                platform={detail.platform}
+                externalId={detail.external_id}
+                selectedCountry={selectedCountry}
+              />
+            )}
+            {activeTab === 'ratings' && (
+              <RatingsTab
+                platform={detail.platform}
+                externalId={detail.external_id}
+              />
+            )}
+            {activeTab === 'changes' && (
+              <ChangesTab
+                listings={listings}
+                versions={versions}
+                platform={detail.platform}
+              />
+            )}
+            {activeTab === 'versions' && (
+              <VersionsTab versions={versions} />
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   )

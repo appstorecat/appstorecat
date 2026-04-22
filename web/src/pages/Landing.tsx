@@ -52,7 +52,7 @@ function GithubIcon({ className = '' }: { className?: string }) {
 }
 
 function Logo({ className = 'h-7 w-7' }: { className?: string }) {
-  return <img src="/appstorecat-icon.svg" alt="" className={className} />
+  return <img src="/appstorecat-icon.png" alt="" className={className} />
 }
 
 function InstallButton() {

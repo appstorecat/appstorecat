@@ -184,7 +184,7 @@ function CurrentRatingCard({ summary }: { summary: RatingSummary }) {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
           <div className="flex flex-col items-start gap-1">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold tabular-nums">
+              <span className="text-3xl font-bold tabular-nums sm:text-4xl">
                 {hasRatings ? average.toFixed(2) : '0.00'}
               </span>
               <Star
@@ -297,7 +297,7 @@ function TrendCell({
       <span className="text-xs text-muted-foreground">{label}</span>
       <div className="flex items-center gap-2">
         {icon}
-        <span className={`text-2xl font-bold tabular-nums ${color}`}>
+        <span className={`text-xl font-bold tabular-nums sm:text-2xl ${color}`}>
           {value}
         </span>
       </div>

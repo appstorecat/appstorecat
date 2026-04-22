@@ -1,4 +1,4 @@
-import { Check, Loader2, Clock, Fingerprint, FileText, BarChart3, Sparkles } from 'lucide-react'
+import { Check, Loader2, Fingerprint, FileText, BarChart3, Sparkles } from 'lucide-react'
 import type { SyncStatus } from '@/hooks/useSyncStatus'
 
 type Step = 'identity' | 'listings' | 'metrics' | 'finalize'
@@ -24,7 +24,6 @@ export default function SyncingOverlay({ status }: { status: SyncStatus }) {
   const isQueued = status.status === 'queued' || !status.current_step
   const { done, total } = status.progress
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
-  const elapsedSec = status.elapsed_ms !== null ? Math.round(status.elapsed_ms / 1000) : null
 
   return (
     <div className="mx-auto w-full max-w-2xl py-12">
@@ -42,19 +41,11 @@ export default function SyncingOverlay({ status }: { status: SyncStatus }) {
               ? 'We are about to start pulling fresh data. This can take up to a few minutes for new apps.'
               : 'Fetching the latest store data across locales and countries.'}
           </p>
-          {(elapsedSec !== null || total > 0) && (
+          {total > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              {elapsedSec !== null && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {elapsedSec}s elapsed
-                </span>
-              )}
-              {total > 0 && (
-                <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                  {done} / {total} items ({pct}%)
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                {done} / {total} items ({pct}%)
+              </span>
             </div>
           )}
         </div>

@@ -1,13 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/rubik";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Rubik Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -111,8 +111,8 @@
     --sidebar-foreground: hsl(0 0% 95.9%);
     --sidebar-primary: hsl(0 0% 100%);
     --sidebar-primary-foreground: hsl(0 0% 9%);
-    --sidebar-accent: hsl(155 25% 14%);
-    --sidebar-accent-foreground: hsl(155 70% 45%);
+    --sidebar-accent: hsl(155 55% 22%);
+    --sidebar-accent-foreground: hsl(155 70% 55%);
     --sidebar-border: hsl(0 0% 15.9%);
     --sidebar-ring: hsl(0 0% 83.1%);
 }

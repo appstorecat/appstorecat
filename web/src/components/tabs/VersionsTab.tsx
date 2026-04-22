@@ -27,9 +27,9 @@ export default function VersionsTab({ versions }: VersionsTabProps) {
     <div className="space-y-4">
       {versions.map((version) => (
         <Card key={version.id}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-2">
             <CardTitle className="text-base">v{version.version}</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {version.release_date && (
                 <Badge variant="outline">{version.release_date}</Badge>
               )}

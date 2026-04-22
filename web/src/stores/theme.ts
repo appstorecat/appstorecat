@@ -16,7 +16,10 @@ function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle('dark', resolved === 'dark')
 }
 
-const stored = (localStorage.getItem('theme') as Theme) || 'system'
+const storedRaw = (localStorage.getItem('theme') as Theme) || 'system'
+// TODO: re-enable light/system once light palette is finalized
+const stored: Theme = 'dark'
+void storedRaw
 applyTheme(stored)
 
 export const useThemeStore = create<ThemeState>((set) => ({

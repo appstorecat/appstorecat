@@ -243,7 +243,7 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
 
       {/* Compare app selector */}
       {allApps.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&>*]:shrink-0">
           {compareAppIds.map((id) => {
             const app = allApps.find((a) => a.id === id)
             const compareApp = compareData?.apps?.find((a) => a.id === id)

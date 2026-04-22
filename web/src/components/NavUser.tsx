@@ -1,13 +1,32 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
-import { LogOut, Settings, Sun, Moon, Monitor, ChevronsUpDown } from 'lucide-react'
+import {
+  BadgeCheck,
+  BookOpen,
+  ChevronsUpDown,
+  KeyRound,
+  LogOut,
+  Monitor,
+  Moon,
+  Palette,
+  Settings,
+  Sun,
+  Webhook,
+} from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -26,37 +45,9 @@ function getInitials(name: string): string {
     .slice(0, 2)
 }
 
-function ThemeSubmenu() {
-  const { theme, setTheme } = useThemeStore()
-  const options = [
-    { value: 'light' as const, icon: Sun, label: 'Light' },
-    { value: 'dark' as const, icon: Moon, label: 'Dark' },
-    { value: 'system' as const, icon: Monitor, label: 'System' },
-  ]
-
-  return (
-    <div className="flex items-center gap-1 px-2 py-1.5">
-      {options.map(({ value, icon: Icon, label }) => (
-        <button
-          key={value}
-          onClick={() => setTheme(value)}
-          title={label}
-          className={`flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md text-xs transition-colors ${
-            theme === value
-              ? 'bg-accent text-accent-foreground'
-              : 'text-muted-foreground hover:bg-accent/50'
-          }`}
-        >
-          <Icon className="h-3.5 w-3.5" />
-          {label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 export default function NavUser() {
   const { user, logout } = useAuthStore()
+  const { theme, setTheme } = useThemeStore()
   const navigate = useNavigate()
   const { isMobile } = useSidebar()
 
@@ -67,6 +58,8 @@ export default function NavUser() {
 
   if (!user) return null
 
+  const initials = getInitials(user.name)
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -75,47 +68,99 @@ export default function NavUser() {
             render={
               <SidebarMenuButton
                 size="lg"
+                tooltip={user.name}
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               />
             }
           >
-            <Avatar className="h-8 w-8 rounded-lg">
+            <Avatar className="size-8 rounded-lg">
               <AvatarFallback className="rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-semibold">
-                {getInitials(user.name)}
+                {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs text-muted-foreground" title={user.email}>
-                {user.email}
-              </span>
+              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4 shrink-0" />
+            <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
-            <div className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarFallback className="rounded-lg">{getInitials(user.name)}</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs text-muted-foreground">{user.email}</span>
-              </div>
-            </div>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="size-8 rounded-lg">
+                    <AvatarFallback className="rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link to="/settings" />}>
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
-            <ThemeSubmenu />
+            <DropdownMenuGroup>
+              <DropdownMenuItem render={<Link to="/settings" />}>
+                <BadgeCheck />
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link to="/settings" />}>
+                <Settings />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Palette />
+                  Theme
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={theme}
+                    onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
+                  >
+                    <DropdownMenuRadioItem value="light" disabled>
+                      <Sun />
+                      Light
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="dark">
+                      <Moon />
+                      Dark
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="system" disabled>
+                      <Monitor />
+                      System
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Developers</DropdownMenuLabel>
+              <DropdownMenuItem render={<Link to="/settings/api-tokens" />}>
+                <KeyRound />
+                API Keys
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link to="/settings/mcp" />}>
+                <Webhook />
+                MCP
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <BookOpen />
+                API Docs
+                <span className="ml-auto text-xs text-primary">Soon</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+              <LogOut />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

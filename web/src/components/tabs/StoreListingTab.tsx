@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Smartphone, Ban, Languages } from 'lucide-react'
 import type { ListingResource } from '@/api/models/listingResource'
@@ -14,6 +14,7 @@ interface StoreListingTabProps {
   selectedCountryName?: string
   selectedVersion: string
   unavailableCountries?: string[]
+  controls?: ReactNode
 }
 
 export default function StoreListingTab({
@@ -26,6 +27,7 @@ export default function StoreListingTab({
   selectedCountryName,
   selectedVersion,
   unavailableCountries = [],
+  controls,
 }: StoreListingTabProps) {
   // Backend returns versions newest-first (App::versions() relation orders by id desc).
   const latestVersionId = versions.length > 0 ? versions[0].id : null
@@ -64,6 +66,32 @@ export default function StoreListingTab({
 
   return (
     <div className="space-y-5">
+      {/* Title + Subtitle + Controls — always render controls (listing optional) */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          {currentListing?.icon_url && (
+            <img
+              src={currentListing.icon_url}
+              alt={currentListing.title}
+              className="h-12 w-12 shrink-0 rounded-xl"
+            />
+          )}
+          {currentListing && (
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-lg font-semibold leading-tight">{currentListing.title}</h3>
+              {currentListing.subtitle && (
+                <p className="mt-0.5 truncate text-sm text-muted-foreground">{currentListing.subtitle}</p>
+              )}
+            </div>
+          )}
+        </div>
+        {controls && (
+          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:shrink-0 lg:px-0 lg:pb-0 [&>*]:shrink-0">
+            {controls}
+          </div>
+        )}
+      </div>
+
       {hideContent && (
         <div className="overflow-hidden rounded-lg border border-amber-200/60 bg-amber-50/60 dark:border-amber-500/25 dark:bg-amber-500/5">
           <div className="flex items-start gap-3 px-4 py-3">
@@ -88,22 +116,6 @@ export default function StoreListingTab({
 
       {currentListing && (
         <div className="space-y-5">
-          {/* Title + Subtitle */}
-          <div className="flex items-start gap-3">
-            {currentListing.icon_url && (
-              <img
-                src={currentListing.icon_url}
-                alt={currentListing.title}
-                className="h-12 w-12 shrink-0 rounded-xl"
-              />
-            )}
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold leading-tight">{currentListing.title}</h3>
-              {currentListing.subtitle && (
-                <p className="mt-0.5 text-sm text-muted-foreground">{currentListing.subtitle}</p>
-              )}
-            </div>
-          </div>
 
           {/* Screenshots */}
           {currentListing.screenshots && currentListing.screenshots.length > 0 && (
@@ -113,14 +125,14 @@ export default function StoreListingTab({
                   Screenshots ({currentListing.screenshots.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex gap-3 overflow-x-auto pb-2">
+              <CardContent className="px-3 sm:px-6">
+                <div className="-mx-3 flex gap-3 overflow-x-auto px-3 pb-2 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch]">
                   {currentListing.screenshots.map((screenshot, i) => (
                     <img
                       key={i}
                       src={screenshot.url}
                       alt={`Screenshot ${i + 1}`}
-                      className="h-[280px] rounded-xl object-contain"
+                      className="h-[220px] shrink-0 rounded-xl object-contain sm:h-[280px]"
                     />
                   ))}
                 </div>

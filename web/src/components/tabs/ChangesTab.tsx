@@ -440,7 +440,7 @@ function VersionCard({
 
       {(notes !== null || entry.availableLocales.length > 0) && (
         <>
-          <div className="flex items-start justify-between gap-6 px-5 pb-4">
+          <div className="flex flex-col items-stretch gap-3 px-5 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 flex-1">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Release Notes
@@ -470,7 +470,7 @@ function VersionCard({
             </div>
 
             {entry.availableLocales.length > 0 && (
-              <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Localization {entry.localesCount}
                 </span>

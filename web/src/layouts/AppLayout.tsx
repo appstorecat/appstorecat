@@ -6,9 +6,6 @@ import {
   Key,
   Camera,
   Image as ImageIcon,
-  KeyRound,
-  Webhook,
-  BookOpen,
   Smartphone,
   Users,
   FileSearch,
@@ -16,17 +13,18 @@ import {
   GitCompare,
   ChartBar as BarIcon,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -191,52 +189,47 @@ const explorerItems: NavItem[] = [
   { title: 'Screenshots', href: '/explorer/screenshots', icon: Camera },
 ]
 
-const apiItems: NavItem[] = [
-  { title: 'API Keys', href: '/settings/api-tokens', icon: KeyRound },
-  { title: 'MCP', href: '/settings/mcp', icon: Webhook },
-  { title: 'API Docs', href: '#', icon: BookOpen, comingSoon: true },
-]
+function isNavItemActive(href: string, pathname: string): boolean {
+  if (href === '/') return pathname === '/'
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
 
 function NavGroup({ label, items, pathname }: { label: string; items: NavItem[]; pathname: string }) {
   return (
-    <SidebarGroup className="pb-1">
-      <SidebarGroupLabel className="px-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/50">
-        {label}
-      </SidebarGroupLabel>
-      <SidebarMenu className="gap-0.5">
-        {items.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            {item.comingSoon ? (
-              <div
-                title="Coming soon"
-                className="relative flex cursor-not-allowed select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-foreground/40"
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                <span className="flex-1 truncate">{item.title}</span>
-                <Badge
-                  variant="outline"
-                  className="ml-auto h-5 border-emerald-500/30 bg-emerald-500/5 px-1.5 text-[10px] font-medium text-emerald-400/80"
+    <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              {item.comingSoon ? (
+                <>
+                  <SidebarMenuButton
+                    disabled
+                    aria-disabled
+                    tabIndex={-1}
+                    tooltip={`${item.title} — Coming soon`}
+                    className="cursor-not-allowed"
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                  <SidebarMenuBadge className="text-primary">Soon</SidebarMenuBadge>
+                </>
+              ) : (
+                <SidebarMenuButton
+                  render={<Link to={item.href} />}
+                  tooltip={item.title}
+                  isActive={isNavItemActive(item.href, pathname)}
                 >
-                  Soon
-                </Badge>
-              </div>
-            ) : (
-              <SidebarMenuButton
-                render={<Link to={item.href} />}
-                className="group/nav relative data-[active=true]:before:absolute data-[active=true]:before:left-0 data-[active=true]:before:top-1 data-[active=true]:before:bottom-1 data-[active=true]:before:w-0.5 data-[active=true]:before:bg-emerald-500 data-[active=true]:before:rounded-r-sm"
-                isActive={
-                  item.href === '/dashboard'
-                    ? pathname === '/dashboard'
-                    : pathname.startsWith(item.href)
-                }
-              >
-                <item.icon />
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            )}
-          </SidebarMenuItem>
-        ))}
-      </SidebarMenu>
+                  <item.icon />
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              )}
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
     </SidebarGroup>
   )
 }
@@ -253,7 +246,7 @@ export default function AppLayout() {
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton size="lg" render={<Link to="/apps" />}>
+              <SidebarMenuButton size="lg" tooltip="AppStoreCat" render={<Link to="/discovery/trending" />}>
                 <AppLogo />
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -266,7 +259,6 @@ export default function AppLayout() {
           <NavGroup label="Explorer" items={explorerItems} pathname={location.pathname} />
         </SidebarContent>
         <SidebarFooter>
-          <NavGroup label="API" items={apiItems} pathname={location.pathname} />
           <NavUser />
         </SidebarFooter>
         <SidebarRail />
