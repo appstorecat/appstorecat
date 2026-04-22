@@ -84,7 +84,7 @@ type TabConfig = {
 const TABS: TabConfig[] = [
   { value: 'store_listing', label: 'Store Listing', icon: FileText },
   { value: 'competitors', label: 'Competitors', icon: UsersIcon },
-  { value: 'keywords', label: 'Keywords', icon: KeyIcon },
+  { value: 'keywords', label: 'Keyword Density', icon: KeyIcon },
   { value: 'rankings', label: 'Rankings', icon: Trophy },
   { value: 'ratings', label: 'Ratings', icon: StarIcon },
   { value: 'changes', label: 'Changes', icon: HistoryIcon },
@@ -461,53 +461,75 @@ export default function AppsShow() {
                 <PartialSyncBanner status={syncStatus} />
               </div>
             )}
-            {activeTab === 'store_listing' && (
-              <StoreListingTab
-                listings={listings}
-                versions={versions}
-                platform={detail.platform}
-                externalId={detail.external_id}
-                selectedLocale={effectiveLocale}
-                selectedCountry={selectedCountry}
-                selectedCountryName={currentCountry?.name}
-                selectedVersion={selectedVersion}
-                unavailableCountries={detail.unavailable_countries ?? []}
-                controls={
-                  <>
-                    <CountrySelect
-                      value={selectedCountry}
-                      onChange={setSelectedCountry}
-                      className="h-9 w-[160px]"
-                      disabledCodes={detail.unavailable_countries ?? []}
+            {(() => {
+              const listingControls = (
+                <>
+                  <CountrySelect
+                    value={selectedCountry}
+                    onChange={setSelectedCountry}
+                    className="h-9 w-[160px]"
+                    disabledCodes={detail.unavailable_countries ?? []}
+                  />
+                  {localesForCountry.length > 1 && (
+                    <LanguageSelect
+                      languages={localesForCountry}
+                      value={effectiveLocale}
+                      onChange={setSelectedLocale}
+                      className="h-9 w-[150px]"
                     />
-                    {localesForCountry.length > 1 && (
-                      <LanguageSelect
-                        languages={localesForCountry}
-                        value={effectiveLocale}
-                        onChange={setSelectedLocale}
-                        className="h-9 w-[150px]"
-                      />
-                    )}
-                    {versions.length > 0 && (
-                      <Select value={selectedVersion} onValueChange={setSelectedVersion}>
-                        <SelectTrigger className="h-9 w-[120px]">
-                          <SelectValue>
-                            {activeVersion ? `v${activeVersion.version}` : ''}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {versions.map((v, i) => (
-                            <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
-                              {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </>
-                }
-              />
-            )}
+                  )}
+                  {versions.length > 0 && (
+                    <Select value={selectedVersion} onValueChange={setSelectedVersion}>
+                      <SelectTrigger className="h-9 w-[120px]">
+                        <SelectValue>
+                          {activeVersion ? `v${activeVersion.version}` : ''}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {versions.map((v, i) => (
+                          <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
+                            {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </>
+              )
+
+              if (activeTab === 'store_listing') {
+                return (
+                  <StoreListingTab
+                    listings={listings}
+                    versions={versions}
+                    platform={detail.platform}
+                    externalId={detail.external_id}
+                    selectedLocale={effectiveLocale}
+                    selectedCountry={selectedCountry}
+                    selectedCountryName={currentCountry?.name}
+                    selectedVersion={selectedVersion}
+                    unavailableCountries={detail.unavailable_countries ?? []}
+                    controls={listingControls}
+                  />
+                )
+              }
+
+              if (activeTab === 'keywords') {
+                return (
+                  <KeywordsTab
+                    platform={detail.platform}
+                    externalId={detail.external_id}
+                    versions={versions}
+                    selectedLocale={effectiveLocale}
+                    selectedVersion={selectedVersion}
+                    allApps={competitorAppsForCompare ?? []}
+                    controls={listingControls}
+                  />
+                )
+              }
+
+              return null
+            })()}
             {activeTab === 'competitors' && (
               <CompetitorsTab
                 // CompetitorsTab still declares its own stricter inline `Competitor` type
@@ -518,16 +540,6 @@ export default function AppsShow() {
                 isTracked={detail.is_tracked ?? false}
                 onTrack={toggleTrack}
                 trackLoading={tracking}
-              />
-            )}
-            {activeTab === 'keywords' && (
-              <KeywordsTab
-                platform={detail.platform}
-                externalId={detail.external_id}
-                versions={versions}
-                selectedLocale={effectiveLocale}
-                selectedVersion={selectedVersion}
-                allApps={competitorAppsForCompare ?? []}
               />
             )}
             {activeTab === 'rankings' && (

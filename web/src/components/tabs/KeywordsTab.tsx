@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -42,6 +42,7 @@ interface KeywordsTabProps {
   selectedLocale: string
   selectedVersion: string
   allApps: { id: number; name: string; icon_url?: string | null }[]
+  controls?: ReactNode
 }
 
 interface KeywordRow {
@@ -86,7 +87,7 @@ function getDensityColor(density: number): string {
 
 // --- Main component ---
 
-export default function KeywordsTab({ platform, externalId, versions, selectedLocale, selectedVersion, allApps }: KeywordsTabProps) {
+export default function KeywordsTab({ platform, externalId, versions, selectedLocale, selectedVersion, allApps, controls }: KeywordsTabProps) {
   const latestVersionId = versions[0]?.id
   const selectedVersionId = selectedVersion === 'latest' ? (latestVersionId ?? null) : Number(selectedVersion)
   const [selectedNgram, setSelectedNgram] = useState<string>('1')
@@ -231,7 +232,7 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0 sm:pb-0 [&>*]:shrink-0">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <Tabs value={selectedNgram} onValueChange={setSelectedNgram}>
           <TabsList>
             <TabsTrigger value="1">1-gram</TabsTrigger>
@@ -239,6 +240,11 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
             <TabsTrigger value="3">3-gram</TabsTrigger>
           </TabsList>
         </Tabs>
+        {controls && (
+          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:shrink-0 lg:px-0 lg:pb-0 [&>*]:shrink-0">
+            {controls}
+          </div>
+        )}
       </div>
 
       {/* Compare app selector */}
