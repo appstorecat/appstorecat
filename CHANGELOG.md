@@ -6,15 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-22
+
 ### Added
-- Open-source documentation restructuring
-- Job performance logging for queue monitoring
+- **MCP server** expanded from a single `get_categories` tool to a 25-tool read-only surface covering apps, competitors, changes, charts, ratings, keywords, publishers, explorer, reference, and dashboard endpoints. Every tool is Swagger-strict (zod inputs mirror the Swagger parameter list exactly) and chain-first (response IDs are preserved so callers can plan multi-step lookups).
+- MCP client now serializes array (`foo[]=a&foo[]=b`) and object (`foo[key]=v`) query params, interpolates path parameters via a shared `buildPath()` helper, and normalizes API errors into structured tool results instead of throwing.
+- Shared `mcp/src/tools/_schemas.ts` with reusable zod primitives (`Platform`, `ExternalId`, `DateStr`, `Ngram`, …) to keep every tool input faithful to the OpenAPI contract.
+
+### Fixed
+- Publisher `/store-apps` endpoint now returns the documented `{apps: [...]}` envelope. `BaseResource` disables Laravel's default `data` wrapper, so the previous `StoreAppResource::collection()` return produced a bare JSON array and the publisher detail page silently rendered zero apps.
+
+### Removed
+- `mcp/src/tools/meta.ts` (superseded by `reference.ts` + other category-specific modules).
+
+## [1.1.3] - 2026-04-20
+
+### Added
 - `apps.bundle_id` column for iOS bundle identifiers (populated lazily)
 - FK `apps.origin_country_code` → `countries.code`
 - FK `app_metrics.country_code` → `countries.code` (tightened from VARCHAR(10) to CHAR(2))
 - Indexes on `apps.last_synced_at`, `apps.discovered_from`, composite `(platform, is_available, last_synced_at)`; `app_store_listings(app_id, locale, fetched_at)` and `.checksum`; `app_store_listing_changes(app_id, field_changed, detected_at)`; `app_versions.release_date` and `(app_id, release_date)`; `store_categories(platform, parent_id)`; `trending_chart_entries.app_id`; `sync_statuses.job_id`
 - `Country` row `zz` (Global) to host Android metrics that are not country-specific
 - `SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE` (default 5) controls how many apps the scheduler dispatches per 20-minute tick
+- Job performance logging for queue monitoring
+- Open-source documentation restructuring under `docs/en` and `docs/tr`
 
 ### Changed
 - Renamed columns for naming consistency: `apps.origin_country` → `origin_country_code`, `apps.display_icon` → `icon_url`, `app_store_listings.language` → `locale`, `app_store_listing_changes.language` → `locale`, `trending_charts.country` → `country_code`
@@ -26,9 +41,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Chart fetch exceptions now always propagate for retry and failed_jobs tracking
 - Fallback to web-scraped iPhone screenshots when iTunes API returns none
 - App icon aspect ratio in explorer icons page
+- Skip listing-change detection within the same version (prevents spurious diffs during intra-version syncs)
 
 ### Removed
 - Dropped the separate discovery sync command, its dedicated queues, and its env vars — replaced by a tiered fallback inside `appstorecat:apps:sync-tracked` (tracked → competitor → backlog, all sharing the `sync-tracked-{platform}` queue and the tracked staleness window)
+
+## [1.1.2] - 2026-04-19
+
+### Added
+- Daily rating history with per-star breakdown chart
+
+### Changed
+- Changes pages rebuilt as a grouped feed on shared primitives
+- Country/version controls shared with Keyword Density tab
+
+## [1.1.1] - 2026-04-18
+
+### Added
+- Google Analytics 4 via runtime env injection
+- Product Hunt badge on landing page
+- Responsive pass across web UI (shadcn-first sidebar, unified mobile/desktop filter bar)
+
+### Fixed
+- Invalidate all tracking-dependent lists on track toggle
+- Hero CTA responsive layout on landing
 
 ## [1.0.1] - 2026-04-18
 
@@ -117,7 +153,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v0.0.4...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/appstorecat/appstorecat/compare/v1.1.3...v1.2.0
+[1.1.3]: https://github.com/appstorecat/appstorecat/compare/v1.1.2...v1.1.3
+[1.1.2]: https://github.com/appstorecat/appstorecat/compare/v1.1.1...v1.1.2
+[1.1.1]: https://github.com/appstorecat/appstorecat/compare/v1.0.1...v1.1.1
+[1.0.1]: https://github.com/appstorecat/appstorecat/compare/v0.0.4...v1.0.1
 [0.0.4]: https://github.com/appstorecat/appstorecat/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/appstorecat/appstorecat/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/appstorecat/appstorecat/releases/tag/v0.0.2

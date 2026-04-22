@@ -9,7 +9,7 @@ AppStoreCat MCP (Model Context Protocol) server, Claude Code gibi AI araçların
 | **Paket** | npm'de `@appstorecat/mcp` |
 | **Transport** | stdio (lokal process olarak spawn edilir) |
 | **Auth** | Env var üzerinden Sanctum bearer token |
-| **Tool'lar** | Read-only tool seti |
+| **Tool'lar** | 25 read-only tool, Swagger-strict, chain-first |
 
 ```
 Claude Code (stdio) → MCP Server (lokal) → Laravel API (lokal veya remote)
@@ -56,60 +56,89 @@ claude mcp add appstorecat \
 | `APPSTORECAT_API_TOKEN` | Evet | — | Sanctum API token (web UI'dan oluşturulur) |
 | `APPSTORECAT_API_URL` | Hayır | `http://localhost:7460/api/v1` | API base URL |
 
+## Tasarım İlkeleri
+
+Her tool iki kuralı schema seviyesinde zorunlu kılar:
+
+- **Swagger-strict** — her tool'un zod girdisi Swagger parametre listesini birebir yansıtır. Uydurma alan yok, eksik alan yok. Integer alanlar string kabul etmez, enum'lar serbest metin kabul etmez, tarihler `YYYY-MM-DD` formatını dayatır.
+- **Chain-first** — cevaplar olduğu gibi geçilir (`app_id`, `external_id`, `version_id`, `category_id`, `publisher.external_id` asla soyulmaz). Her tool açıklaması "use with: {tool_a}, {tool_b}" ipucuyla biter; çağıran çok adımlı aramaları planlayabilir.
+
 ## Mevcut Tool'lar
 
-### Keşif
+### Referans
 
 | Tool | Açıklama |
 |------|----------|
-| `search_apps` | App Store veya Google Play'de anahtar kelimeyle uygulama ara (`country_code` parametresi) |
-| `search_publishers` | Yayıncı/geliştirici ara (`country_code` parametresi) |
-| `get_charts` | Trend/top listelerini getir (top_free, top_paid, top_grossing; `country_code` parametresi) |
+| `list_categories` | Mağaza kategorileri (App Store + Google Play). `category_id` → `get_charts`, `browse_screenshots`, `browse_icons`. |
+| `list_countries` | Desteklenen ülkeler (ISO-2 kodları). `country_code` → lokasyon duyarlı tüm tool'lar. |
 
 ### Uygulamalar
 
 | Tool | Açıklama |
 |------|----------|
-| `list_apps` | Takip edilen tüm uygulamaları listele |
-| `get_app` | Detaylı uygulama bilgisi (metadata, puanlar, versiyon geçmişi, `unavailable_countries`) |
-| `get_app_listing` | Mağaza listesini getir (açıklama, ekran görüntüleri, yenilikler; `country_code` + `locale`) |
+| `list_tracked_apps` | Kullanıcının takip ettiği uygulamalar. Zincirleme için iç `id` ve `{platform, external_id}` döner. |
+| `search_store_apps` | Mağaza içi anahtar kelime araması (`term`, `platform`, `country_code`, `exclude_external_ids[]`). |
+| `get_app` | Tam uygulama metadata'sı: yayıncı, kategori, versiyonlar, puan, `unavailable_countries`, (izleniyorsa) rakipler. |
+| `get_app_listing` | Belirli `country_code` + `locale` için mağaza listesi (başlık, alt başlık, açıklama, ekran görüntüleri, whats_new, `version_id`). |
+| `get_app_sync_status` | Uygulamanın sync pipeline durumu. |
+| `get_app_rankings` | Chart sıralamaları (`date`, `collection` filtrelenebilir). |
 
 ### Rakipler
 
 | Tool | Açıklama |
 |------|----------|
-| `get_app_competitors` | Belirli bir uygulamanın rakiplerini getir |
-| `list_all_competitors` | Tüm rakip ilişkilerini listele |
+| `list_app_competitors` | Belirli bir uygulamanın rakipleri. |
+| `list_all_competitors` | Tüm izlenen rakip grupları `{parent, competitors[]}`. |
 
 ### Değişiklikler
 
 | Tool | Açıklama |
 |------|----------|
-| `get_app_changes` | Takip edilen uygulamaların son mağaza değişiklikleri |
-| `get_competitor_changes` | Rakip uygulamaların son değişiklikleri |
+| `list_app_changes` | İzlenen uygulamaların listing değişiklikleri (`field`, `platform`, `search`, iç `app_id`; sayfalı). |
+| `list_competitor_changes` | Aynı şema, rakip uygulamalarla sınırlı. |
 
-### Gezgin
+### Chart'lar
 
 | Tool | Açıklama |
 |------|----------|
-| `explore_screenshots` | Takip edilen uygulamaların ekran görüntülerini incele |
-| `explore_icons` | Takip edilen uygulamaların ikonlarını incele |
+| `get_charts` | Top chart'lar (`top_free` / `top_paid` / `top_grossing`) — `country_code`, opsiyonel `category_id`. |
+
+### Puanlar
+
+| Tool | Açıklama |
+|------|----------|
+| `get_rating_summary` | Anlık puan + oy sayısı + histogram. |
+| `get_rating_history` | Günlük puan serisi (`days` 1–90, varsayılan 30). |
+| `get_rating_country_breakdown` | Ülkeye göre puan dağılımı (yalnız iOS). |
+
+### Anahtar Kelimeler
+
+| Tool | Açıklama |
+|------|----------|
+| `get_app_keywords` | Bir listing'in anahtar kelime yoğunluğu (`locale`, `ngram` 1–3, `sort`, `order`, `per_page`, `page`; opsiyonel `version_id`). |
+| `compare_app_keywords` | En fazla 5 uygulama arasında karşılaştırmalı anahtar kelime tablosu (`app_ids[]` iç id'ler, `version_ids` map). |
 
 ### Yayıncılar
 
 | Tool | Açıklama |
 |------|----------|
-| `list_publishers` | Bilinen yayıncıları uygulama sayılarıyla listele |
-| `get_publisher` | Yayıncı detaylarını getir |
-| `get_publisher_apps` | Bir yayıncının tüm uygulamalarını getir |
+| `search_publishers` | Mağazalar arası yayıncı araması (`term`, `platform`, `country_code`). |
+| `list_user_publishers` | Kullanıcının takip ettiği uygulamaların yayıncıları. |
+| `get_publisher` | Yayıncı detayı + caller'a ait takip edilen uygulamalar. |
+| `get_publisher_store_apps` | Yayıncının mağaza kataloğunun tamamı (uygulama başına `is_tracked` bayrağı ile). |
 
-### Meta
+### Gezgin
 
 | Tool | Açıklama |
 |------|----------|
-| `list_countries` | Desteklenen ülkeleri/bölgeleri listele (dahili `zz` sentineli filtrelenir) |
-| `list_store_categories` | Tüm uygulama mağazası kategorilerini listele |
-| `get_dashboard` | Dashboard özeti (uygulama sayısı, son değişiklikler) |
+| `browse_screenshots` | İzlenen uygulamalar genelinde sayfalı ekran görüntüsü akışı (`platform`, `category_id`, `search` filtreleri). |
+| `browse_icons` | İzlenen uygulamalar genelinde sayfalı ikon akışı. |
+
+### Dashboard
+
+| Tool | Açıklama |
+|------|----------|
+| `get_dashboard` | Dashboard özeti — uygulama sayıları, son değişiklikler. `recent_changes[].app_id` → `list_app_changes`. |
 
 ## Geliştirme
 
@@ -125,17 +154,20 @@ make mcp-dev       # Dev modunda çalıştır (tsx watch)
 mcp/
 ├── src/
 │   ├── index.ts          # Giriş noktası — server init + stdio transport
-│   ├── client.ts         # HTTP client (fetch + bearer auth)
+│   ├── client.ts         # HTTP client (fetch + bearer auth, array/object query serializer'ları, path builder)
 │   ├── register.ts       # Tüm tool modüllerini register eder
 │   └── tools/
-│       ├── apps.ts       # search_apps, list_apps, get_app, get_app_listing
-│       ├── charts.ts     # get_charts
-│       ├── changes.ts    # get_app_changes, get_competitor_changes
-│       ├── competitors.ts # get_app_competitors, list_all_competitors
-│       ├── dashboard.ts  # get_dashboard
-│       ├── explorer.ts   # explore_screenshots, explore_icons
-│       ├── meta.ts       # list_countries, list_store_categories
-│       └── publishers.ts # search/list/get publishers
+│       ├── _schemas.ts      # Ortak zod ilkelleri (Platform, ExternalId, DateStr, Ngram, …)
+│       ├── apps.ts          # list_tracked_apps, search_store_apps, get_app, get_app_listing, get_app_sync_status, get_app_rankings
+│       ├── changes.ts       # list_app_changes, list_competitor_changes
+│       ├── charts.ts        # get_charts
+│       ├── competitors.ts   # list_app_competitors, list_all_competitors
+│       ├── dashboard.ts     # get_dashboard
+│       ├── explorer.ts      # browse_screenshots, browse_icons
+│       ├── keywords.ts      # get_app_keywords, compare_app_keywords
+│       ├── publishers.ts    # search_publishers, list_user_publishers, get_publisher, get_publisher_store_apps
+│       ├── ratings.ts       # get_rating_summary, get_rating_history, get_rating_country_breakdown
+│       └── reference.ts     # list_categories, list_countries
 ├── package.json
 └── tsconfig.json
 ```
@@ -145,7 +177,7 @@ mcp/
 MCP paketi release pipeline'ına dahildir:
 
 ```bash
-make release v=1.0.2
+make release v=1.2.0
 # → Docker image'ları build eder
 # → mcp/package.json versiyonunu günceller
 # → npm publish @appstorecat/mcp

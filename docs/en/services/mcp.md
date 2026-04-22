@@ -9,7 +9,7 @@ The AppStoreCat MCP (Model Context Protocol) server gives AI tools like Claude C
 | **Package** | `@appstorecat/mcp` on npm |
 | **Transport** | stdio (spawned as a local process) |
 | **Auth** | Sanctum bearer token via env var |
-| **Tools** | Read-only tool set |
+| **Tools** | 25 read-only tools, Swagger-strict, chain-first |
 
 ```
 Claude Code (stdio) → MCP Server (local) → Laravel API (local or remote)
@@ -56,60 +56,89 @@ Add to `.claude/settings.json` or the project's `.mcp.json`:
 | `APPSTORECAT_API_TOKEN` | Yes | — | Sanctum API token (created from the web UI) |
 | `APPSTORECAT_API_URL` | No | `http://localhost:7460/api/v1` | API base URL |
 
+## Design Principles
+
+Every tool follows two rules enforced at the schema level:
+
+- **Swagger-strict** — each tool's zod input mirrors the Swagger parameter list exactly. Nothing invented, nothing dropped. Integer fields reject strings, enums reject free-form text, dates enforce `YYYY-MM-DD`.
+- **Chain-first** — responses are passed through as-is (`app_id`, `external_id`, `version_id`, `category_id`, `publisher.external_id` are never stripped). Each tool description ends with a "use with: {tool_a}, {tool_b}" hint so the caller can plan multi-step lookups.
+
 ## Available Tools
 
-### Discovery
+### Reference
 
 | Tool | Description |
 |------|-------------|
-| `search_apps` | Search apps by keyword on the App Store or Google Play (`country_code` parameter) |
-| `search_publishers` | Search publishers/developers (`country_code` parameter) |
-| `get_charts` | Fetch trending/top charts (top_free, top_paid, top_grossing; `country_code` parameter) |
+| `list_categories` | Store categories (App Store + Google Play). Feeds `category_id` into `get_charts`, `browse_screenshots`, `browse_icons`. |
+| `list_countries` | Supported countries (ISO-2 codes). Feeds `country_code` into any location-aware tool. |
 
 ### Apps
 
 | Tool | Description |
 |------|-------------|
-| `list_apps` | List all tracked apps |
-| `get_app` | Detailed app info (metadata, ratings, version history, `unavailable_countries`) |
-| `get_app_listing` | Fetch the store listing (description, screenshots, what's new; `country_code` + `locale`) |
+| `list_tracked_apps` | Apps tracked by the authenticated user. Returns internal `id` and `{platform, external_id}` for chaining. |
+| `search_store_apps` | Keyword search against a store (`term`, `platform`, `country_code`, `exclude_external_ids[]`). |
+| `get_app` | Full app metadata: publisher, category, versions, rating, `unavailable_countries`, competitors (when tracked). |
+| `get_app_listing` | Store listing for a `country_code` + `locale` (title, subtitle, description, screenshots, whats_new, `version_id`). |
+| `get_app_sync_status` | Sync pipeline status for the app. |
+| `get_app_rankings` | Rank positions across charts (filterable by `date`, `collection`). |
 
 ### Competitors
 
 | Tool | Description |
 |------|-------------|
-| `get_app_competitors` | Get competitors for a specific app |
-| `list_all_competitors` | List all competitor relationships |
+| `list_app_competitors` | Competitors of a specific app. |
+| `list_all_competitors` | All tracked competitor groups `{parent, competitors[]}`. |
 
 ### Changes
 
 | Tool | Description |
 |------|-------------|
-| `get_app_changes` | Recent store changes for tracked apps |
-| `get_competitor_changes` | Recent changes for competitor apps |
+| `list_app_changes` | Store listing changes for tracked apps (filter by `field`, `platform`, `search`, internal `app_id`; paginated). |
+| `list_competitor_changes` | Same shape, scoped to competitor apps. |
 
-### Explorer
+### Charts
 
 | Tool | Description |
 |------|-------------|
-| `explore_screenshots` | Browse screenshots from tracked apps |
-| `explore_icons` | Browse icons from tracked apps |
+| `get_charts` | Top charts (`top_free` / `top_paid` / `top_grossing`) for a `country_code`, optional `category_id`. |
+
+### Ratings
+
+| Tool | Description |
+|------|-------------|
+| `get_rating_summary` | Current rating + rating count + histogram for an app. |
+| `get_rating_history` | Daily rating series (`days` 1–90, default 30). |
+| `get_rating_country_breakdown` | Rating breakdown by country (iOS only). |
+
+### Keywords
+
+| Tool | Description |
+|------|-------------|
+| `get_app_keywords` | Keyword density for an app listing (`locale`, `ngram` 1–3, `sort`, `order`, `per_page`, `page`; optional `version_id`). |
+| `compare_app_keywords` | Side-by-side keyword comparison across up to 5 apps (`app_ids[]` internal ids, `version_ids` map). |
 
 ### Publishers
 
 | Tool | Description |
 |------|-------------|
-| `list_publishers` | List known publishers with their app counts |
-| `get_publisher` | Fetch publisher details |
-| `get_publisher_apps` | Fetch all apps for a publisher |
+| `search_publishers` | Publisher search across stores (`term`, `platform`, `country_code`). |
+| `list_user_publishers` | Publishers of the user's tracked apps. |
+| `get_publisher` | Publisher detail with tracked apps owned by the caller. |
+| `get_publisher_store_apps` | Full store catalog for a publisher (includes `is_tracked` flag per app). |
 
-### Meta
+### Explorer
 
 | Tool | Description |
 |------|-------------|
-| `list_countries` | List supported countries/regions (the internal `zz` sentinel is filtered) |
-| `list_store_categories` | List all app store categories |
-| `get_dashboard` | Dashboard summary (app count, recent changes) |
+| `browse_screenshots` | Paginated screenshot feed across tracked apps (filter by `platform`, `category_id`, `search`). |
+| `browse_icons` | Paginated icon feed across tracked apps. |
+
+### Dashboard
+
+| Tool | Description |
+|------|-------------|
+| `get_dashboard` | Dashboard summary — app counts, recent changes. `recent_changes[].app_id` chains into `list_app_changes`. |
 
 ## Development
 
@@ -125,17 +154,20 @@ make mcp-dev       # Run in dev mode (tsx watch)
 mcp/
 ├── src/
 │   ├── index.ts          # Entry point — server init + stdio transport
-│   ├── client.ts         # HTTP client (fetch + bearer auth)
+│   ├── client.ts         # HTTP client (fetch + bearer auth, array/object query serializers, path builder)
 │   ├── register.ts       # Registers all tool modules
 │   └── tools/
-│       ├── apps.ts       # search_apps, list_apps, get_app, get_app_listing
-│       ├── charts.ts     # get_charts
-│       ├── changes.ts    # get_app_changes, get_competitor_changes
-│       ├── competitors.ts # get_app_competitors, list_all_competitors
-│       ├── dashboard.ts  # get_dashboard
-│       ├── explorer.ts   # explore_screenshots, explore_icons
-│       ├── meta.ts       # list_countries, list_store_categories
-│       └── publishers.ts # search/list/get publishers
+│       ├── _schemas.ts      # Shared zod primitives (Platform, ExternalId, DateStr, Ngram, …)
+│       ├── apps.ts          # list_tracked_apps, search_store_apps, get_app, get_app_listing, get_app_sync_status, get_app_rankings
+│       ├── changes.ts       # list_app_changes, list_competitor_changes
+│       ├── charts.ts        # get_charts
+│       ├── competitors.ts   # list_app_competitors, list_all_competitors
+│       ├── dashboard.ts     # get_dashboard
+│       ├── explorer.ts      # browse_screenshots, browse_icons
+│       ├── keywords.ts      # get_app_keywords, compare_app_keywords
+│       ├── publishers.ts    # search_publishers, list_user_publishers, get_publisher, get_publisher_store_apps
+│       ├── ratings.ts       # get_rating_summary, get_rating_history, get_rating_country_breakdown
+│       └── reference.ts     # list_categories, list_countries
 ├── package.json
 └── tsconfig.json
 ```
@@ -145,7 +177,7 @@ mcp/
 The MCP package is part of the release pipeline:
 
 ```bash
-make release v=1.0.2
+make release v=1.2.0
 # → Builds Docker images
 # → Updates mcp/package.json version
 # → npm publish @appstorecat/mcp
