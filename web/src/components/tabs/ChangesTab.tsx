@@ -2,6 +2,13 @@ import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -14,25 +21,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
 import {
   History,
-  Calendar,
   RefreshCw,
   ArrowDown,
   ArrowUp,
   Sparkles,
   ChevronRight,
+  Globe,
 } from 'lucide-react'
 import ChangeCard from '@/components/ChangeCard'
-import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import type { ListingResource } from '@/api/models/listingResource'
 import type { VersionResource } from '@/api/models/versionResource'
 
 interface ChangesTabProps {
   listings: ListingResource[]
   versions: VersionResource[]
-  platform?: string
 }
 
 type TextField = 'title' | 'subtitle' | 'description' | 'whats_new'
@@ -84,6 +88,16 @@ const FILTER_OPTIONS: { kind: ChangeKind; label: string }[] = [
 function formatBytes(bytes: number): string {
   const mb = bytes / (1024 * 1024)
   return `${mb.toFixed(1)} MB`
+}
+
+function pickDefaultLocale(locales: string[]): string {
+  if (locales.includes('en')) return 'en'
+  if (locales.includes('en-US')) return 'en-US'
+  const enUsCi = locales.find((l) => l.toLowerCase() === 'en-us' || l.toLowerCase() === 'en_us')
+  if (enUsCi) return enUsCi
+  const enVariant = locales.find((l) => l.toLowerCase().startsWith('en'))
+  if (enVariant) return enVariant
+  return locales[0] ?? ''
 }
 
 function formatRelativeDate(dateStr: string | null): string | null {
@@ -220,13 +234,7 @@ function buildTimeline(
   })
 }
 
-function platformLabel(platform?: string): { label: string; Icon: typeof AppStoreSvg } | null {
-  if (platform === 'ios') return { label: 'iOS App Store', Icon: AppStoreSvg }
-  if (platform === 'android') return { label: 'Google Play', Icon: GooglePlaySvg }
-  return null
-}
-
-export default function ChangesTab({ listings, versions, platform }: ChangesTabProps) {
+export default function ChangesTab({ listings, versions }: ChangesTabProps) {
   const timeline = useMemo(() => buildTimeline(listings, versions), [listings, versions])
 
   const [filters, setFilters] = useState<Set<ChangeKind>>(new Set())
@@ -278,7 +286,6 @@ export default function ChangesTab({ listings, versions, platform }: ChangesTabP
             <VersionCard
               key={entry.version.id}
               entry={entry}
-              platform={platform}
               isRowVisible={isRowVisible}
               expanded={expandedNotes.has(entry.version.id)}
               onToggleExpanded={() => {
@@ -291,9 +298,7 @@ export default function ChangesTab({ listings, versions, platform }: ChangesTabP
               }}
               selectedLocale={
                 localeByVersion[entry.version.id] ??
-                (entry.availableLocales.includes('en')
-                  ? 'en'
-                  : entry.availableLocales[0] ?? '')
+                pickDefaultLocale(entry.availableLocales)
               }
               onLocaleChange={(loc) =>
                 setLocaleByVersion((prev) => ({ ...prev, [entry.version.id]: loc }))
@@ -305,20 +310,20 @@ export default function ChangesTab({ listings, versions, platform }: ChangesTabP
       </section>
 
       <aside className="lg:sticky lg:top-4 lg:self-start">
-        <div className="rounded-xl bg-card p-4 ring-1 ring-foreground/10">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Filters</h3>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="text-sm">Filters</CardTitle>
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto p-1 text-xs"
+              className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground"
               onClick={clearFilters}
               disabled={filters.size === 0}
             >
-              Clear All
+              Clear all
             </Button>
-          </div>
-          <div className="space-y-2">
+          </CardHeader>
+          <CardContent className="space-y-2">
             {FILTER_OPTIONS.map((opt) => (
               <label
                 key={opt.kind}
@@ -333,8 +338,8 @@ export default function ChangesTab({ listings, versions, platform }: ChangesTabP
                 <span>{opt.label}</span>
               </label>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </aside>
 
       <DiffModal state={modal} onClose={() => setModal(null)} />
@@ -344,7 +349,6 @@ export default function ChangesTab({ listings, versions, platform }: ChangesTabP
 
 interface VersionCardProps {
   entry: TimelineEntry
-  platform?: string
   isRowVisible: (kind: ChangeKind) => boolean
   expanded: boolean
   onToggleExpanded: () => void
@@ -355,7 +359,6 @@ interface VersionCardProps {
 
 function VersionCard({
   entry,
-  platform,
   isRowVisible,
   expanded,
   onToggleExpanded,
@@ -363,24 +366,13 @@ function VersionCard({
   onLocaleChange,
   onRowClick,
 }: VersionCardProps) {
-  const plat = platformLabel(platform)
   const relative = formatRelativeDate(entry.version.release_date ?? null)
   const notes = entry.releaseNotesByLocale[selectedLocale] ?? null
   const hasLongNotes = (notes?.length ?? 0) > 240
 
   const visibleRows: { kind: ChangeKind; node: React.ReactNode }[] = []
 
-  if (entry.isInitialRelease) {
-    visibleRows.push({
-      kind: 'title',
-      node: (
-        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>Initial release</span>
-        </div>
-      ),
-    })
-  } else {
+  if (!entry.isInitialRelease) {
     if (entry.fileSizeDelta && isRowVisible('file_size')) {
       const { direction, bytes } = entry.fileSizeDelta
       visibleRows.push({
@@ -421,96 +413,92 @@ function VersionCard({
   }
 
   return (
-    <article className="rounded-xl bg-card ring-1 ring-foreground/10">
-      <div className="flex flex-wrap items-center gap-3 px-5 py-3">
-        <span className="text-base font-semibold">v{entry.version.version}</span>
-        {relative && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5" />
-            {relative}
-          </span>
-        )}
-        {plat && (
-          <Badge variant="outline" className="flex items-center gap-1 text-xs">
-            <plat.Icon className="h-3 w-3" />
-            {plat.label}
-          </Badge>
-        )}
-      </div>
-
-      {(notes !== null || entry.availableLocales.length > 0) && (
-        <>
-          <div className="flex flex-col items-stretch gap-3 px-5 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-            <div className="min-w-0 flex-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Release Notes
-              </span>
-              {notes ? (
-                <p
-                  className={`mt-1.5 whitespace-pre-line text-sm ${
-                    !expanded && hasLongNotes ? 'line-clamp-3' : ''
-                  }`}
-                >
-                  {notes}
-                </p>
-              ) : (
-                <p className="mt-1.5 text-sm text-muted-foreground">
-                  No release notes for this locale.
-                </p>
-              )}
-              {notes && hasLongNotes && (
-                <button
-                  type="button"
-                  onClick={onToggleExpanded}
-                  className="mt-1.5 cursor-pointer text-xs font-medium text-primary hover:underline"
-                >
-                  {expanded ? 'Show less' : 'Show more'}
-                </button>
-              )}
-            </div>
-
-            {entry.availableLocales.length > 0 && (
-              <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Localization {entry.localesCount}
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-center gap-3 space-y-0 pb-3">
+        <CardTitle className="text-base">v{entry.version.version}</CardTitle>
+        {entry.availableLocales.length > 0 && selectedLocale && (
+          <Select value={selectedLocale} onValueChange={(v) => v && onLocaleChange(v)}>
+            <SelectTrigger className="ml-auto h-8 w-auto min-w-[160px] gap-1.5 text-xs">
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue>
+                <span>
+                  {localeName(selectedLocale)}
+                  <span className="ml-1 text-muted-foreground">· {entry.localesCount}</span>
                 </span>
-                <Select value={selectedLocale} onValueChange={(v) => v && onLocaleChange(v)}>
-                  <SelectTrigger className="h-8 w-[160px] text-xs">
-                    <SelectValue>{localeName(selectedLocale)}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {entry.availableLocales.map((loc) => (
-                      <SelectItem key={loc} value={loc}>
-                        <span className="flex items-baseline gap-1.5">
-                          <span>{localeName(loc)}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {loc}
-                          </span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {entry.availableLocales.map((loc) => (
+                <SelectItem key={loc} value={loc}>
+                  <span className="flex items-baseline gap-1.5">
+                    <span>{localeName(loc)}</span>
+                    <span className="text-[10px] text-muted-foreground">{loc}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </CardHeader>
+
+      <CardContent className="space-y-3 pb-4">
+        {(notes !== null || entry.availableLocales.length > 0) && (
+          <div>
+            {notes ? (
+              <p
+                dir="auto"
+                className={`whitespace-pre-line text-sm ${
+                  !expanded && hasLongNotes ? 'line-clamp-3' : ''
+                }`}
+              >
+                {notes}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No release notes for this locale.
+              </p>
+            )}
+            {notes && hasLongNotes && (
+              <button
+                type="button"
+                onClick={onToggleExpanded}
+                className="mt-1.5 cursor-pointer text-xs font-medium text-primary hover:underline"
+              >
+                {expanded ? 'Show less' : 'Show more'}
+              </button>
             )}
           </div>
-        </>
-      )}
+        )}
 
-      {visibleRows.length > 0 && (
-        <div className="px-5 pb-2">
-          {visibleRows.map((r, i) => (
-            <div key={`${r.kind}-${i}`}>{r.node}</div>
-          ))}
-        </div>
-      )}
+        {!entry.isInitialRelease && visibleRows.length > 0 && (
+          <div className="border-t pt-2">
+            {visibleRows.map((r, i) => (
+              <div key={`${r.kind}-${i}`}>{r.node}</div>
+            ))}
+          </div>
+        )}
 
-      {!entry.isInitialRelease && visibleRows.length === 0 && (
-        <div className="px-5 pb-3 text-xs text-muted-foreground">
-          No tracked metadata changes{filtersEmptyHint(isRowVisible)}.
-        </div>
+        {!entry.isInitialRelease && visibleRows.length === 0 && (
+          <div className="border-t pt-3 text-xs text-muted-foreground">
+            No tracked metadata changes{filtersEmptyHint(isRowVisible)}.
+          </div>
+        )}
+      </CardContent>
+
+      {(relative || entry.isInitialRelease) && (
+        <CardFooter className="flex flex-wrap items-center gap-2 border-t-0 bg-transparent pt-0 text-xs text-muted-foreground">
+          {relative && (
+            <span className="inline-flex h-5 items-center leading-none">{relative}</span>
+          )}
+          {entry.isInitialRelease && (
+            <Badge variant="outline" className="gap-1">
+              <Sparkles className="h-3 w-3" />
+              Initial release
+            </Badge>
+          )}
+        </CardFooter>
       )}
-    </article>
+    </Card>
   )
 }
 
