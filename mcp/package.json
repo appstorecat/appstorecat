@@ -1,6 +1,6 @@
 {
   "name": "@appstorecat/mcp",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "MCP server for AppStoreCat — App Store & Google Play intelligence toolkit",
   "type": "module",
   "bin": {
