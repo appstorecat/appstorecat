@@ -1,7 +1,6 @@
 import { type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { keepPreviousData } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
 import { useAppChanges } from '@/api/endpoints/change-monitor/change-monitor'
 import {
   AppChangesField,
@@ -11,7 +10,7 @@ import {
 } from '@/api/models'
 import ChangeCard from '@/components/ChangeCard'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
-import { Input } from '@/components/ui/input'
+import FilterBar from '@/components/FilterBar'
 import {
   Select,
   SelectContent,
@@ -98,47 +97,44 @@ export default function AppChanges() {
         <p className="text-sm text-muted-foreground">Store listing changes across your tracked apps</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by app name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+      <FilterBar>
+        <FilterBar.Search
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search by app name..."
+        />
+        <FilterBar.Controls>
+          <Select value={field} onValueChange={setField}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue>
+                {field === 'all' ? 'All fields' : FIELD_LABELS[field] ?? field}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All fields</SelectItem>
+              {Object.values(AppChangesField).map((value) => (
+                <SelectItem key={value} value={value}>
+                  {FIELD_LABELS[value] ?? value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={field} onValueChange={setField}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue>
-              {field === 'all' ? 'All fields' : FIELD_LABELS[field] ?? field}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All fields</SelectItem>
-            {Object.values(AppChangesField).map((value) => (
-              <SelectItem key={value} value={value}>
-                {FIELD_LABELS[value] ?? value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
-          <PlatformTab active={platform === 'all'} onClick={() => setPlatform('all')}>
-            All
-          </PlatformTab>
-          <PlatformTab active={platform === 'ios'} onClick={() => setPlatform('ios')}>
-            <AppStoreSvg className="h-4 w-4" />
-            App Store
-          </PlatformTab>
-          <PlatformTab active={platform === 'android'} onClick={() => setPlatform('android')}>
-            <GooglePlaySvg className="h-4 w-4" />
-            Google Play
-          </PlatformTab>
-        </div>
-      </div>
+          <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
+            <PlatformTab active={platform === 'all'} onClick={() => setPlatform('all')}>
+              All
+            </PlatformTab>
+            <PlatformTab active={platform === 'ios'} onClick={() => setPlatform('ios')}>
+              <AppStoreSvg className="h-4 w-4" />
+              App Store
+            </PlatformTab>
+            <PlatformTab active={platform === 'android'} onClick={() => setPlatform('android')}>
+              <GooglePlaySvg className="h-4 w-4" />
+              Google Play
+            </PlatformTab>
+          </div>
+        </FilterBar.Controls>
+      </FilterBar>
 
       {isPending ? (
         <div className="space-y-3">
@@ -189,7 +185,7 @@ function PlatformTab({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         active
           ? 'bg-accent text-accent-foreground shadow-sm'
           : 'text-muted-foreground hover:text-foreground'

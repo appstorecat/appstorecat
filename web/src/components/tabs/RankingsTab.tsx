@@ -202,10 +202,10 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
       ) : (
         <div className="overflow-hidden rounded-lg border">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full table-sticky-first">
               <thead>
                 <tr className="border-b bg-muted/30">
-                  <th className="min-w-[220px] px-4 py-3 text-left align-top">
+                  <th className="min-w-[180px] bg-muted/30 px-4 py-3 text-left align-top sm:min-w-[220px]">
                     <div className="text-sm font-semibold">Country</div>
                     <div className="text-xs font-normal text-muted-foreground">
                       Ranked in {countryCount} {countryCount === 1 ? 'Country' : 'Countries'}
@@ -228,8 +228,8 @@ export default function RankingsTab({ platform, externalId }: RankingsTabProps) 
                 {pivoted.map((entry, i) => {
                   const country = countries?.find((c) => c.code === entry.code)
                   return (
-                    <tr key={entry.code} className="hover:bg-muted/20">
-                      <td className="px-4 py-2.5">
+                    <tr key={entry.code} className="group hover:bg-muted/20">
+                      <td className="bg-background px-4 py-2.5 group-hover:bg-muted/20">
                         <div className="flex items-center gap-2 text-sm">
                           {country?.emoji && (
                             <span className="text-base leading-none">{country.emoji}</span>

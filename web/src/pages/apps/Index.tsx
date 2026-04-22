@@ -1,14 +1,14 @@
 import { type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { keepPreviousData } from '@tanstack/react-query'
-import { Search, Smartphone } from 'lucide-react'
+import { Smartphone } from 'lucide-react'
 import { useListApps } from '@/api/endpoints/apps/apps'
 import { ListAppsPlatform, type ListAppsParams } from '@/api/models'
 import AppCard from '@/components/AppCard'
 import QueryError from '@/components/QueryError'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
+import FilterBar from '@/components/FilterBar'
 import { useDebounce } from '@/hooks/use-debounce'
 
 type PlatformFilter = 'all' | 'ios' | 'android'
@@ -68,31 +68,28 @@ export default function AppsIndex() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search tracked apps..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-
-        <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
-          <PlatformTab active={platform === 'all'} onClick={() => setPlatform('all')}>
-            All
-          </PlatformTab>
-          <PlatformTab active={platform === 'ios'} onClick={() => setPlatform('ios')}>
-            <AppStoreSvg className="h-4 w-4" />
-            App Store
-          </PlatformTab>
-          <PlatformTab active={platform === 'android'} onClick={() => setPlatform('android')}>
-            <GooglePlaySvg className="h-4 w-4" />
-            Google Play
-          </PlatformTab>
-        </div>
-      </div>
+      <FilterBar>
+        <FilterBar.Search
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search tracked apps..."
+        />
+        <FilterBar.Controls>
+          <div className="inline-flex items-center rounded-lg border bg-background p-0.5">
+            <PlatformTab active={platform === 'all'} onClick={() => setPlatform('all')}>
+              All
+            </PlatformTab>
+            <PlatformTab active={platform === 'ios'} onClick={() => setPlatform('ios')}>
+              <AppStoreSvg className="h-4 w-4" />
+              App Store
+            </PlatformTab>
+            <PlatformTab active={platform === 'android'} onClick={() => setPlatform('android')}>
+              <GooglePlaySvg className="h-4 w-4" />
+              Google Play
+            </PlatformTab>
+          </div>
+        </FilterBar.Controls>
+      </FilterBar>
 
       {isPending || apps === undefined ? (
         <div className="grid gap-4 md:grid-cols-2">
@@ -133,7 +130,7 @@ function PlatformTab({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         active
           ? 'bg-accent text-accent-foreground shadow-sm'
           : 'text-muted-foreground hover:text-foreground'

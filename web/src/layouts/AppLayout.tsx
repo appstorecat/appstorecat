@@ -273,9 +273,11 @@ export default function AppLayout() {
       </Sidebar>
       <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/70 backdrop-blur-lg px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-1 h-4" />
-          <Breadcrumbs items={breadcrumbs} />
+          <SidebarTrigger className="-ml-1 shrink-0" />
+          <Separator orientation="vertical" className="mr-1 h-4 shrink-0" />
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <Breadcrumbs items={breadcrumbs} />
+          </div>
         </header>
         <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
           <Outlet />

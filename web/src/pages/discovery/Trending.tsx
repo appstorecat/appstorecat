@@ -94,7 +94,7 @@ export default function Trending() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0 [&>*]:shrink-0">
         <PlatformSwitcher value={platform} onChange={setPlatform} />
 
         <CountrySelect value={countryCode} onChange={(v) => setParam('country_code', v)} />

@@ -14,11 +14,11 @@ import {
   type AppSearchResultResourcePlatform,
   SearchAppsPlatform,
 } from '@/api/models'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
+import FilterBar from '@/components/FilterBar'
 import { Search, Smartphone, BookmarkPlus, BookmarkMinus, Loader2, Star } from 'lucide-react'
 
 export default function DiscoveryApps() {
@@ -67,22 +67,20 @@ export default function DiscoveryApps() {
         <p className="text-sm text-muted-foreground">Search app stores and start tracking</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search apps in stores..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <PlatformSwitcher
-          value={platform}
-          onChange={(value) => setPlatform(value as AppSearchResultResourcePlatform)}
+      <FilterBar>
+        <FilterBar.Search
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search apps in stores..."
         />
-        <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
-      </div>
+        <FilterBar.Controls>
+          <PlatformSwitcher
+            value={platform}
+            onChange={(value) => setPlatform(value as AppSearchResultResourcePlatform)}
+          />
+          <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
+        </FilterBar.Controls>
+      </FilterBar>
 
       {searchTerm.length < 2 && (
         <div className="rounded-lg border border-dashed p-12 text-center">

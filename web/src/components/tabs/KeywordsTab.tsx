@@ -231,7 +231,7 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0 sm:pb-0 [&>*]:shrink-0">
         <Tabs value={selectedNgram} onValueChange={setSelectedNgram}>
           <TabsList>
             <TabsTrigger value="1">1-gram</TabsTrigger>
@@ -239,7 +239,6 @@ export default function KeywordsTab({ platform, externalId, versions, selectedLo
             <TabsTrigger value="3">3-gram</TabsTrigger>
           </TabsList>
         </Tabs>
-
       </div>
 
       {/* Compare app selector */}
@@ -468,11 +467,11 @@ function KeywordTable({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-sm font-medium">
             {total} keyword{total !== 1 ? 's' : ''}
           </CardTitle>
-          <div className="relative w-[200px]">
+          <div className="relative w-full sm:w-[200px]">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchInput}
@@ -485,10 +484,10 @@ function KeywordTable({
       </CardHeader>
       <CardContent>
         <div ref={tableContainerRef} className="max-h-[600px] overflow-auto">
-          <table className="w-full text-sm">
+          <table className="w-full table-sticky-first text-sm">
             <thead className="sticky top-0 z-10 bg-card">
               <tr className="border-b text-xs text-muted-foreground">
-                <th className="pb-2 font-medium">
+                <th className="bg-card pb-2 font-medium">
                   <button className="flex items-center gap-1" onClick={() => onToggleSort('keyword')}>
                     Keyword {renderSortIcon('keyword')}
                   </button>
@@ -517,7 +516,7 @@ function KeywordTable({
             <tbody>
               {tableData.map((row) => (
                 <tr key={row.id} className="border-b border-border/50 last:border-0">
-                  <td className="py-1.5">
+                  <td className="bg-card py-1.5 pr-3">
                     <span className="font-mono text-xs">{row.keyword}</span>
                   </td>
                   <td className="py-1.5">

@@ -82,19 +82,22 @@ export default function AppCard({ app }: AppCardProps) {
             <Button
               variant={isTracked ? 'outline' : 'default'}
               size="sm"
-              className="h-7 text-xs"
+              className="h-7 px-2 text-xs"
               onClick={toggleTrack}
               disabled={tracking}
+              aria-label={isTracked ? 'Untrack app' : 'Track app'}
             >
               {tracking ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : isTracked ? (
                 <>
-                  <BookmarkMinus className="mr-1 h-3 w-3" /> Untrack
+                  <BookmarkMinus className="h-3 w-3 sm:mr-1" />
+                  <span className="hidden sm:inline">Untrack</span>
                 </>
               ) : (
                 <>
-                  <BookmarkPlus className="mr-1 h-3 w-3" /> Track
+                  <BookmarkPlus className="h-3 w-3 sm:mr-1" />
+                  <span className="hidden sm:inline">Track</span>
                 </>
               )}
             </Button>

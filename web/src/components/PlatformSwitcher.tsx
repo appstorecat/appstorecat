@@ -21,7 +21,7 @@ export default function PlatformSwitcher({ value, onChange }: PlatformSwitcherPr
       <button
         type="button"
         onClick={() => onChange('ios')}
-        className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+        className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
           value === 'ios'
             ? 'bg-accent text-accent-foreground shadow-sm'
             : 'text-muted-foreground hover:text-foreground'
@@ -33,7 +33,7 @@ export default function PlatformSwitcher({ value, onChange }: PlatformSwitcherPr
       <button
         type="button"
         onClick={() => onChange('android')}
-        className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+        className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
           value === 'android'
             ? 'bg-accent text-accent-foreground shadow-sm'
             : 'text-muted-foreground hover:text-foreground'

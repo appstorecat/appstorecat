@@ -20,10 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
-import { Search, Smartphone } from 'lucide-react'
+import FilterBar from '@/components/FilterBar'
+import { Smartphone } from 'lucide-react'
 
 export default function Screenshots() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -115,40 +115,38 @@ export default function Screenshots() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search apps..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-[200px] pl-9"
-          />
-        </div>
-        <PlatformSwitcher value={platform} onChange={setPlatform} />
+      <FilterBar>
+        <FilterBar.Search
+          value={search}
+          onChange={setSearch}
+          placeholder="Search apps..."
+        />
+        <FilterBar.Controls>
+          <PlatformSwitcher value={platform} onChange={setPlatform} />
 
-        <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue>
-              {categoryId ? categories?.find((c: StoreCategoryResource) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
-            {categories?.map((cat: StoreCategoryResource) => (
-              <SelectItem key={cat.id} value={String(cat.id)}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue>
+                {categoryId ? categories?.find((c: StoreCategoryResource) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Categories</SelectItem>
+              {categories?.map((cat: StoreCategoryResource) => (
+                <SelectItem key={cat.id} value={String(cat.id)}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        {total > 0 && (
-          <span className="text-xs text-muted-foreground">
-            {total} app{total !== 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
+          {total > 0 && (
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              {total} app{total !== 1 ? 's' : ''}
+            </span>
+          )}
+        </FilterBar.Controls>
+      </FilterBar>
 
       {/* Content */}
       {isLoading ? (
@@ -252,7 +250,7 @@ function ScreenshotRow({ app }: { app: ExplorerScreenshotResource }) {
       {/* Screenshots carousel */}
       <div>
         <div
-          className="flex gap-1.5 overflow-x-auto"
+          className="flex gap-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch] [overscroll-behavior-x:contain]"
           style={{ scrollbarWidth: 'none' }}
         >
           {app.screenshots?.map((ss, i) => (

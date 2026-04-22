@@ -20,10 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
-import { Search, Smartphone, ExternalLink } from 'lucide-react'
+import FilterBar from '@/components/FilterBar'
+import { Smartphone, ExternalLink } from 'lucide-react'
 
 export default function Icons() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -113,40 +113,38 @@ export default function Icons() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search apps..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-[200px] pl-9"
-          />
-        </div>
-        <PlatformSwitcher value={platform} onChange={setPlatform} />
+      <FilterBar>
+        <FilterBar.Search
+          value={search}
+          onChange={setSearch}
+          placeholder="Search apps..."
+        />
+        <FilterBar.Controls>
+          <PlatformSwitcher value={platform} onChange={setPlatform} />
 
-        <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue>
-              {categoryId ? categories?.find((c: StoreCategoryResource) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
-            {categories?.map((cat: StoreCategoryResource) => (
-              <SelectItem key={cat.id} value={String(cat.id)}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select value={categoryId} onValueChange={(v: string | null) => v && setParam('category_id', v)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue>
+                {categoryId ? categories?.find((c: StoreCategoryResource) => String(c.id) === categoryId)?.name ?? 'All Categories' : 'All Categories'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Categories</SelectItem>
+              {categories?.map((cat: StoreCategoryResource) => (
+                <SelectItem key={cat.id} value={String(cat.id)}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        {total > 0 && (
-          <span className="text-xs text-muted-foreground">
-            {total} app{total !== 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
+          {total > 0 && (
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              {total} app{total !== 1 ? 's' : ''}
+            </span>
+          )}
+        </FilterBar.Controls>
+      </FilterBar>
 
       {/* Grid */}
       {isLoading ? (
@@ -229,9 +227,9 @@ function IconCard({ app }: { app: ExplorerIconResource }) {
           </div>
         )}
       </div>
-      {/* Hover tooltip */}
+      {/* Hover tooltip — desktop only (pointer: fine) */}
       {hovered && (
-        <div className={`absolute -top-28 z-[999] w-64 rounded-xl border bg-popover p-3.5 shadow-xl ${popoverPosition}`}>
+        <div className={`pointer-events-none absolute -top-28 z-[999] hidden w-64 rounded-xl border bg-popover p-3.5 shadow-xl [@media(pointer:fine)]:block ${popoverPosition}`}>
           <div className="flex items-center gap-3">
             {app.icon_url && (
               <img src={app.icon_url} alt="" className="h-12 w-12 shrink-0 rounded-xl" />

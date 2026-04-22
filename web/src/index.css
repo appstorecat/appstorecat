@@ -121,12 +121,29 @@
   * {
     @apply border-border outline-ring/50;
     }
+  html, body {
+    overflow-x: clip;
+    }
   body {
     @apply bg-background text-foreground;
     }
   html {
     @apply font-sans;
     }
+}
+
+@utility scroll-fade-x {
+  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+}
+
+@utility table-sticky-first {
+  & thead th:first-child,
+  & tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: hsl(var(--background));
+  }
 }
 @keyframes terminal-line {
   from { opacity: 0; transform: translateY(4px); }

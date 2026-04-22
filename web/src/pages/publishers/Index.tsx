@@ -4,11 +4,11 @@ import { keepPreviousData } from '@tanstack/react-query'
 import { useListPublishers, useSearchPublishers } from '@/api/endpoints/publishers/publishers'
 import { SearchPublishersPlatform } from '@/api/models/searchPublishersPlatform'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import PlatformSwitcher, { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
-import { Search, Smartphone } from 'lucide-react'
+import FilterBar from '@/components/FilterBar'
+import { Smartphone } from 'lucide-react'
 import QueryError from '@/components/QueryError'
 
 function PlatformIcon({ platform, className }: { platform: string; className?: string }) {
@@ -56,19 +56,17 @@ export default function PublishersIndex() {
       <h1 className="text-2xl font-bold">Publishers</h1>
 
       {/* Search */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search publishers..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <PlatformSwitcher value={platform} onChange={setPlatform} />
-        <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
-      </div>
+      <FilterBar>
+        <FilterBar.Search
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search publishers..."
+        />
+        <FilterBar.Controls>
+          <PlatformSwitcher value={platform} onChange={setPlatform} />
+          <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
+        </FilterBar.Controls>
+      </FilterBar>
 
       {/* Search results */}
       {searchTerm.length >= 2 && (

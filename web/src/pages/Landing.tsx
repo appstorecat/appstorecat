@@ -120,7 +120,7 @@ function ProductHuntBadge() {
 function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-lg border-b border-[#262626]">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <nav className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
             <Logo className="h-7 w-7" />
@@ -186,10 +186,10 @@ function Hero() {
   return (
     <section className="pt-24 md:pt-32 pb-16 md:pb-20 relative overflow-hidden border-b border-[#262626]">
       <EtherealBackground />
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           {/* Left: content */}
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-3 mb-6 md:mb-8">
               <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium bg-[#171717] text-white/60 border border-[#262626]">
                 Now tracking App Store & Play Store
@@ -230,7 +230,7 @@ function Hero() {
             </div>
           </div>
           {/* Right: live terminal */}
-          <div className="relative">
+          <div className="relative min-w-0">
             <HeroLiveTerminal />
           </div>
         </div>
@@ -471,7 +471,7 @@ function HeroLiveTerminal() {
   }, [visibleCount])
 
   return (
-    <div className="border border-[#262626] bg-[#0a0a0a] overflow-hidden shadow-2xl shadow-emerald-500/10">
+    <div className="min-w-0 border border-[#262626] bg-[#0a0a0a] overflow-hidden shadow-2xl shadow-emerald-500/10">
       <div className="flex items-center gap-2 px-4 py-3 bg-[#171717] border-b border-[#262626]">
         <div className="flex gap-1.5">
           <div className="w-3 h-3 bg-red-500/80 rounded-full" />
@@ -482,10 +482,10 @@ function HeroLiveTerminal() {
       </div>
       <div
         ref={scrollRef}
-        className="p-4 font-mono text-xs md:text-sm h-[480px] md:h-[600px] overflow-y-auto space-y-1.5"
+        className="p-4 font-mono text-xs md:text-sm h-[480px] md:h-[600px] overflow-y-auto space-y-1.5 [&_p]:break-words [&_p]:[overflow-wrap:anywhere]"
       >
         {stages.slice(0, visibleCount).map((s, i) => (
-          <div key={i} className="animate-terminal-line">
+          <div key={i} className="animate-terminal-line min-w-0">
             {s.kind === 'terminal-line' ? (
               s.render
             ) : (
@@ -638,7 +638,7 @@ function Features() {
 
   return (
     <section id="features" className="pt-10 md:pt-16 relative border-b border-[#262626]">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center pb-10 md:pb-16 relative" id="features-header">
           <p className="text-sm font-medium text-emerald-400 mb-3 md:mb-4">Features</p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-4 md:mb-6">
@@ -679,7 +679,7 @@ function Pricing() {
   ]
   return (
     <section id="pricing" className="pt-10 md:pt-16 pb-16 md:pb-32 bg-[#0a0a0a]/50 border-b border-[#262626]">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center pb-10 md:pb-16">
           <p className="text-sm font-medium text-emerald-400 mb-3 md:mb-4">Open Source</p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-4 md:mb-6">
@@ -789,7 +789,7 @@ function Faq() {
   const [openIdx, setOpenIdx] = useState<number | null>(0)
   return (
     <section id="faq" className="pt-10 md:pt-16 pb-16 md:pb-32 border-b border-[#262626]">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center pb-10 md:pb-16">
           <p className="text-sm font-medium text-emerald-400 mb-3 md:mb-4">FAQ</p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight">
@@ -825,7 +825,7 @@ function FinalCta() {
             'radial-gradient(60% 50% at 50% 50%, rgba(16,185,129,0.25) 0%, transparent 70%)',
         }}
       />
-      <div className="container mx-auto px-6 relative">
+      <div className="container mx-auto px-4 sm:px-6 relative">
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-4 md:mb-6">
             Install AppStoreCat
@@ -893,9 +893,9 @@ function Footer() {
   ]
   return (
     <footer className="border-t border-[#262626]">
-      <div className="container mx-auto px-6 py-12 md:py-16">
-        <div className="grid md:grid-cols-5 gap-10">
-          <div className="md:col-span-1">
+      <div className="container mx-auto px-4 sm:px-6 py-12 md:py-16">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-5 md:gap-10">
+          <div className="col-span-2 sm:col-span-3 md:col-span-1">
             <Link to="/" className="flex items-center gap-2">
               <Logo className="h-7 w-7" />
               <span className="text-base font-semibold text-white">appstorecat</span>

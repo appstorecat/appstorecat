@@ -3,10 +3,10 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { Link } from 'react-router-dom'
 import { useSearchPublishers } from '@/api/endpoints/publishers/publishers'
 import { SearchPublishersPlatform } from '@/api/models/searchPublishersPlatform'
-import { Input } from '@/components/ui/input'
 import PlatformSwitcher from '@/components/PlatformSwitcher'
 import CountrySelect from '@/components/CountrySelect'
-import { Search, Building2 } from 'lucide-react'
+import FilterBar from '@/components/FilterBar'
+import { Building2 } from 'lucide-react'
 
 export default function DiscoveryPublishers() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -32,19 +32,17 @@ export default function DiscoveryPublishers() {
         <p className="text-sm text-muted-foreground">Search for publishers across app stores</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search publishers..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <PlatformSwitcher value={platform} onChange={setPlatform} />
-        <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
-      </div>
+      <FilterBar>
+        <FilterBar.Search
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search publishers..."
+        />
+        <FilterBar.Controls>
+          <PlatformSwitcher value={platform} onChange={setPlatform} />
+          <CountrySelect value={countryCode} onChange={setCountryCode} className="w-[180px]" />
+        </FilterBar.Controls>
+      </FilterBar>
 
       {searchTerm.length < 2 && (
         <div className="rounded-lg border border-dashed p-12 text-center">

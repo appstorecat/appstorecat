@@ -209,7 +209,8 @@ export default function AppsShow() {
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
       {/* App Header */}
-      <div className="flex items-start gap-4 sm:gap-5">
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <div className="flex items-start gap-4 sm:gap-5">
         <div className="relative shrink-0">
           {detail.icon_url ? (
             <img
@@ -236,10 +237,12 @@ export default function AppsShow() {
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex items-center gap-2">
             <h1 className="truncate text-lg font-bold sm:text-2xl">{detail.name}</h1>
-            {detail.platform === 'ios' ? <IosSvg /> : <AndroidSvg />}
+            <span className="shrink-0 [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">
+              {detail.platform === 'ios' ? <IosSvg /> : <AndroidSvg />}
+            </span>
           </div>
 
-          <p className="text-sm text-muted-foreground">
+          <p className="truncate text-sm text-muted-foreground">
             {detail.publisher?.name || '\u2014'}
           </p>
 
@@ -268,74 +271,73 @@ export default function AppsShow() {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end justify-between sm:min-h-24">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={detail.is_tracked ? 'outline' : 'default'}
-              size="sm"
-              onClick={toggleTrack}
-              disabled={tracking}
-            >
-              {tracking ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : detail.is_tracked ? (
-                <BookmarkMinus className="mr-1 h-4 w-4" />
-              ) : (
-                <BookmarkPlus className="mr-1 h-4 w-4" />
-              )}
-              {detail.is_tracked ? 'Untrack' : 'Track'}
-            </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            variant={detail.is_tracked ? 'outline' : 'default'}
+            size="sm"
+            onClick={toggleTrack}
+            disabled={tracking}
+          >
+            {tracking ? (
+              <Loader2 className="h-4 w-4 animate-spin sm:mr-1" />
+            ) : detail.is_tracked ? (
+              <BookmarkMinus className="h-4 w-4 sm:mr-1" />
+            ) : (
+              <BookmarkPlus className="h-4 w-4 sm:mr-1" />
+            )}
+            <span className="hidden sm:inline">{detail.is_tracked ? 'Untrack' : 'Track'}</span>
+          </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-                <Ellipsis className="h-5 w-5" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  render={<a href={detail.platform === 'ios' ? `https://apps.apple.com/app/id${detail.external_id}` : `https://play.google.com/store/apps/details?id=${detail.external_id}`} target="_blank" rel="noopener noreferrer" />}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  {detail.platform === 'ios' ? 'App Store' : 'Play Store'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {hasListingsOrVersions && (
-            <div className="flex items-center gap-2">
-              <CountrySelect
-                value={selectedCountry}
-                onChange={setSelectedCountry}
-                className="w-[160px]"
-                disabledCodes={detail.unavailable_countries ?? []}
-              />
-              {localesForCountry.length > 1 && (
-                <LanguageSelect
-                  languages={localesForCountry}
-                  value={effectiveLocale}
-                  onChange={setSelectedLocale}
-                  className="w-[150px]"
-                />
-              )}
-              {versions.length > 0 && (
-                <Select value={selectedVersion} onValueChange={setSelectedVersion}>
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue>
-                      {activeVersion ? `v${activeVersion.version}` : ''}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {versions.map((v, i) => (
-                      <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
-                        {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+              <Ellipsis className="h-5 w-5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                render={<a href={detail.platform === 'ios' ? `https://apps.apple.com/app/id${detail.external_id}` : `https://play.google.com/store/apps/details?id=${detail.external_id}`} target="_blank" rel="noopener noreferrer" />}
+              >
+                <ExternalLink className="h-4 w-4" />
+                {detail.platform === 'ios' ? 'App Store' : 'Play Store'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+        </div>
+
+        {hasListingsOrVersions && (
+          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:justify-end md:overflow-visible md:px-0 md:pb-0 [&>*]:shrink-0">
+            <CountrySelect
+              value={selectedCountry}
+              onChange={setSelectedCountry}
+              className="w-[160px]"
+              disabledCodes={detail.unavailable_countries ?? []}
+            />
+            {localesForCountry.length > 1 && (
+              <LanguageSelect
+                languages={localesForCountry}
+                value={effectiveLocale}
+                onChange={setSelectedLocale}
+                className="w-[150px]"
+              />
+            )}
+            {versions.length > 0 && (
+              <Select value={selectedVersion} onValueChange={setSelectedVersion}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue>
+                    {activeVersion ? `v${activeVersion.version}` : ''}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {versions.map((v, i) => (
+                    <SelectItem key={v.id} value={i === 0 ? 'latest' : String(v.id)}>
+                      {i === 0 ? `Latest (v${v.version})` : `v${v.version}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Sync overlay: blocks tabs while queued/processing */}
@@ -362,7 +364,7 @@ export default function AppsShow() {
                   key={value}
                   type="button"
                   onClick={() => setActiveTab(value)}
-                  className={`inline-flex cursor-pointer items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  className={`inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                     activeTab === value
                       ? 'bg-accent text-accent-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
