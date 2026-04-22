@@ -82,11 +82,13 @@ Trending charts are synced daily for every active country:
 
 ## Change Detection
 
-When a listing is synced, its contents are hashed into a `checksum`. If the checksum differs from the previous sync:
+When a listing is synced, its contents are hashed into a `checksum`. If the checksum differs from the previous sync **and** the previous listing belongs to a different `app_version`:
 
 1. Each field (title, subtitle, promotional_text, description, whats_new, screenshots) is compared one by one
 2. Changed fields produce `StoreListingChange` records with old/new values
 3. Locale additions and removals are also tracked as `locale_added` / `locale_removed`
+
+Upserts inside the same version are skipped, which prevents phantom rows when the scraper catches the same locale twice in a single pass.
 
 This feature powers the **Changes** tab on the web; it shows a timeline of store listing changes across tracked and competitor apps.
 
