@@ -21,9 +21,10 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 const GITHUB_URL = 'https://github.com/appstorecat/appstorecat'
 const NPM_MCP_URL = 'https://www.npmjs.com/package/@appstorecat/mcp'
-const DOCS_URL = 'https://appstorecat.github.io/appstorecat'
-const MCP_DOCS_URL = `${DOCS_URL}/services/mcp`
-const INSTALL_DOCS_URL = `${DOCS_URL}/getting-started/install-script`
+// Trailing slash matches Starlight's default — avoids a 301 round-trip on every doc link.
+const DOCS_URL = 'https://appstorecat.github.io/appstorecat/'
+const MCP_DOCS_URL = `${DOCS_URL}services/mcp/`
+const INSTALL_DOCS_URL = `${DOCS_URL}getting-started/install-script/`
 const DASHBOARD_URL = '/discovery/trending'
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -762,7 +763,7 @@ function Why() {
       title: 'Stop paying $499/mo for keyword density.',
       copy:
         'N-gram analysis (1/2/3-word), 50-language stop-word filter, side-by-side comparison across up to 5 apps. Run it locally, never share your keyword research.',
-      cta: { label: 'Keyword density', href: `${DOCS_URL}/features/keyword-density` },
+      cta: { label: 'Keyword density', href: `${DOCS_URL}features/keyword-density/` },
     },
     {
       icon: Eye,
@@ -770,7 +771,7 @@ function Why() {
       title: 'Watch competitors without alt-tabbing to the App Store.',
       copy:
         'Track every store listing for title, subtitle, description, screenshots, version, locale and price changes. Get the diff, the day, the country — automatically.',
-      cta: { label: 'Change detection', href: `${DOCS_URL}/features/change-detection` },
+      cta: { label: 'Change detection', href: `${DOCS_URL}features/change-detection/` },
     },
     {
       icon: Boxes,
@@ -899,19 +900,19 @@ function Features() {
         </div>
         <div className="mt-10 text-center text-sm text-white/40">
           More:{' '}
-          <a href={`${DOCS_URL}/features/ratings`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+          <a href={`${DOCS_URL}features/ratings/`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
             ratings history
           </a>
           ,{' '}
-          <a href={`${DOCS_URL}/features/app-rankings`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+          <a href={`${DOCS_URL}features/app-rankings/`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
             rank pivots
           </a>
           ,{' '}
-          <a href={`${DOCS_URL}/features/publisher-discovery`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+          <a href={`${DOCS_URL}features/publisher-discovery/`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
             publisher discovery
           </a>
           ,{' '}
-          <a href={`${DOCS_URL}/features/media-proxy`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
+          <a href={`${DOCS_URL}features/media-proxy/`} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
             screenshot explorer
           </a>
         </div>
@@ -1067,7 +1068,7 @@ function SelfHost() {
             <GhostButton href={INSTALL_DOCS_URL}>
               What does this script do?
             </GhostButton>
-            <GhostButton href={`${DOCS_URL}/deployment/production`}>
+            <GhostButton href={`${DOCS_URL}deployment/production/`}>
               Production deployment
             </GhostButton>
           </div>
