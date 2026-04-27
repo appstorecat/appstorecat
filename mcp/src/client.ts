@@ -70,14 +70,35 @@ export async function apiGet(
     }
   }
 
+  return doFetch(url.toString(), { method: 'GET' });
+}
+
+export type WriteMethod = 'POST' | 'DELETE' | 'PUT' | 'PATCH';
+
+export async function apiSend(
+  method: WriteMethod,
+  path: string,
+  body?: Record<string, unknown>,
+): Promise<ToolResult> {
+  const init: RequestInit = { method };
+  if (body !== undefined) {
+    init.body = JSON.stringify(body);
+  }
+  return doFetch(`${API_URL}${path}`, init);
+}
+
+async function doFetch(url: string, init: RequestInit): Promise<ToolResult> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${API_TOKEN}`,
+    Accept: 'application/json',
+  };
+  if (init.body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   let res: Response;
   try {
-    res = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        Accept: 'application/json',
-      },
-    });
+    res = await fetch(url, { ...init, headers });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return {
@@ -99,7 +120,10 @@ export async function apiGet(
 
   // Pass server JSON through unchanged so downstream tools can read IDs
   // (app_id, external_id, version_id, category_id, publisher.external_id, …).
+  // Empty bodies (e.g. 204 No Content from track/untrack) become a tiny
+  // JSON status object so LLMs always see a structured response.
+  const text = bodyText.length > 0 ? bodyText : `{"status":${res.status}}`;
   return {
-    content: [{ type: 'text', text: bodyText }],
+    content: [{ type: 'text', text }],
   };
 }

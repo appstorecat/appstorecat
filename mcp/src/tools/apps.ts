@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiGet, buildPath } from '../client.js';
+import { apiGet, apiSend, buildPath } from '../client.js';
 import { ExternalId, Platform } from './_schemas.js';
 
 export function registerAppTools(server: McpServer): void {
@@ -117,6 +117,51 @@ export function registerAppTools(server: McpServer): void {
         externalId: external_id,
       });
       return apiGet(path);
+    },
+  );
+
+  server.registerTool(
+    'track_app',
+    {
+      description:
+        'Track an app on the authenticated user\'s watchlist. ' +
+        'If the app is not yet in the database, the server resolves it from the App Store / Google Play and creates it. ' +
+        'After tracking, the app is reachable via list_tracked_apps and a sync is queued automatically. ' +
+        'To get an internal `id` for use with add_competitor, follow up with get_app.',
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      inputSchema: {
+        platform: Platform,
+        external_id: ExternalId,
+      },
+    },
+    async ({ platform, external_id }) => {
+      const path = buildPath('/apps/{platform}/{externalId}/track', {
+        platform,
+        externalId: external_id,
+      });
+      return apiSend('POST', path);
+    },
+  );
+
+  server.registerTool(
+    'untrack_app',
+    {
+      description:
+        'Remove an app from the authenticated user\'s watchlist. ' +
+        'Also deletes the user\'s competitor relationships involving this app. ' +
+        'The underlying app row is preserved (other users may still track it).',
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+      inputSchema: {
+        platform: Platform,
+        external_id: ExternalId,
+      },
+    },
+    async ({ platform, external_id }) => {
+      const path = buildPath('/apps/{platform}/{externalId}/track', {
+        platform,
+        externalId: external_id,
+      });
+      return apiSend('DELETE', path);
     },
   );
 }
