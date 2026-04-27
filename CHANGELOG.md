@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-04-27
+
+### Added
+- Astro + Starlight documentation site under `docs-site/`, deployed to GitHub Pages on every push that touches `docs/` or `docs-site/`. Source markdown stays in `docs/en/` and is mirrored into the Starlight content collection by `scripts/sync-docs.mjs` at build time. Search index built in via Pagefind (no Algolia account required).
+- `.github/workflows/docs.yml` — install → sync → build → deploy pipeline; concurrency-guarded.
+- `mcp/README.md` so the npm page for `@appstorecat/mcp` is no longer empty: quick install, env vars, 28-tool category table, architecture diagram.
+- `docs/en/getting-started/install-script.md` documenting what `install.sh` does, what it does NOT do, and how to verify it before piping to shell.
+- `FORWARD_REDIS_PORT=7465` in both `.env.*.example` files so Redis joins the **746x** host-port series.
+
+### Changed
+- **Landing page rewrite.** Centered hero with two equal install entry points (self-host curl / Claude Code MCP) as togglable tabs, dotted-grid background, metric strip (28 MCP tools · 230+ countries · 50 languages · 60s · MIT), three use-case pillars (ASO / product / indie), six-card feature grid, dedicated MCP section, self-host block, comparison strip versus commercial alternatives, refreshed FAQ. Header gained Login / Try Demo (or Dashboard when authenticated) alongside the GitHub Star button.
+- **README rewrite.** Quick Start now offers Option A (`curl` one-liner) and Option B (manual git clone) at equal visual weight; an MCP Quick Start section ships immediately under it. Feature list collapsed from nine screenshot-heavy blocks into a single inline table. Documentation section is now compact category lines instead of a 30-line vertical list. Doc URLs point at the live site (`appstorecat.github.io/appstorecat/`).
+- `web/public/install.sh` is now production-ready: dependency + Docker daemon + Compose v2 checks, port-conflict warnings on `7460–7465`, `.env.development.example` → `.env` copy step, idempotent re-runs (`git pull --ff-only`), 120-second healthcheck poll on `localhost:7461`, anchor-style `APPSTORECAT_REPO_URL` / `APPSTORECAT_DIR` env overrides, structured error output with troubleshooting hints.
+- `web/public/llms.txt` rewritten with Quick Start, MCP Quick Start, architecture, full feature list, and a 12-link documentation index.
+- `docs/en/deployment/production.md` substantially expanded: Caddyfile / Nginx / Traefik real configs, `mysqldump → S3` backup script + cron, ufw firewall rules, log rotation, upgrade + rollback procedure, security checklist.
+- `docs/en/reference/environment-variables.md` filled in the missing surface area: MCP env (`APPSTORECAT_API_TOKEN`, `APPSTORECAT_API_URL`), Sanctum (`SANCTUM_STATEFUL_DOMAINS`, `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`), supervisor tunables, frontend build vars, expanded logging.
+- Host-side ports now consistently use the **746x** series across `.env.*.example`, `docker-compose.yml`, all docs, install.sh, and architecture diagrams. Previous Redis default `6379` switched to `7465` (container port stays `6379`).
+- Landing page documentation links now resolve to `https://appstorecat.github.io/appstorecat/...` instead of raw GitHub blob URLs.
+- `lint.yml` and `tests.yml` set to `workflow_dispatch`-only while the underlying suites stabilize. The only push-triggered workflow is `docs.yml`.
+
+### Removed
+- All Turkish documentation under `docs/tr/` (39 files) and the `README-tr.md` mirror. The TR docs were ASCII-stripped and out of sync with the EN source; we are EN-only going forward.
+
+### Fixed
+- README's "Documentation" section now links the MCP server doc (the file existed but was previously orphaned, hiding the project's headline feature from anyone arriving via README).
+- `production.md` example env block previously listed `FORWARD_DB_PORT=3306` (mixing host and container ports); now correctly `7464`, with internal-vs-host-port relationships called out throughout.
+
 ## [1.2.0] - 2026-04-22
 
 ### Added
@@ -29,7 +56,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - `Country` row `zz` (Global) to host Android metrics that are not country-specific
 - `SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE` (default 5) controls how many apps the scheduler dispatches per 20-minute tick
 - Job performance logging for queue monitoring
-- Open-source documentation restructuring under `docs/en` and `docs/tr`
+- Open-source documentation restructuring under `docs/en`
 
 ### Changed
 - Renamed columns for naming consistency: `apps.origin_country` → `origin_country_code`, `apps.display_icon` → `icon_url`, `app_store_listings.language` → `locale`, `app_store_listing_changes.language` → `locale`, `trending_charts.country` → `country_code`
@@ -153,7 +180,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/appstorecat/appstorecat/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/appstorecat/appstorecat/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/appstorecat/appstorecat/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/appstorecat/appstorecat/compare/v1.1.1...v1.1.2
