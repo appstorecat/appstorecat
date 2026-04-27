@@ -160,6 +160,12 @@ async function run() {
   )
 }
 
+// Resolve `base` so homepage links honor the deploy prefix
+// (e.g. /appstorecat for github.com/appstorecat/appstorecat → appstorecat.github.io/appstorecat).
+// `astro.config.mjs` reads the same env var, so the two stay in lock-step.
+const BASE_RAW = process.env.DOCS_SITE_BASE || '/appstorecat'
+const BASE = BASE_RAW.endsWith('/') ? BASE_RAW.slice(0, -1) : BASE_RAW
+
 const HOMEPAGE = `---
 title: AppStoreCat
 description: Open-source, self-hosted App Store & Google Play intelligence — with a 28-tool MCP server for Claude Code.
@@ -172,11 +178,11 @@ hero:
     file: ../../assets/logo.svg
   actions:
     - text: Quick Start
-      link: /getting-started/installation
+      link: ${BASE}/getting-started/installation/
       icon: rocket
       variant: primary
     - text: MCP Server
-      link: /services/mcp
+      link: ${BASE}/services/mcp/
       icon: external
       variant: secondary
     - text: GitHub
@@ -193,22 +199,22 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
   <LinkCard
     title="Install with one command"
     description="curl -sSL https://appstore.cat/install.sh | sh"
-    href="/getting-started/install-script"
+    href="${BASE}/getting-started/install-script/"
   />
   <LinkCard
     title="Connect Claude Code (MCP)"
     description="28 read-only tools, Swagger-strict, chain-first."
-    href="/services/mcp"
+    href="${BASE}/services/mcp/"
   />
   <LinkCard
     title="Architecture overview"
     description="4 Docker services + MySQL. Platform-separated queues."
-    href="/architecture/overview"
+    href="${BASE}/architecture/overview/"
   />
   <LinkCard
     title="Production deployment"
     description="Caddy / Nginx / Traefik · backup · rollback."
-    href="/deployment/production"
+    href="${BASE}/deployment/production/"
   />
 </CardGrid>
 
