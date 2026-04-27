@@ -1,31 +1,103 @@
 # AppStoreCat
 
-> Open source app intelligence toolkit for iOS and Android.
+> Open-source, self-hosted App Store & Google Play intelligence toolkit — with a 28-tool MCP server for Claude Code, Cursor, and other AI tools.
 
-AppStoreCat is a self-hosted, free, and open-source alternative to paid app intelligence platforms like Sensor Tower, App Annie (data.ai), and AppFollow. It tracks store listings, monitors changes, analyzes keywords, and discovers trending apps across both App Store and Google Play.
+AppStoreCat is a free, MIT-licensed alternative to commercial app intelligence platforms (Sensor Tower, data.ai, AppFollow) that you run on your own infrastructure. Track competitor store listings on iOS and Android, monitor every change, analyze keywords, follow trending charts, and query everything from natural language via MCP.
+
+## Quick Start
+
+Install in ~60 seconds with Docker, git, make, and curl:
+
+```
+curl -sSL https://appstore.cat/install.sh | sh
+```
+
+Or manually:
+
+```
+git clone https://github.com/appstorecat/appstorecat.git
+cd appstorecat
+cp .env.development.example .env
+make setup && make dev
+```
+
+Then open http://localhost:7461.
+
+## MCP Quick Start
+
+Connect to Claude Code:
+
+```
+claude mcp add appstorecat \
+  -e APPSTORECAT_API_URL=http://localhost:7460/api/v1 \
+  -e APPSTORECAT_API_TOKEN=<token-from-web-ui> \
+  -- npx -y @appstorecat/mcp
+```
+
+The MCP server exposes 28 read-only tools (apps, competitors, changes, charts, ratings, keywords, publishers, explorer, dashboard, reference). Every tool is Swagger-strict (zod inputs mirror the OpenAPI parameters exactly) and chain-first (response IDs are preserved so multi-step lookups can be planned).
+
+Example natural-language queries:
+- "What changed on ChatGPT's App Store listing this week?"
+- "Top 3 trending free iOS apps in the US?"
+- "Compare keyword density between Threads and Instagram."
+- "Which competitor changed their App Store screenshots this week?"
+
+## Architecture
+
+Four Docker services orchestrated via Docker Compose, owned by a single Laravel server that owns the database. Scrapers are stateless (no DB, no cache). iOS and Android pipelines are platform-separated — independent queues, throttles, and worker profiles so neither blocks the other.
+
+```
+Web :7461 ──▶ Server API :7460 ──▶ scraper-ios :7462
+                  │           ──▶ scraper-android :7463
+                  ▼
+              MySQL :7464  +  Redis :6379
+```
+
+| Service | Stack |
+|---|---|
+| server | Laravel 13, PHP 8.4, Sanctum, L5-Swagger |
+| web | React 19, Vite, TypeScript, shadcn/ui, Tailwind v4 |
+| scraper-ios | Fastify 5, Node.js, app-store-scraper |
+| scraper-android | FastAPI, Python, gplay-scraper |
+| mcp | MCP SDK, TypeScript (npm: @appstorecat/mcp) |
 
 ## Features
 
-- **Trending Charts**: Daily snapshots of top free, paid, and grossing apps with historical ranking data
-- **App Discovery**: Search apps across both stores, discover through charts, or import entire publisher catalogs
-- **Store Listing Tracking**: Multi-language listing tracking with title, description, screenshots, and metadata
-- **Ratings & Reviews**: Monitor rating trends and sync user reviews with country/rating/date filtering
-- **Keyword Density Analysis**: ASO-focused n-gram extraction with stop word filtering for 50+ languages
-- **Change Detection**: Automatic detection of listing changes with old/new value tracking
-- **Competitor Tracking**: Define competitor relationships and monitor store presence side by side
-- **Publisher Discovery**: Search publishers, view full app catalogs, and bulk import apps
-- **MCP Server**: Built-in Model Context Protocol server for AI tool integration (Claude, Cursor, etc.)
+- **Trending charts** — Daily snapshots of top free, paid, and grossing apps across both stores with historical rank data
+- **App rankings** — Per-app pivot of chart positions across countries, collections, and categories
+- **App discovery** — Search both stores, browse trending charts, import publisher catalogs
+- **Store listings** — Multi-locale listing tracking with per-country availability
+- **Ratings** — Per-country rating history with daily star breakdown
+- **Keyword density** — 1/2/3-gram extraction, 50-language stop-word filter, cross-app comparison up to 5 apps (computed on the fly, not persisted)
+- **Change detection** — Automatic per-locale, per-field diffs (title, subtitle, description, screenshots, version, locale, price)
+- **Competitor tracking** — Manual and automatic competitor relationships, side-by-side monitoring
+- **Publisher discovery** — Search publishers, view full app catalogs, bulk import
+- **MCP server** — 28-tool read-only surface for Claude Code, Cursor, Continue, and other MCP-compatible AI tools
+- **Self-hosted** — Your data, your servers, no telemetry, no per-app pricing
 
-## Tech Stack
+## Documentation
 
-- **Server**: Laravel 13, PHP 8.4, MySQL 8.4
-- **Web**: React 19, TypeScript, Vite, Tailwind CSS
-- **iOS Scraper**: Node.js, Fastify, TypeScript
-- **Android Scraper**: Python, FastAPI
+- Installation: https://github.com/appstorecat/appstorecat/blob/master/docs/en/getting-started/installation.md
+- Install Script: https://github.com/appstorecat/appstorecat/blob/master/docs/en/getting-started/install-script.md
+- Configuration: https://github.com/appstorecat/appstorecat/blob/master/docs/en/getting-started/configuration.md
+- Quick Start: https://github.com/appstorecat/appstorecat/blob/master/docs/en/getting-started/quick-start.md
+- Architecture Overview: https://github.com/appstorecat/appstorecat/blob/master/docs/en/architecture/overview.md
+- Data Model: https://github.com/appstorecat/appstorecat/blob/master/docs/en/architecture/data-model.md
+- Sync Pipeline: https://github.com/appstorecat/appstorecat/blob/master/docs/en/architecture/sync-pipeline.md
+- Queue System: https://github.com/appstorecat/appstorecat/blob/master/docs/en/architecture/queue-system.md
+- MCP Server: https://github.com/appstorecat/appstorecat/blob/master/docs/en/services/mcp.md
+- API Endpoints: https://github.com/appstorecat/appstorecat/blob/master/docs/en/api/endpoints.md
+- API Authentication: https://github.com/appstorecat/appstorecat/blob/master/docs/en/api/authentication.md
+- Production Deployment: https://github.com/appstorecat/appstorecat/blob/master/docs/en/deployment/production.md
+- Environment Variables: https://github.com/appstorecat/appstorecat/blob/master/docs/en/reference/environment-variables.md
 
 ## Links
 
-- Website: https://appstore.cat
+- Website / Live Demo: https://appstore.cat
 - Source Code: https://github.com/appstorecat/appstorecat
-- Documentation: https://github.com/appstorecat/appstorecat/blob/master/docs/en/getting-started/installation.md
-- License: MIT
+- MCP Package on npm: https://www.npmjs.com/package/@appstorecat/mcp
+- Docker Images: https://ghcr.io/appstorecat
+- Changelog: https://github.com/appstorecat/appstorecat/blob/master/CHANGELOG.md
+- Issues: https://github.com/appstorecat/appstorecat/issues
+- License: MIT (https://github.com/appstorecat/appstorecat/blob/master/LICENSE)
+- Current Version: v1.2.0 (released 2026-04-22)
