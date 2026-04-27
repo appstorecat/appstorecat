@@ -377,7 +377,7 @@ function HeroInstallTabs() {
       ) : (
         <div className="p-5 md:p-6 space-y-4 text-left">
           <p className="text-xs sm:text-sm text-white/55">
-            Give Claude Code direct access. 28 read-only tools, Swagger-strict, chain-first.
+            Give Claude Code direct access. 32 tools (28 read · 4 write), Swagger-strict, chain-first.
           </p>
           <button
             onClick={onCopyMcp}
@@ -425,7 +425,7 @@ function Hero() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
             </span>
-            <span>v{__APP_VERSION__} · 28-tool MCP server is live</span>
+            <span>v{__APP_VERSION__} · 32-tool MCP server is live</span>
             <a href="#mcp" className="text-emerald-400 hover:underline inline-flex items-center gap-0.5">
               See how
               <ArrowUpRight className="h-3 w-3" />
@@ -467,7 +467,7 @@ function Hero() {
 
 function MetricStrip() {
   const items = [
-    { value: '28', label: 'MCP tools' },
+    { value: '32', label: 'MCP tools' },
     { value: '230+', label: 'countries' },
     { value: '50', label: 'languages (ASO)' },
     { value: '60s', label: 'install time' },
@@ -611,7 +611,7 @@ function LiveDemo() {
     {
       kind: 'line',
       delay: 7600,
-      render: <p className="text-emerald-400">✓ MCP server connected (28 tools)</p>,
+      render: <p className="text-emerald-400">✓ MCP server connected (32 tools)</p>,
     },
     {
       kind: 'line',
@@ -951,7 +951,7 @@ function McpSection() {
               </span>
             </h2>
             <p className="text-base md:text-lg text-white/60 leading-relaxed mb-7">
-              28 read-only tools for apps, competitors, charts, ratings, keywords, changes,
+              32 tools (28 read-only + 4 write) for apps, competitors, charts, ratings, keywords, changes,
               publishers, and the dashboard. Swagger-strict, chain-first.
               <br />
               <span className="text-white/80">Sensor Tower has none of this.</span>
@@ -1088,7 +1088,7 @@ function Comparison() {
     { feature: 'Self-hostable', as: '✓ Docker, 60s', them: '✗ SaaS only' },
     { feature: 'Starting price', as: '$0', them: '$499–$1500/mo' },
     { feature: 'Per-app pricing', as: '✗ none', them: '✓ usually' },
-    { feature: 'MCP server (Claude / Cursor)', as: '✓ 28 tools', them: '✗' },
+    { feature: 'MCP server (Claude / Cursor)', as: '✓ 32 tools', them: '✗' },
     { feature: 'Data on your servers', as: '✓ always', them: '✗' },
     { feature: 'iOS + Android', as: '✓ both', them: '○ varies' },
     { feature: 'Audit the code', as: '✓ GitHub', them: '✗' },
@@ -1165,7 +1165,7 @@ function Faq() {
         <>
           They're closed-source SaaS at $499–$1500/month, with your data on their servers.
           AppStoreCat is MIT-licensed open source, runs on your infrastructure, has no per-app
-          pricing, and ships with a 28-tool MCP server so Claude Code / Cursor / Continue can query
+          pricing, and ships with a 32-tool MCP server so Claude Code / Cursor / Continue can query
           your data directly. What it doesn't do: paid-tier estimates like revenue and downloads —
           those require commercial data partnerships.
         </>
@@ -1197,7 +1197,7 @@ function Faq() {
       a: (
         <>
           The MCP server is a Node.js process that Claude Code spawns over stdio. It translates MCP
-          tool calls into authenticated HTTP requests to your AppStoreCat instance. 28 read-only
+          tool calls into authenticated HTTP requests to your AppStoreCat instance. 32
           tools cover apps, competitors, changes, charts, ratings, keywords, publishers, and the
           dashboard. Every tool's input mirrors the OpenAPI schema exactly (Swagger-strict);
           response IDs are preserved so the LLM can plan multi-step lookups (chain-first).{' '}

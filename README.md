@@ -5,7 +5,7 @@
 <h1 align="center">AppStoreCat</h1>
 
 <p align="center">
-  Open-source, self-hosted App Store &amp; Google Play intelligence — with a 28-tool MCP server for Claude Code.
+  Open-source, self-hosted App Store &amp; Google Play intelligence — with a 32-tool MCP server for Claude Code.
 </p>
 
 <p align="center">
@@ -72,7 +72,7 @@ Then ask Claude:
 > *Top 3 trending free iOS apps in the US?*
 > *Compare keyword density between Threads and Instagram.*
 
-28 read-only tools, Swagger-strict, chain-first. Full reference → [docs/en/services/mcp.md](docs/en/services/mcp.md).
+32 tools (28 read · 4 write — track/untrack apps and add/remove competitors), Swagger-strict, chain-first. Full reference → [docs/en/services/mcp.md](docs/en/services/mcp.md).
 
 ## What's inside
 
@@ -87,7 +87,7 @@ Then ask Claude:
 | **Ratings** | Per-country rating history with star breakdown · [docs](docs/en/features/ratings.md) |
 | **Keyword density** | 1/2/3-gram, 50-language stop-words, 5-app comparison · [docs](docs/en/features/keyword-density.md) |
 | **Publisher discovery** | Search, browse, bulk-import entire catalogs · [docs](docs/en/features/publisher-discovery.md) |
-| **MCP server** | 28 tools for Claude Code, Cursor, Continue · [docs](docs/en/services/mcp.md) |
+| **MCP server** | 32 tools (28 read + 4 write) for Claude Code, Cursor, Continue · [docs](docs/en/services/mcp.md) |
 
 ## Architecture
 

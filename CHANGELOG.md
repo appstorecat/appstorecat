@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-04-27
+
+### Added
+- **MCP write tools** — the server expands from 28 read-only tools to 32 (28 read + 4 write) with no API changes:
+  - `track_app(platform, external_id)` — adds the app to the caller's watchlist; resolves and creates the row from the store if needed and queues a sync.
+  - `untrack_app(platform, external_id)` — removes the app from the watchlist (and any competitor rows involving it).
+  - `add_competitor(platform, external_id, competitor_app_id, relationship?)` — links a competitor to a tracked app. `competitor_app_id` is the internal numeric id from `get_app`.
+  - `remove_competitor(platform, external_id, competitor_id)` — drops a competitor relationship.
+- Write tools carry standard MCP hints (`readOnlyHint: false`, `destructiveHint` on the destructive ones, `idempotentHint` where appropriate). Claude Code surfaces these and asks for confirmation before invoking them.
+- `client.ts` gains an `apiSend(method, path, body?)` helper for POST / DELETE / PUT / PATCH alongside the existing `apiGet`. Empty 204 responses are normalized into `{"status":204}` so LLMs always see a structured payload.
+
+### Changed
+- README, landing page, llms.txt, and `mcp/README.md` updated from "28 tools" to "32 tools (28 read + 4 write)".
+- `docs/en/services/mcp.md` grows a new "Read vs Write" section explaining the hint semantics and showing a chained track-then-add-competitor example.
+
 ## [1.2.3] - 2026-04-27
 
 ### Fixed
@@ -196,7 +211,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.4...HEAD
+[1.2.4]: https://github.com/appstorecat/appstorecat/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/appstorecat/appstorecat/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/appstorecat/appstorecat/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/appstorecat/appstorecat/compare/v1.2.0...v1.2.1

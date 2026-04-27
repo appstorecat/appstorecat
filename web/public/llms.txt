@@ -1,6 +1,6 @@
 # AppStoreCat
 
-> Open-source, self-hosted App Store & Google Play intelligence toolkit — with a 28-tool MCP server for Claude Code, Cursor, and other AI tools.
+> Open-source, self-hosted App Store & Google Play intelligence toolkit — with a 32-tool MCP server for Claude Code, Cursor, and other AI tools.
 
 AppStoreCat is a free, MIT-licensed alternative to commercial app intelligence platforms (Sensor Tower, data.ai, AppFollow) that you run on your own infrastructure. Track competitor store listings on iOS and Android, monitor every change, analyze keywords, follow trending charts, and query everything from natural language via MCP.
 
@@ -34,7 +34,7 @@ claude mcp add appstorecat \
   -- npx -y @appstorecat/mcp
 ```
 
-The MCP server exposes 28 read-only tools (apps, competitors, changes, charts, ratings, keywords, publishers, explorer, dashboard, reference). Every tool is Swagger-strict (zod inputs mirror the OpenAPI parameters exactly) and chain-first (response IDs are preserved so multi-step lookups can be planned).
+The MCP server exposes 32 tools — 28 read-only + 4 write (track_app, untrack_app, add_competitor, remove_competitor) — covering apps, competitors, changes, charts, ratings, keywords, publishers, explorer, dashboard, and reference. Every tool is Swagger-strict (zod inputs mirror the OpenAPI parameters exactly) and chain-first (response IDs are preserved so multi-step lookups can be planned). Write tools carry MCP write hints, so Claude Code asks for confirmation before invoking them.
 
 Example natural-language queries:
 - "What changed on ChatGPT's App Store listing this week?"
@@ -72,7 +72,7 @@ Web :7461 ──▶ Server API :7460 ──▶ scraper-ios :7462
 - **Change detection** — Automatic per-locale, per-field diffs (title, subtitle, description, screenshots, version, locale, price)
 - **Competitor tracking** — Manual and automatic competitor relationships, side-by-side monitoring
 - **Publisher discovery** — Search publishers, view full app catalogs, bulk import
-- **MCP server** — 28-tool read-only surface for Claude Code, Cursor, Continue, and other MCP-compatible AI tools
+- **MCP server** — 32-tool surface (28 read + 4 write) for Claude Code, Cursor, Continue, and other MCP-compatible AI tools. Write tools require explicit user confirmation.
 - **Self-hosted** — Your data, your servers, no telemetry, no per-app pricing
 
 ## Documentation

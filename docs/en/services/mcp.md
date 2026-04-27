@@ -9,7 +9,7 @@ The AppStoreCat MCP (Model Context Protocol) server gives AI tools like Claude C
 | **Package** | `@appstorecat/mcp` on npm |
 | **Transport** | stdio (spawned as a local process) |
 | **Auth** | Sanctum bearer token via env var |
-| **Tools** | 25 read-only tools, Swagger-strict, chain-first |
+| **Tools** | 32 tools (28 read-only + 4 write), Swagger-strict, chain-first |
 
 ```
 Claude Code (stdio) → MCP Server (local) → Laravel API (local or remote)
@@ -63,6 +63,35 @@ Every tool follows two rules enforced at the schema level:
 - **Swagger-strict** — each tool's zod input mirrors the Swagger parameter list exactly. Nothing invented, nothing dropped. Integer fields reject strings, enums reject free-form text, dates enforce `YYYY-MM-DD`.
 - **Chain-first** — responses are passed through as-is (`app_id`, `external_id`, `version_id`, `category_id`, `publisher.external_id` are never stripped). Each tool description ends with a "use with: {tool_a}, {tool_b}" hint so the caller can plan multi-step lookups.
 
+## Read vs Write
+
+The 32 tools split as **28 read-only + 4 write**. Read-only tools (everything below except the ones marked ✏️) carry `readOnlyHint: true`, so MCP clients render them with the safe-to-call indicator.
+
+The 4 write tools — `track_app`, `untrack_app`, `add_competitor`, `remove_competitor` — carry `readOnlyHint: false`. Destructive operations (`untrack_app`, `remove_competitor`) additionally carry `destructiveHint: true`. Idempotent ones carry `idempotentHint: true`. Claude Code surfaces these hints to the user and asks for confirmation before invoking write tools (unless the user has explicitly allowlisted them).
+
+A typical chained-write flow looks like:
+
+```
+search_store_apps(term: "Threads", platform: "ios")
+  → external_id = "6446901002"
+
+track_app(platform: "ios", external_id: "6446901002")
+  → 204
+
+get_app(platform: "ios", external_id: "6446901002")
+  → returns internal id = 42
+
+# Track the competitor first so it has a row
+track_app(platform: "ios", external_id: "835599320")  # TikTok
+get_app(platform: "ios", external_id: "835599320")
+  → returns internal id = 43
+
+add_competitor(platform: "ios", external_id: "6446901002",
+               competitor_app_id: 43, relationship: "direct")
+```
+
+`competitor_app_id` is the **internal** numeric id from `get_app`, not the store-side `external_id`. The Laravel API enforces this so foreign keys stay valid.
+
 ## Available Tools
 
 ### Reference
@@ -77,6 +106,8 @@ Every tool follows two rules enforced at the schema level:
 | Tool | Description |
 |------|-------------|
 | `list_tracked_apps` | Apps tracked by the authenticated user. Returns internal `id` and `{platform, external_id}` for chaining. |
+| `track_app` ✏️ | Add `{platform, external_id}` to the user's watchlist. Resolves and creates the app from the store if it doesn't exist yet. Triggers an automatic sync. |
+| `untrack_app` ✏️ | Remove the app from the user's watchlist (and any competitor relationships involving it). Idempotent. |
 | `search_store_apps` | Keyword search against a store (`term`, `platform`, `country_code`, `exclude_external_ids[]`). |
 | `get_app` | Full app metadata: publisher, category, versions, rating, `unavailable_countries`, competitors (when tracked). |
 | `get_app_listing` | Store listing for a `country_code` + `locale` (title, subtitle, description, screenshots, whats_new, `version_id`). |
@@ -89,6 +120,8 @@ Every tool follows two rules enforced at the schema level:
 |------|-------------|
 | `list_app_competitors` | Competitors of a specific app. |
 | `list_all_competitors` | All tracked competitor groups `{parent, competitors[]}`. |
+| `add_competitor` ✏️ | Add a competitor to a tracked app. Requires the **internal** `competitor_app_id` (from `get_app`). Optional `relationship`: `direct`, `indirect`, `aspiration` (default `direct`). |
+| `remove_competitor` ✏️ | Remove a competitor relationship. `competitor_id` is the relationship row id from `list_app_competitors`. Idempotent. |
 
 ### Changes
 

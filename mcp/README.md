@@ -54,14 +54,14 @@ The API token is created from the web UI: **Settings → API Tokens → Create**
 | `APPSTORECAT_API_TOKEN` | Yes | — | Sanctum bearer token |
 | `APPSTORECAT_API_URL` | No | `http://localhost:7460/api/v1` | API base URL |
 
-## Tools (28)
+## Tools (32)
 
-All tools are read-only, Swagger-strict (zod inputs mirror the OpenAPI parameters exactly), and chain-first (response IDs are preserved so the LLM can plan multi-step lookups).
+28 read-only + 4 write. All tools are Swagger-strict (zod inputs mirror the OpenAPI parameters exactly) and chain-first (response IDs are preserved so the LLM can plan multi-step lookups). Write tools (`track_app`, `untrack_app`, `add_competitor`, `remove_competitor`) carry standard MCP write hints — Claude Code will ask for confirmation before invoking them.
 
 | Category | Tools |
 |---|---|
-| **Apps** | `list_tracked_apps`, `search_store_apps`, `get_app`, `get_app_listing`, `get_app_sync_status`, `get_app_rankings` |
-| **Competitors** | `list_app_competitors`, `list_all_competitors` |
+| **Apps** | `list_tracked_apps`, `search_store_apps`, `get_app`, `get_app_listing`, `get_app_sync_status`, `get_app_rankings`, `track_app` ✏️, `untrack_app` ✏️ |
+| **Competitors** | `list_app_competitors`, `list_all_competitors`, `add_competitor` ✏️, `remove_competitor` ✏️ |
 | **Changes** | `list_app_changes`, `list_competitor_changes` |
 | **Charts** | `get_charts` |
 | **Ratings** | `get_rating_summary`, `get_rating_history`, `get_rating_country_breakdown` |
