@@ -118,15 +118,19 @@ function rewriteCodeFences(content) {
   })
 }
 
+// The page we want to land users on directly — installation. Skip its
+// canonical /getting-started/installation/ output; the same content
+// renders at the docs root instead.
+const HOMEPAGE_SOURCE = 'getting-started/installation.md'
+
 async function run() {
   if (existsSync(DEST)) rmSync(DEST, { recursive: true, force: true })
   mkdirSync(DEST, { recursive: true })
 
   let count = 0
+  let homepageWritten = false
   for await (const file of walk(SRC)) {
     const rel = relative(SRC, file)
-    const out = join(DEST, rel)
-    mkdirSync(dirname(out), { recursive: true })
     const raw = readFileSync(file, 'utf8')
     const fallback = rel.replace(/\.md$/, '').split('/').pop().replace(/-/g, ' ')
     const withFrontmatter = ensureFrontmatter(
@@ -135,13 +139,25 @@ async function run() {
     )
     const withFixedAssets = rewriteAssetPaths(withFrontmatter)
     const withFixedLangs = rewriteCodeFences(withFixedAssets)
+
+    if (rel === HOMEPAGE_SOURCE) {
+      // Promote installation to the docs root and skip its old slug.
+      const homepageOut = join(DEST, 'index.md')
+      writeFileSync(homepageOut, withFixedLangs, 'utf8')
+      homepageWritten = true
+      count++
+      continue
+    }
+
+    const out = join(DEST, rel)
+    mkdirSync(dirname(out), { recursive: true })
     writeFileSync(out, withFixedLangs, 'utf8')
     count++
   }
 
-  // Add a homepage (Starlight requires src/content/docs/index.md{x})
-  const indexPath = join(DEST, 'index.mdx')
-  writeFileSync(indexPath, HOMEPAGE, 'utf8')
+  if (!homepageWritten) {
+    throw new Error(`[sync-docs] expected homepage source at ${HOMEPAGE_SOURCE}`)
+  }
 
   // Mirror screenshots/ into public/screenshots/ so docs images work
   let screenshotCount = 0
@@ -156,91 +172,13 @@ async function run() {
   }
 
   console.log(
-    `[sync-docs] Synced ${count} markdown files + 1 homepage + ${screenshotCount} screenshots`,
+    `[sync-docs] Synced ${count} pages (incl. homepage from ${HOMEPAGE_SOURCE}) + ${screenshotCount} screenshots`,
   )
 }
 
-// Resolve `base` so homepage links honor the deploy prefix
-// (e.g. /appstorecat for github.com/appstorecat/appstorecat → appstorecat.github.io/appstorecat).
-// `astro.config.mjs` reads the same env var, so the two stay in lock-step.
-const BASE_RAW = process.env.DOCS_SITE_BASE || '/appstorecat'
-const BASE = BASE_RAW.endsWith('/') ? BASE_RAW.slice(0, -1) : BASE_RAW
+// (Kept here in case we want to re-introduce a splash homepage later.)
+// — no template needed; the installation page is now the homepage.
 
-const HOMEPAGE = `---
-title: AppStoreCat
-description: Open-source, self-hosted App Store & Google Play intelligence — with a 28-tool MCP server for Claude Code.
-template: splash
-hero:
-  tagline: |
-    Self-hosted App Store &amp; Google Play intelligence.
-    MIT-licensed. MCP-native. Your data, your servers.
-  image:
-    file: ../../assets/logo.svg
-  actions:
-    - text: Quick Start
-      link: ${BASE}/getting-started/installation/
-      icon: rocket
-      variant: primary
-    - text: MCP Server
-      link: ${BASE}/services/mcp/
-      icon: external
-      variant: secondary
-    - text: GitHub
-      link: https://github.com/appstorecat/appstorecat
-      icon: github
-      variant: minimal
----
-
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
-
-## Get going in 60 seconds
-
-<CardGrid>
-  <LinkCard
-    title="Install with one command"
-    description="curl -sSL https://appstore.cat/install.sh | sh"
-    href="${BASE}/getting-started/install-script/"
-  />
-  <LinkCard
-    title="Connect Claude Code (MCP)"
-    description="28 read-only tools, Swagger-strict, chain-first."
-    href="${BASE}/services/mcp/"
-  />
-  <LinkCard
-    title="Architecture overview"
-    description="4 Docker services + MySQL. Platform-separated queues."
-    href="${BASE}/architecture/overview/"
-  />
-  <LinkCard
-    title="Production deployment"
-    description="Caddy / Nginx / Traefik · backup · rollback."
-    href="${BASE}/deployment/production/"
-  />
-</CardGrid>
-
-## Explore the docs
-
-<CardGrid stagger>
-  <Card title="Getting started" icon="rocket">
-    Install the stack, configure your environment, take the guided first run.
-  </Card>
-  <Card title="Architecture" icon="puzzle">
-    Data model, sync pipeline, queue system, and connector contracts.
-  </Card>
-  <Card title="Services" icon="setting">
-    Deep dives into the server, web, scrapers, and MCP server.
-  </Card>
-  <Card title="API reference" icon="bars">
-    Endpoints, authentication, scraper APIs.
-  </Card>
-  <Card title="Deployment" icon="approve-check">
-    Docker, production, troubleshooting playbooks.
-  </Card>
-  <Card title="Reference" icon="document">
-    Environment variables, Makefile targets, country codes.
-  </Card>
-</CardGrid>
-`
 
 run().catch((err) => {
   console.error('[sync-docs] Failed:', err)

@@ -10,6 +10,11 @@ export default defineConfig({
   site: SITE,
   base: BASE,
   trailingSlash: 'never',
+  // The installation page IS the docs homepage now. Anyone arriving at the
+  // old URL gets pushed to the root.
+  redirects: {
+    '/getting-started/installation': '/',
+  },
   integrations: [
     starlight({
       title: 'AppStoreCat',
@@ -48,7 +53,8 @@ export default defineConfig({
         {
           label: 'Getting Started',
           items: [
-            { label: 'Installation', slug: 'getting-started/installation' },
+            // Installation is the docs homepage (slug is '').
+            { label: 'Installation', slug: '' },
             { label: 'Install Script', slug: 'getting-started/install-script' },
             { label: 'Configuration', slug: 'getting-started/configuration' },
             { label: 'Quick Start', slug: 'getting-started/quick-start' },
