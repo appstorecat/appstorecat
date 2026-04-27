@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-04-27
+
+### Added
+- Astro + Starlight docs site live at `https://appstorecat.github.io/appstorecat/`. Installation page is now the docs homepage so users land directly on the install steps.
+- Static redirect from the old `/getting-started/installation` URL to the new root.
+
+### Changed
+- Landing's version badges (header pill and hero eyebrow) now read from `VERSION` at build time via Vite's `__APP_VERSION__` define, replacing the hard-coded `v1.2`.
+- Landing documentation links use trailing slashes to match Starlight's emit format and avoid a 301 round-trip on every doc click.
+- Homepage card grid in `docs-site` now respects `DOCS_SITE_BASE`, so deploys under a sub-path (`/appstorecat`) link correctly.
+
 ## [1.2.1] - 2026-04-27
 
 ### Added
@@ -180,7 +191,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/appstorecat/appstorecat/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/appstorecat/appstorecat/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/appstorecat/appstorecat/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/appstorecat/appstorecat/compare/v1.1.2...v1.1.3
