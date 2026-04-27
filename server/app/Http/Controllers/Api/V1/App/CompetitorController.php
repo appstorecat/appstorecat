@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\App;
 
+use App\Enums\Platform;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\App\CompetitorAllRequest;
 use App\Http\Requests\Api\App\StoreCompetitorRequest;
@@ -11,6 +12,7 @@ use App\Http\Resources\Api\App\CompetitorGroupResource;
 use App\Http\Resources\Api\App\CompetitorResource;
 use App\Models\App;
 use App\Models\AppCompetitor;
+use App\Services\AppRegistrar;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -19,6 +21,11 @@ use OpenApi\Attributes as OA;
 
 class CompetitorController extends BaseController
 {
+    public function __construct(
+        private readonly AppRegistrar $registrar,
+    ) {
+    }
+
     #[OA\Get(
         path: '/apps/{platform}/{externalId}/competitors',
         summary: 'List competitors for an app',
@@ -155,10 +162,30 @@ class CompetitorController extends BaseController
         $app = $this->resolveApp($platform, $externalId);
         abort_unless($app->isTrackedBy($request->user()), 404);
 
+        // Resolve the competitor app row. Two flows:
+        //   - Preferred: caller supplies `competitor_external_id` (+ optional
+        //     `competitor_platform`) and we ensure a row exists in `apps`
+        //     without touching the caller's `user_apps` watchlist.
+        //   - Legacy: caller supplies `competitor_app_id`, an internal id of
+        //     an already-registered app.
+        $competitorAppId = $request->input('competitor_app_id');
+        if ($request->filled('competitor_external_id')) {
+            $competitorPlatform = $request->input('competitor_platform')
+                ? Platform::fromSlug($request->input('competitor_platform'))
+                : $app->platform;
+
+            $competitorApp = $this->registrar->ensureExists(
+                $request->input('competitor_external_id'),
+                $competitorPlatform,
+            );
+
+            $competitorAppId = $competitorApp->id;
+        }
+
         $competitor = AppCompetitor::create([
             'user_id' => $request->user()->id,
             'app_id' => $app->id,
-            'competitor_app_id' => $request->competitor_app_id,
+            'competitor_app_id' => $competitorAppId,
             'relationship' => $request->relationship ?? 'direct',
         ]);
 
