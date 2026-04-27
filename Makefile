@@ -249,6 +249,10 @@ build-prod:
 	@echo "Done."
 
 ## Release: bump version, build, push — usage: make release v=1.0.0
+##
+## Idempotent: each step skips itself cleanly if you already did it manually
+## (e.g. an earlier release attempt half-completed, or you committed the
+## version bump by hand before calling make release).
 release:
 ifndef v
 	$(error Usage: make release v=1.0.0)
@@ -263,8 +267,20 @@ endif
 	done
 	@cd mcp && npm version $(v) --no-git-tag-version --allow-same-version && npm run build && npm publish --access public
 	@git add VERSION mcp/package.json mcp/package-lock.json
-	@git commit -m "release: v$(v)"
-	@git tag v$(v)
+	@if ! git diff --cached --quiet; then \
+		git commit -m "release: v$(v)"; \
+	else \
+		echo "→ release: v$(v) already committed, skipping commit step"; \
+	fi
+	@if ! git rev-parse "v$(v)" >/dev/null 2>&1; then \
+		git tag "v$(v)"; \
+	else \
+		echo "→ tag v$(v) already exists, skipping tag step"; \
+	fi
 	@git push origin master --tags
-	@gh release create v$(v) --title "v$(v)" --generate-notes
+	@if ! gh release view "v$(v)" >/dev/null 2>&1; then \
+		gh release create "v$(v)" --title "v$(v)" --generate-notes; \
+	else \
+		echo "→ GitHub release v$(v) already exists, skipping release step"; \
+	fi
 	@echo "Released v$(v)"

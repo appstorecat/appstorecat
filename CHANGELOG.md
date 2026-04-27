@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-04-27
+
+### Fixed
+- `make release` is now idempotent. Each git step (`commit`, `tag`, `gh release create`) checks whether it has already been done and skips itself cleanly instead of failing the pipeline. v1.2.2's release exited with `make: *** [release] Error 1` after Docker push and npm publish succeeded but the version bump was already committed; the leftover steps had to be run by hand. This shouldn't happen again.
+
 ## [1.2.2] - 2026-04-27
 
 ### Added
@@ -191,7 +196,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/appstorecat/appstorecat/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/appstorecat/appstorecat/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/appstorecat/appstorecat/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/appstorecat/appstorecat/compare/v1.1.3...v1.2.0
