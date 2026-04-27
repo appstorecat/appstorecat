@@ -237,7 +237,7 @@ function Header() {
             <Logo className="h-7 w-7" />
             <span className="text-base font-semibold tracking-tight text-white">appstorecat</span>
             <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded">
-              v1.2
+              v{__APP_VERSION__}
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-7 text-sm text-white/60">
@@ -425,7 +425,7 @@ function Hero() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
             </span>
-            <span>v1.2 · 28-tool MCP server is live</span>
+            <span>v{__APP_VERSION__} · 28-tool MCP server is live</span>
             <a href="#mcp" className="text-emerald-400 hover:underline inline-flex items-center gap-0.5">
               See how
               <ArrowUpRight className="h-3 w-3" />

@@ -2,6 +2,17 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { readFileSync, existsSync } from 'fs'
+
+function readRepoVersion(): string {
+  try {
+    const versionFile = path.resolve(__dirname, '..', 'VERSION')
+    if (existsSync(versionFile)) return readFileSync(versionFile, 'utf8').trim()
+  } catch {
+    /* fall through */
+  }
+  return process.env.npm_package_version || '0.0.0'
+}
 
 function runtimeConfigPlugin(): Plugin {
   return {
@@ -26,7 +37,7 @@ export default defineConfig(({ command }) => {
   return {
     plugins: [react(), tailwindcss(), runtimeConfigPlugin()],
     define: {
-      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.0'),
+      __APP_VERSION__: JSON.stringify(readRepoVersion()),
     },
     resolve: {
       alias: {
