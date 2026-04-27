@@ -69,28 +69,28 @@ The 32 tools split as **28 read-only + 4 write**. Read-only tools (everything be
 
 The 4 write tools — `track_app`, `untrack_app`, `add_competitor`, `remove_competitor` — carry `readOnlyHint: false`. Destructive operations (`untrack_app`, `remove_competitor`) additionally carry `destructiveHint: true`. Idempotent ones carry `idempotentHint: true`. Claude Code surfaces these hints to the user and asks for confirmation before invoking write tools (unless the user has explicitly allowlisted them).
 
-A typical chained-write flow looks like:
+A typical chained-write flow:
 
 ```
-search_store_apps(term: "Threads", platform: "ios")
-  → external_id = "6446901002"
+# 1. Track your own parent app
+track_app(platform: "ios", external_id: "6446901002")          # Threads
+  → 204 No Content
 
-track_app(platform: "ios", external_id: "6446901002")
-  → 204
-
-get_app(platform: "ios", external_id: "6446901002")
-  → returns internal id = 42
-
-# Track the competitor first so it has a row
-track_app(platform: "ios", external_id: "835599320")  # TikTok
-get_app(platform: "ios", external_id: "835599320")
-  → returns internal id = 43
-
-add_competitor(platform: "ios", external_id: "6446901002",
-               competitor_app_id: 43, relationship: "direct")
+# 2. Add a competitor by store id — no need to track it first.
+#    The server creates the competitor's app row on demand and links it,
+#    WITHOUT adding it to your `list_tracked_apps` view.
+add_competitor(
+  platform:                "ios",
+  external_id:             "6446901002",
+  competitor_external_id:  "835599320",   # TikTok
+  relationship:            "direct"
+)
+  → returns the new AppCompetitor row
 ```
 
-`competitor_app_id` is the **internal** numeric id from `get_app`, not the store-side `external_id`. The Laravel API enforces this so foreign keys stay valid.
+The competitor's app row is auto-registered if it doesn't exist yet, but it is **not** added to the caller's `user_apps` watchlist. So `list_tracked_apps` keeps showing only the apps you actually chose to track, while reports, charts, and change feeds still see the competitors via the `app_competitors` link.
+
+If you happen to already know the competitor's internal numeric id (e.g. you tracked it earlier), you can pass `competitor_app_id` instead of `competitor_external_id`. Both forms produce the same row.
 
 ## Available Tools
 
@@ -120,7 +120,7 @@ add_competitor(platform: "ios", external_id: "6446901002",
 |------|-------------|
 | `list_app_competitors` | Competitors of a specific app. |
 | `list_all_competitors` | All tracked competitor groups `{parent, competitors[]}`. |
-| `add_competitor` ✏️ | Add a competitor to a tracked app. Requires the **internal** `competitor_app_id` (from `get_app`). Optional `relationship`: `direct`, `indirect`, `aspiration` (default `direct`). |
+| `add_competitor` ✏️ | Add a competitor to a tracked app. Pass `competitor_external_id` (preferred — auto-registers the app row without touching your watchlist) or the legacy `competitor_app_id`. Optional `relationship`: `direct`, `indirect`, `aspiration` (default `direct`). |
 | `remove_competitor` ✏️ | Remove a competitor relationship. `competitor_id` is the relationship row id from `list_app_competitors`. Idempotent. |
 
 ### Changes

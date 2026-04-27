@@ -49,23 +49,49 @@ export function registerCompetitorTools(server: McpServer): void {
     {
       description:
         'Add a competitor to a tracked app. The parent app (`platform` + `external_id`) MUST already be tracked by the caller — ' +
-        'use track_app first. `competitor_app_id` is the INTERNAL numeric `id` of the competitor app, not its external_id; ' +
-        'obtain it by tracking the competitor (track_app) and then calling get_app — the response includes `id`. ' +
+        'use track_app first if needed. ' +
+        'Preferred: pass `competitor_external_id` (the store id of the competitor); the server registers the app row automatically ' +
+        'WITHOUT adding it to the caller\'s watchlist, so competitors do not pollute list_tracked_apps. ' +
+        '`competitor_platform` defaults to the parent app\'s platform when omitted. ' +
+        'Legacy: `competitor_app_id` (internal numeric id) is still accepted for already-registered apps. ' +
         'Returns the new competitor record (with internal `id` usable as `competitor_id` for remove_competitor).',
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
       inputSchema: {
         platform: Platform,
         external_id: ExternalId,
-        competitor_app_id: z.number().int().positive(),
+        competitor_external_id: ExternalId.optional(),
+        competitor_platform: Platform.optional(),
+        competitor_app_id: z.number().int().positive().optional(),
         relationship: Relationship.optional(),
       },
     },
-    async ({ platform, external_id, competitor_app_id, relationship }) => {
+    async ({
+      platform,
+      external_id,
+      competitor_external_id,
+      competitor_platform,
+      competitor_app_id,
+      relationship,
+    }) => {
+      if (!competitor_external_id && !competitor_app_id) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'add_competitor: provide either `competitor_external_id` (preferred) or `competitor_app_id`.',
+            },
+          ],
+          isError: true,
+        };
+      }
       const path = buildPath('/apps/{platform}/{externalId}/competitors', {
         platform,
         externalId: external_id,
       });
-      const body: Record<string, unknown> = { competitor_app_id };
+      const body: Record<string, unknown> = {};
+      if (competitor_external_id) body.competitor_external_id = competitor_external_id;
+      if (competitor_platform) body.competitor_platform = competitor_platform;
+      if (competitor_app_id) body.competitor_app_id = competitor_app_id;
       if (relationship) body.relationship = relationship;
       return apiSend('POST', path, body);
     },

@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-04-27
+
+### Fixed
+- **`add_competitor` no longer requires you to track the competitor first.** The previous flow forced two steps — `track_app(competitor)` to create the row, then `add_competitor` with the resulting internal id — which polluted `list_tracked_apps` with apps the user only ever wanted as competitors, and made `untrack_app` either lose the competitor relationships or leave the watchlist messy.
+- The new flow: pass `competitor_external_id` (and optionally `competitor_platform`, defaults to the parent app's platform). The server registers the competitor's `apps` row on demand via the existing `AppRegistrar`, but does **not** attach it to the caller's `user_apps` watchlist. So competitors show up in reports, charts, and change feeds, but not in MyApps.
+- Existing payloads using `competitor_app_id` (internal id) continue to work unchanged — the field is now optional alongside `competitor_external_id`, and exactly one of the two is required.
+
+### Changed
+- `AppRegistrar` gains an `ensureExists($externalId, $platform): App` method that mirrors `register()` minus the `user_apps` attach. Refactored `register()` to call it internally so the firstOrCreate logic stays in one place.
+- `StoreCompetitorRequest` schema and OpenAPI annotation document both flows, with `competitor_external_id` listed as the recommended one.
+- MCP `add_competitor` tool description updated to drop the now-obsolete "track the competitor first" instruction; new example in `docs/en/services/mcp.md` and the inline tool table.
+- No database migration. No schema change. No web UI change. The competitor add dialog in the SPA still works through `competitor_app_id` because that path is preserved.
+
 ## [1.2.4] - 2026-04-27
 
 ### Added
@@ -211,7 +224,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.4...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.5...HEAD
+[1.2.5]: https://github.com/appstorecat/appstorecat/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/appstorecat/appstorecat/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/appstorecat/appstorecat/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/appstorecat/appstorecat/compare/v1.2.1...v1.2.2
