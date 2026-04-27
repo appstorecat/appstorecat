@@ -1,0 +1,64 @@
+/* AppStoreCat — Starlight theme overrides
+ * Brand: emerald (10b981) accent on dark / light surfaces
+ */
+
+:root {
+  --sl-color-accent-low: #052e16;
+  --sl-color-accent: #10b981;
+  --sl-color-accent-high: #6ee7b7;
+
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #f4f4f5;
+  --sl-color-gray-2: #d4d4d8;
+  --sl-color-gray-3: #a1a1aa;
+  --sl-color-gray-4: #52525b;
+  --sl-color-gray-5: #27272a;
+  --sl-color-gray-6: #18181b;
+  --sl-color-black: #09090b;
+
+  --sl-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sl-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #052e16;
+  --sl-color-accent: #10b981;
+  --sl-color-accent-high: #6ee7b7;
+
+  --sl-color-bg: #09090b;
+  --sl-color-bg-nav: rgba(9, 9, 11, 0.7);
+  --sl-color-bg-sidebar: #09090b;
+  --sl-color-bg-inline-code: rgba(16, 185, 129, 0.08);
+
+  --sl-color-text-accent: #6ee7b7;
+  --sl-color-hairline-light: rgba(255, 255, 255, 0.08);
+  --sl-color-hairline: rgba(255, 255, 255, 0.06);
+}
+
+/* Inline code chips look like emerald pills */
+:root[data-theme='dark'] code {
+  color: #6ee7b7;
+}
+
+/* Header: glassmorphic */
+header.header {
+  backdrop-filter: blur(12px);
+  background: var(--sl-color-bg-nav);
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+/* Hero bigger headlines on home */
+.hero h1 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Subtle link glow */
+a {
+  text-underline-offset: 0.2em;
+}
+
+/* Tighten the content reading column */
+.sl-markdown-content {
+  --sl-content-width: 50rem;
+}

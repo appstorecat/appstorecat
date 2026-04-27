@@ -27,6 +27,7 @@ endif
         mysql redis-cli \
         clean nuke \
         mcp-install mcp-build mcp-dev \
+        docs-install docs-dev docs-build docs-preview \
         build-prod release version
 
 # ─── Shortcuts (disabled during pass-through) ────────────────
@@ -205,6 +206,24 @@ mcp-build:
 ## Run MCP server in dev mode
 mcp-dev:
 	cd mcp && npm run dev
+
+# ─── Docs Site (Astro + Starlight, GitHub Pages) ─────────────
+
+## Install docs site dependencies
+docs-install:
+	cd docs-site && npm install
+
+## Sync docs/en/ then run docs site dev server (http://localhost:4321)
+docs-dev:
+	cd docs-site && npm run sync-docs && npm run dev
+
+## Build static docs site to docs-site/dist/
+docs-build:
+	cd docs-site && npm run sync-docs && npm run build
+
+## Preview the production build locally
+docs-preview:
+	cd docs-site && npm run preview
 
 # ─── Production ──────────────────────────────────────────────
 

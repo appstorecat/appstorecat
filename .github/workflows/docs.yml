@@ -1,0 +1,79 @@
+name: docs
+
+# Builds the Astro + Starlight docs site and deploys to GitHub Pages.
+# Source markdown lives in `docs/en/`; `docs-site/` mirrors and renders it.
+#
+# Re-enable lint.yml / tests.yml once the underlying suites are stable again.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'docs-site/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'docs-site/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+# GitHub Pages needs these scopes
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Avoid stomping on a deploy in flight
+concurrency:
+  group: docs-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: docs-site/package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+        working-directory: docs-site
+
+      - name: Sync source markdown into Starlight content collection
+        run: npm run sync-docs
+        working-directory: docs-site
+
+      - name: Build site
+        run: npm run build
+        working-directory: docs-site
+        env:
+          DOCS_SITE_URL: https://appstorecat.github.io
+          DOCS_SITE_BASE: /appstorecat
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs-site/dist
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

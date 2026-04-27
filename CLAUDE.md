@@ -10,7 +10,7 @@ AppStoreCat — Open source app intelligence toolkit. Monorepo with 4 services: 
 Web :7461 → Server (Laravel API) :7460 → scraper-ios :7462
                                         → scraper-android :7463
                    ↓
-                MySQL :7464
+                MySQL :7464  +  Redis :7465
 ```
 
 - **Server** acts as API gateway — all store data flows through scraper microservices
@@ -27,6 +27,7 @@ Web :7461 → Server (Laravel API) :7460 → scraper-ios :7462
 | **scraper-ios/** | Node.js, Fastify 5, TypeScript, app-store-scraper | 7462 |
 | **scraper-android/** | Python, FastAPI, gplay-scraper | 7463 |
 | **mysql** | MySQL 8.4 | 7464 |
+| **redis** | Redis 7-alpine | 7465 |
 
 ## Monorepo Structure
 
@@ -39,7 +40,8 @@ appstorecat/
 ├── mcp/               # MCP server package (@appstorecat)
 ├── .arc/              # Architecture rules (all services)
 ├── plans/             # Active work plans
-├── docs/              # Full documentation (docs/en, docs/tr)
+├── docs/              # Full documentation source (docs/en) — rendered as-is on GitHub
+├── docs-site/         # Astro + Starlight site, deployed to GitHub Pages
 ├── docker-compose.yml # Root orchestrator
 └── Makefile           # Dev commands — single entry point
 ```
@@ -97,6 +99,17 @@ make swagger            # Generate OpenAPI docs (L5-Swagger)
 make api-generate       # Generate TypeScript client (Orval)
 make api                # Both: swagger + api-generate
 ```
+
+### Docs Site (Astro + Starlight)
+
+```bash
+make docs-install       # Install Astro + Starlight (one-time)
+make docs-dev           # Sync docs/en/ + run dev server (http://localhost:4321)
+make docs-build         # Build static site → docs-site/dist/
+make docs-preview       # Preview production build locally
+```
+
+Source markdown lives in `docs/en/`. The site is deployed to GitHub Pages on every push to master via `.github/workflows/docs.yml`.
 
 ### Code Quality
 

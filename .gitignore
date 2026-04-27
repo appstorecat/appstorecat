@@ -50,3 +50,10 @@
 
 # Socials launch kit (private)
 /socials/
+
+# Docs site (Astro + Starlight)
+/docs-site/node_modules
+/docs-site/dist
+/docs-site/.astro
+/docs-site/src/content/docs
+/docs-site/public/screenshots

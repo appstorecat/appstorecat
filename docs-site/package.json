@@ -1,0 +1,22 @@
+{
+  "name": "@appstorecat/docs-site",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "description": "AppStoreCat documentation site (Astro + Starlight)",
+  "scripts": {
+    "dev": "astro dev --host",
+    "build": "astro build",
+    "preview": "astro preview --host",
+    "astro": "astro",
+    "sync-docs": "node scripts/sync-docs.mjs"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.38.4",
+    "astro": "^6.1.9",
+    "sharp": "^0.34.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
