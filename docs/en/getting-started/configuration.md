@@ -111,5 +111,5 @@ The root `docker-compose.yml` uses these port variables (set in the root `.env` 
 | `FRONTEND_PORT` | `7461` | React web |
 | `APPSTORE_API_PORT` | `7462` | App Store scraper |
 | `GPLAY_API_PORT` | `7463` | Google Play scraper |
-| `FORWARD_DB_PORT` | `7464` | MySQL |
-| `FORWARD_REDIS_PORT` | `6379` | Redis |
+| `FORWARD_DB_PORT` | `7464` | MySQL (host-side, container is `:3306`) |
+| `FORWARD_REDIS_PORT` | `7465` | Redis (host-side, container is `:6379`) |

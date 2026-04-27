@@ -96,20 +96,59 @@ Each source can be toggled independently per platform. When a source is off, unk
 | `REDIS_PORT` | `6379` | Redis port |
 | `REDIS_PASSWORD` | `null` | Redis password |
 
-## Session
+## Session & Auth
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SESSION_DRIVER` | `database` | Session storage driver |
-| `SESSION_LIFETIME` | `120` | Session lifetime (minutes) |
-| `BCRYPT_ROUNDS` | `12` | Password hashing cost |
+| Variable | Default | Required | Description |
+|----------|---------|----------|-------------|
+| `SESSION_DRIVER` | `database` | No | Session storage driver |
+| `SESSION_LIFETIME` | `120` | No | Session lifetime (minutes) |
+| `SESSION_DOMAIN` | `null` | Production | Cookie domain (e.g. `.appstore.cat`). Required when frontend and backend are on different subdomains under the same registered domain. |
+| `SESSION_SECURE_COOKIE` | `false` | Production | Set to `true` when serving over HTTPS |
+| `SESSION_SAME_SITE` | `lax` | No | `lax`, `strict`, or `none`. Use `none` only with `SESSION_SECURE_COOKIE=true` for cross-site SPA. |
+| `SANCTUM_STATEFUL_DOMAINS` | — | Production | Comma-separated list of frontend domains permitted to use cookie auth (e.g. `appstore.cat,www.appstore.cat`). Without this, SPA login silently fails. |
+| `SANCTUM_TOKEN_PREFIX` | — | No | Optional prefix prepended to all generated API tokens (helps with secret scanning) |
+| `BCRYPT_ROUNDS` | `12` | No | Password hashing cost |
 
 ## Logging
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LOG_CHANNEL` | `stack` | Log channel (development: `stack`, production: `stderr`) |
-| `LOG_LEVEL` | `debug` | Minimum log level |
+| `LOG_CHANNEL` | `stack` | Log channel (development: `stack`, production: `stderr` for container-friendly logs) |
+| `LOG_STACK` | `single` | Channels included in `stack` (comma-separated: `single,daily,slack`) |
+| `LOG_LEVEL` | `debug` | Minimum log level (production: `warning` or `error`) |
+| `LOG_DAILY_DAYS` | `14` | Retention (days) for the `daily` channel |
+| `LOG_DEPRECATIONS_CHANNEL` | `null` | Channel for deprecation warnings (e.g. `daily`) |
+
+## Workers (Production)
+
+These are read by the production `supervisord` config inside the server container. Override at `docker compose` level via environment.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SUPERVISOR_QUEUE_NUMPROCS` | `2` | Number of `queue:work` worker processes |
+| `SUPERVISOR_QUEUE_TIMEOUT` | `120` | Per-job timeout (seconds) |
+| `SUPERVISOR_QUEUE_TRIES` | `3` | Max retry attempts before failed_jobs |
+| `SUPERVISOR_QUEUE_BACKOFF` | `60` | Backoff (seconds) between retries |
+| `SUPERVISOR_QUEUES` | `default,sync-tracked-ios,sync-tracked-android,sync-on-demand-ios,sync-on-demand-android,charts-ios,charts-android` | Comma-separated queue priority order |
+| `SCHEDULER_ENABLED` | `true` | Run Laravel scheduler inside the server container (set `false` if you run it externally) |
+
+## Frontend (build-time)
+
+Set in the root `.env`. Read by Vite during the web container build.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BACKEND_URL` | `http://appstorecat-server:80` | Where the SPA proxies API requests to (Docker-internal) |
+| `GA_MEASUREMENT_ID` | — | Google Analytics 4 ID. Leave empty to disable. Safe to expose (client-side ID). |
+
+## MCP Server
+
+Read by `@appstorecat/mcp` (the MCP server is a separate Node.js process spawned by Claude Code; these are NOT set in the Laravel `.env`).
+
+| Variable | Default | Required | Description |
+|----------|---------|----------|-------------|
+| `APPSTORECAT_API_TOKEN` | — | Yes | Sanctum bearer token. Created from the web UI: Settings → API Tokens → Create. |
+| `APPSTORECAT_API_URL` | `http://localhost:7460/api/v1` | No | API base URL. Use `https://server.appstore.cat/api/v1` for the hosted demo. |
 
 ## Swagger
 
@@ -127,5 +166,5 @@ These are set in the root `.env` file (not `server/.env`):
 | `FRONTEND_PORT` | `7461` | Frontend |
 | `APPSTORE_API_PORT` | `7462` | App Store scraper |
 | `GPLAY_API_PORT` | `7463` | Google Play scraper |
-| `FORWARD_DB_PORT` | `7464` | MySQL (external) |
-| `FORWARD_REDIS_PORT` | `6379` | Redis (external) |
+| `FORWARD_DB_PORT` | `7464` | MySQL (host-side mapping for container port `3306`) |
+| `FORWARD_REDIS_PORT` | `7465` | Redis (host-side mapping for container port `6379`) |

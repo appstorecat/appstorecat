@@ -42,7 +42,8 @@ All services will start in the background:
 | Frontend | http://localhost:7461 | React SPA |
 | App Store Scraper | http://localhost:7462 | iOS data source |
 | Google Play Scraper | http://localhost:7463 | Android data source |
-| MySQL | localhost:7464 | Database |
+| MySQL | localhost:7464 | Database (host-side; container is `:3306`) |
+| Redis | localhost:7465 | Cache & queue (host-side; container is `:6379`) |
 
 ## Verify the Setup
 
@@ -85,7 +86,7 @@ make dev-android      # Google Play scraper only
 
 ### Port Conflicts
 
-Default ports are in the 7460-7464 range. If any port is in use, change it by editing the `.env` file at the project root.
+Default ports are in the **7460–7465** range. If any port is in use, change it by editing the `.env` file at the project root.
 
 ### Database Connection Issues
 

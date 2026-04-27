@@ -4,19 +4,21 @@ AppStoreCat is a monorepo of 4 services that communicate over HTTP:
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────────┐
-│  Frontend   │────▶│  Backend (API)   │────▶│  scraper-ios   │
+│  Frontend   │────▶│  Backend (API)   │────▶│  scraper-ios        │
 │  React SPA  │     │  Laravel 13      │     │  Fastify + Node.js  │
 │  :7461      │     │  :7460           │     │  :7462              │
-└─────────────┘     └──────┬───────────┘     └─────────────────────┘
-                           │           │
-                           │           │     ┌─────────────────────┐
-                           │           └────▶│  scraper-android      │
-                           │                 │  FastAPI + Python   │
-                    ┌──────▼───────┐         │  :7463              │
-                    │    MySQL     │         └─────────────────────┘
-                    │    :7464     │
-                    └──────────────┘
+└─────────────┘     └──┬───────────┬───┘     └─────────────────────┘
+                       │           │
+                       │           │         ┌─────────────────────┐
+                       │           └────────▶│  scraper-android    │
+                       │                     │  FastAPI + Python   │
+                ┌──────▼─────┐ ┌──────────┐  │  :7463              │
+                │   MySQL    │ │  Redis   │  └─────────────────────┘
+                │   :7464    │ │  :7465   │
+                └────────────┘ └──────────┘
 ```
+
+> All host-side ports use the **746x** series for consistency. Inside Docker, MySQL and Redis still listen on their standard ports (`3306`, `6379`).
 
 ## Design Principles
 
