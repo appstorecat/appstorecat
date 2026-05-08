@@ -6,9 +6,18 @@ import Fastify, { type FastifyReply } from "fastify";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import * as scraper from "./scraper.js";
-import { initProxy, redactErrorMessage } from "./proxy.js";
+import { initProxy, redactErrorMessage, redactProxyUrl } from "./proxy.js";
 
-const proxyStatus = initProxy(process.env.IOS_PROXY_URL);
+let proxyStatus;
+try {
+  proxyStatus = initProxy(process.env.IOS_PROXY_URL);
+} catch (err) {
+  // initProxy throws synchronously on a malformed IOS_PROXY_URL. This
+  // runs before Fastify's logger is wired, so use console.error — but
+  // pass through redactor so a malformed URL doesn't leak credentials.
+  console.error(`scraper-ios proxy init failed: ${redactErrorMessage(err)}`);
+  process.exit(1);
+}
 
 /**
  * Map a scraper exception to an appropriate HTTP response.
@@ -391,10 +400,19 @@ const start = async () => {
   try {
     await app.listen({ port: PORT, host: "0.0.0.0" });
     if (proxyStatus.enabled) {
-      app.log.info({ proxy_host: proxyStatus.host }, "outbound proxy enabled");
+      app.log.info(
+        { proxy_host: proxyStatus.host, proxy_scheme: proxyStatus.scheme },
+        "outbound proxy enabled"
+      );
     }
   } catch (err) {
-    app.log.error(err);
+    // Redact before logging — pino's default error serializer would
+    // otherwise emit `err.message` and `err.stack` raw, which can carry
+    // proxy credentials when the failure originated in undici/request.
+    const message = redactErrorMessage(err);
+    const stack =
+      err instanceof Error && err.stack ? redactProxyUrl(err.stack) : undefined;
+    app.log.error({ err: { message, stack } }, "scraper-ios startup failed");
     process.exit(1);
   }
 };

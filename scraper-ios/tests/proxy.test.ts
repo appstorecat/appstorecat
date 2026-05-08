@@ -79,27 +79,41 @@ describe("initProxy", () => {
 
   it("returns disabled when env is missing", async () => {
     const { initProxy } = await import("../src/proxy.js");
-    expect(initProxy(undefined)).toEqual({ enabled: false, host: null });
+    expect(initProxy(undefined)).toEqual({
+      enabled: false,
+      host: null,
+      scheme: null,
+    });
     expect(process.env.HTTPS_PROXY).toBeUndefined();
   });
 
   it("returns disabled for an empty string", async () => {
     const { initProxy } = await import("../src/proxy.js");
-    expect(initProxy("   ")).toEqual({ enabled: false, host: null });
+    expect(initProxy("   ")).toEqual({
+      enabled: false,
+      host: null,
+      scheme: null,
+    });
     expect(process.env.HTTPS_PROXY).toBeUndefined();
   });
 
-  it("mirrors the URL into HTTPS_PROXY/HTTP_PROXY", async () => {
+  it("mirrors the URL into HTTPS_PROXY/HTTP_PROXY for http schemes", async () => {
     const { initProxy } = await import("../src/proxy.js");
     const status = initProxy("http://proxy.example.com:8080");
     expect(status).toEqual({
       enabled: true,
       host: "proxy.example.com:8080",
+      scheme: "http",
     });
     expect(process.env.HTTPS_PROXY).toBe("http://proxy.example.com:8080");
     expect(process.env.HTTP_PROXY).toBe("http://proxy.example.com:8080");
-    expect(process.env.https_proxy).toBe("http://proxy.example.com:8080");
-    expect(process.env.http_proxy).toBe("http://proxy.example.com:8080");
+  });
+
+  it("classifies https URLs as scheme=https", async () => {
+    const { initProxy } = await import("../src/proxy.js");
+    const status = initProxy("https://proxy.example.com:8443");
+    expect(status.scheme).toBe("https");
+    expect(process.env.HTTPS_PROXY).toBe("https://proxy.example.com:8443");
   });
 
   it("preserves credentials in the env var (real fetch needs them)", async () => {
@@ -119,13 +133,78 @@ describe("initProxy", () => {
     ).toThrow(/IOS_PROXY_URL is not a valid URL/);
   });
 
-  it("installs an undici global dispatcher when enabled", async () => {
+  it("rejects unsupported URL schemes", async () => {
+    const { initProxy } = await import("../src/proxy.js");
+    expect(() => initProxy("ftp://proxy.example.com:21")).toThrow(
+      /must use http:\/\/, https:\/\/, or socks5:\/\//
+    );
+  });
+
+  it("installs the EnvHttpProxyAgent dispatcher for http", async () => {
     const { initProxy } = await import("../src/proxy.js");
     const undici = await import("undici");
-    const before = undici.getGlobalDispatcher();
     initProxy("http://proxy.example.com:8080");
-    const after = undici.getGlobalDispatcher();
-    expect(after).not.toBe(before);
-    expect(after).toBeInstanceOf(undici.EnvHttpProxyAgent);
+    expect(undici.getGlobalDispatcher()).toBeInstanceOf(
+      undici.EnvHttpProxyAgent
+    );
+  });
+
+  it("installs the Socks5ProxyAgent dispatcher for socks5", async () => {
+    const { initProxy, getProxyRequestOptions } = await import(
+      "../src/proxy.js"
+    );
+    const undici = await import("undici");
+    const status = initProxy(
+      "socks5://alice:s3cret@proxy.example.com:1080"
+    );
+    expect(status).toEqual({
+      enabled: true,
+      host: "proxy.example.com:1080",
+      scheme: "socks5",
+    });
+    expect(undici.getGlobalDispatcher()).toBeInstanceOf(
+      undici.Socks5ProxyAgent
+    );
+    // SOCKS env vars are NOT set — request library doesn't honor them
+    // and we don't want to mislead other libs into thinking they can.
+    expect(process.env.HTTPS_PROXY).toBeUndefined();
+    expect(getProxyRequestOptions()).toMatchObject({ agent: expect.anything() });
+  });
+
+  it("treats socks5h:// as an alias for socks5://", async () => {
+    const { initProxy } = await import("../src/proxy.js");
+    const status = initProxy("socks5h://proxy.example.com:1080");
+    expect(status.scheme).toBe("socks5");
+  });
+
+  it("returns a request-options snapshot with `proxy` for http", async () => {
+    const { initProxy, getProxyRequestOptions } = await import(
+      "../src/proxy.js"
+    );
+    initProxy("http://proxy.example.com:8080");
+    expect(getProxyRequestOptions()).toEqual({
+      proxy: "http://proxy.example.com:8080",
+    });
+  });
+
+  it("clears the request-options snapshot when the env is missing", async () => {
+    const { initProxy, getProxyRequestOptions } = await import(
+      "../src/proxy.js"
+    );
+    initProxy("http://proxy.example.com:8080");
+    initProxy(undefined);
+    expect(getProxyRequestOptions()).toBeNull();
+  });
+
+  it("clears HTTPS_PROXY env vars on disable so a re-init fully turns proxy off", async () => {
+    const { initProxy } = await import("../src/proxy.js");
+    initProxy("http://proxy.example.com:8080");
+    expect(process.env.HTTPS_PROXY).toBe("http://proxy.example.com:8080");
+
+    initProxy(undefined);
+    expect(process.env.HTTPS_PROXY).toBeUndefined();
+    expect(process.env.HTTP_PROXY).toBeUndefined();
+    expect(process.env.https_proxy).toBeUndefined();
+    expect(process.env.http_proxy).toBeUndefined();
   });
 });

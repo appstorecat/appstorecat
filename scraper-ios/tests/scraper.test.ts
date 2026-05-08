@@ -67,7 +67,10 @@ describe("scraper integration with proxy plumbing", () => {
     );
   });
 
-  it("fetchIdentity calls store.app and forwards lang option", async () => {
+  it("fetchIdentity calls store.app and forwards lang + proxy requestOptions", async () => {
+    const { initProxy } = await import("../src/proxy.js");
+    initProxy("socks5://alice:s3cret@proxy.example.com:1080");
+
     const store = (await import("app-store-scraper")).default as unknown as {
       app: ReturnType<typeof vi.fn>;
     };
@@ -96,10 +99,32 @@ describe("scraper integration with proxy plumbing", () => {
     await scraper.fetchIdentity("123", "us", "en");
 
     expect(store.app).toHaveBeenCalledTimes(1);
-    expect(store.app.mock.calls[0][0]).toMatchObject({
-      id: 123,
-      country: "us",
-      lang: "en",
+    const opts = store.app.mock.calls[0][0] as Record<string, unknown>;
+    expect(opts).toMatchObject({ id: 123, country: "us", lang: "en" });
+    // SOCKS proxies thread through requestOptions.agent so the legacy
+    // `request` library inside app-store-scraper can use them.
+    expect(opts.requestOptions).toBeDefined();
+    expect((opts.requestOptions as Record<string, unknown>).agent).toBeDefined();
+  });
+
+  it("fetchIdentity threads requestOptions.proxy for http schemes", async () => {
+    const { initProxy } = await import("../src/proxy.js");
+    initProxy("http://alice:s3cret@proxy.example.com:8080");
+
+    const store = (await import("app-store-scraper")).default as unknown as {
+      app: ReturnType<typeof vi.fn>;
+    };
+    store.app.mockResolvedValueOnce({ id: 1, title: "x" });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("", { status: 500 })
+    );
+
+    const scraper = await import("../src/scraper.js");
+    await scraper.fetchIdentity("1", "us");
+
+    const opts = store.app.mock.calls[0][0] as Record<string, unknown>;
+    expect(opts.requestOptions).toEqual({
+      proxy: "http://alice:s3cret@proxy.example.com:8080",
     });
   });
 

@@ -13,7 +13,21 @@ import type {
   SearchResult,
   StoreListing,
 } from "./schemas.js";
-import { redactErrorMessage, redactProxyUrl } from "./proxy.js";
+import {
+  getProxyRequestOptions,
+  redactErrorMessage,
+  redactProxyUrl,
+} from "./proxy.js";
+
+function withProxy<T extends Record<string, unknown>>(opts: T): T {
+  const proxy = getProxyRequestOptions();
+  if (!proxy) return opts;
+  const existing = (opts.requestOptions as Record<string, unknown>) ?? {};
+  return {
+    ...opts,
+    requestOptions: { ...proxy, ...existing },
+  } as T;
+}
 
 /**
  * Scrape App Store web page for data not available via the scraper package
@@ -155,7 +169,7 @@ async function scrapeAppStorePage(
 export async function fetchIdentity(appId: string, country: string = "us", lang?: string): Promise<AppIdentity> {
   const opts: Record<string, any> = { id: Number(appId), country };
   if (lang) opts.lang = lang;
-  const info = await store.app(opts);
+  const info = await store.app(withProxy(opts));
 
   return {
     app_id: String(info.id),
@@ -187,7 +201,7 @@ export async function fetchListing(
   const opts: Record<string, any> = { id: Number(appId), country };
   if (lang) opts.lang = lang;
   const [info, webData] = await Promise.all([
-    store.app(opts),
+    store.app(withProxy(opts)),
     scrapeAppStorePage(appId, country),
   ]);
 
@@ -253,7 +267,7 @@ export async function fetchMetrics(appId: string, country: string = "us", lang?:
   const opts: Record<string, any> = { id: Number(appId), country };
   if (lang) opts.lang = lang;
   const [info, webData] = await Promise.all([
-    store.app(opts),
+    store.app(withProxy(opts)),
     scrapeAppStorePage(appId, country),
   ]);
 
@@ -300,7 +314,7 @@ export async function fetchMetrics(appId: string, country: string = "us", lang?:
 export async function fetchDeveloperApps(
   developerId: string
 ): Promise<DeveloperApp[]> {
-  const apps = await store.developer({ devId: Number(developerId) });
+  const apps = await store.developer(withProxy({ devId: Number(developerId) }));
 
   return apps.map((info: any) => ({
     external_id: String(info.id),
@@ -339,10 +353,17 @@ export async function fetchChart(
 
   let results;
   try {
-    results = await store.list(opts);
+    results = await store.list(withProxy(opts));
   } catch (err: unknown) {
+    let detail = redactErrorMessage(err);
+    if (!detail || detail === "[object Object]") {
+      const status = (err as { response?: { statusCode?: number } })?.response
+        ?.statusCode;
+      detail = status ? `HTTP ${status}` : "unknown error";
+    }
+    const stack = err instanceof Error && err.stack ? err.stack : "";
     console.warn(
-      `[chart] empty or failed: ${collection} ${country} cat=${category ?? 'all'} — ${redactProxyUrl(redactErrorMessage(err))}`
+      `[chart] empty or failed: ${collection} ${country} cat=${category ?? 'all'} — ${redactProxyUrl(detail)}\n${redactProxyUrl(stack)}`
     );
     return [];
   }
@@ -374,7 +395,7 @@ export async function searchApps(
   num: number = 10,
   country: string = "us"
 ): Promise<SearchResult[]> {
-  const results = await store.search({ term, num, country });
+  const results = await store.search(withProxy({ term, num, country }));
 
   return results.map((info: any) => ({
     app_id: String(info.id),

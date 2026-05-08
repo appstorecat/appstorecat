@@ -69,17 +69,48 @@ def test_redact_error_message_handles_none_and_strings():
 
 
 def test_init_proxy_disabled_when_blank():
-    assert init_proxy(None) == ProxyStatus(enabled=False, host=None)
-    assert init_proxy("   ") == ProxyStatus(enabled=False, host=None)
+    assert init_proxy(None) == ProxyStatus(enabled=False, host=None, scheme=None)
+    assert init_proxy("   ") == ProxyStatus(
+        enabled=False, host=None, scheme=None
+    )
     for key in PROXY_ENV_KEYS:
         assert key not in os.environ
 
 
-def test_init_proxy_mirrors_url_into_env():
+def test_init_proxy_mirrors_http_url_into_env():
     status = init_proxy("http://proxy.example.com:8080")
-    assert status == ProxyStatus(enabled=True, host="proxy.example.com:8080")
+    assert status == ProxyStatus(
+        enabled=True, host="proxy.example.com:8080", scheme="http"
+    )
     for key in PROXY_ENV_KEYS:
         assert os.environ[key] == "http://proxy.example.com:8080"
+
+
+def test_init_proxy_classifies_https_url():
+    status = init_proxy("https://proxy.example.com:8443")
+    assert status.scheme == "https"
+
+
+def test_init_proxy_classifies_socks5_url():
+    status = init_proxy("socks5://alice:s3cret@proxy.example.com:1080")
+    assert status == ProxyStatus(
+        enabled=True, host="proxy.example.com:1080", scheme="socks5"
+    )
+    # `requests` honors socks5:// as the HTTPS_PROXY value when PySocks
+    # is installed, so we still mirror it into the env.
+    for key in PROXY_ENV_KEYS:
+        assert os.environ[key] == "socks5://alice:s3cret@proxy.example.com:1080"
+
+
+def test_init_proxy_treats_socks5h_as_socks5():
+    status = init_proxy("socks5h://proxy.example.com:1080")
+    assert status.scheme == "socks5"
+
+
+def test_init_proxy_rejects_unsupported_scheme():
+    with pytest.raises(ValueError) as exc:
+        init_proxy("ftp://proxy.example.com:21")
+    assert "must use http://, https://, or socks5://" in str(exc.value)
 
 
 def test_init_proxy_keeps_credentials_in_env_for_actual_request_use():
@@ -145,3 +176,28 @@ def test_init_proxy_overrides_http_client_module_class_method():
     # original — pinning is one-way for the lifetime of the process.
     proxy_module.init_proxy(None)
     assert gplay_http.HttpClient._make_request is not original_make_request
+
+
+def test_init_proxy_clears_env_on_disable(monkeypatch):
+    # Calling init_proxy with a real URL and then disabling it should
+    # fully unset HTTPS_PROXY env vars — otherwise a runtime re-init
+    # would silently keep the previous proxy active.
+    init_proxy("http://proxy.example.com:8080")
+    assert os.environ["HTTPS_PROXY"] == "http://proxy.example.com:8080"
+
+    init_proxy(None)
+    for key in PROXY_ENV_KEYS:
+        assert key not in os.environ
+
+
+def test_init_proxy_fails_loudly_when_gplay_internals_missing(monkeypatch):
+    # If gplay-scraper renames _try_request_with_client in a future
+    # release, init_proxy must refuse to enable the proxy rather than
+    # silently letting the silent-fallback chain leak the real IP.
+    from gplay_scraper.utils import http_client as gplay_http
+
+    monkeypatch.delattr(
+        gplay_http.HttpClient, "_try_request_with_client", raising=True
+    )
+    with pytest.raises(RuntimeError, match="gplay-scraper internal API changed"):
+        init_proxy("http://proxy.example.com:8080")

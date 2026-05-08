@@ -21,10 +21,25 @@ from .schemas import (
 from . import scraper
 from .scraper import AppNotFoundError
 
-_proxy_status = init_proxy(os.environ.get("ANDROID_PROXY_URL"))
+try:
+    _proxy_status = init_proxy(os.environ.get("ANDROID_PROXY_URL"))
+except Exception as exc:
+    # init_proxy raises on a malformed ANDROID_PROXY_URL or on a
+    # gplay-scraper internal-API mismatch. The exception message is
+    # already redacted; surface it on stderr and refuse to start —
+    # silently disabling the proxy would risk leaking the real IP.
+    from .proxy import redact_error_message
+
+    print(f"scraper-android proxy init failed: {redact_error_message(exc)}")
+    raise SystemExit(1) from exc
+
 if _proxy_status.enabled:
     logging.getLogger(__name__).info(
-        "outbound proxy enabled", extra={"proxy_host": _proxy_status.host}
+        "outbound proxy enabled",
+        extra={
+            "proxy_host": _proxy_status.host,
+            "proxy_scheme": _proxy_status.scheme,
+        },
     )
 
 PORT = int(os.environ["PORT"]) if os.environ.get("PORT") else None
