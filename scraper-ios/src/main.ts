@@ -6,6 +6,9 @@ import Fastify, { type FastifyReply } from "fastify";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import * as scraper from "./scraper.js";
+import { initProxy, redactErrorMessage } from "./proxy.js";
+
+const proxyStatus = initProxy(process.env.IOS_PROXY_URL);
 
 /**
  * Map a scraper exception to an appropriate HTTP response.
@@ -15,18 +18,11 @@ import * as scraper from "./scraper.js";
  *  - anything else (fetch failure, rate limit, parse error) — treat as 500
  */
 function sendScraperError(reply: FastifyReply, e: unknown) {
-  const rawMessage =
-    e instanceof Error
-      ? e.message
-      : typeof e === "string"
-        ? e
-        : ((e as { message?: unknown })?.message ?? "");
-  const message = typeof rawMessage === "string" ? rawMessage : String(rawMessage);
+  const message = redactErrorMessage(e);
   const lower = message.toLowerCase();
+  const isObjectShape = !message && e !== null && typeof e === "object";
   const looksLikeNotFound =
-    lower.includes("not found") ||
-    lower.includes("404") ||
-    (!message && e !== null && typeof e === "object");
+    lower.includes("not found") || lower.includes("404") || isObjectShape;
 
   if (looksLikeNotFound) {
     return reply
@@ -91,7 +87,11 @@ app.get(
       response: { 200: HealthResponseSchema },
     },
   },
-  async () => ({ status: "ok", service: "scraper-ios" })
+  async () => ({
+    status: "ok",
+    service: "scraper-ios",
+    proxy: proxyStatus.enabled ? "configured" : "disabled",
+  })
 );
 
 // Charts / Top lists
@@ -390,6 +390,9 @@ app.get(
 const start = async () => {
   try {
     await app.listen({ port: PORT, host: "0.0.0.0" });
+    if (proxyStatus.enabled) {
+      app.log.info({ proxy_host: proxyStatus.host }, "outbound proxy enabled");
+    }
   } catch (err) {
     app.log.error(err);
     process.exit(1);

@@ -13,6 +13,7 @@ import type {
   SearchResult,
   StoreListing,
 } from "./schemas.js";
+import { redactErrorMessage, redactProxyUrl } from "./proxy.js";
 
 /**
  * Scrape App Store web page for data not available via the scraper package
@@ -145,9 +146,7 @@ async function scrapeAppStorePage(
     }
   } catch (err) {
     // Web scraping is a best-effort fallback; log and return whatever we got.
-    warn("exception", {
-      error: err instanceof Error ? err.message : String(err),
-    });
+    warn("exception", { error: redactErrorMessage(err) });
   }
 
   return result;
@@ -341,8 +340,10 @@ export async function fetchChart(
   let results;
   try {
     results = await store.list(opts);
-  } catch (err: any) {
-    console.warn(`[chart] empty or failed: ${collection} ${country} cat=${category ?? 'all'} — ${err.message}`);
+  } catch (err: unknown) {
+    console.warn(
+      `[chart] empty or failed: ${collection} ${country} cat=${category ?? 'all'} — ${redactProxyUrl(redactErrorMessage(err))}`
+    );
     return [];
   }
 
