@@ -22,6 +22,7 @@ endif
         dev-server dev-web dev-android dev-ios \
         install key artisan composer tinker shell npm \
         lint pint lint-web \
+        test-ios test-android test-scrapers \
         swagger api-generate api \
         logs-server logs-web logs-android logs-ios \
         mysql redis-cli \
@@ -158,6 +159,19 @@ pint:
 ## ESLint (web)
 lint-web:
 	$(WEB) npx eslint .
+
+# ─── Tests ───────────────────────────────────────────────────
+
+## Run iOS scraper tests (vitest)
+test-ios:
+	docker compose exec appstorecat-scraper-ios npm test
+
+## Run Android scraper tests (pytest)
+test-android:
+	docker compose exec appstorecat-scraper-android pytest -ra
+
+## Run both scraper test suites
+test-scrapers: test-ios test-android
 
 # ─── Logs ─────────────────────────────────────────────────────
 
