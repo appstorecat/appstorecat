@@ -2,3 +2,11 @@ fastapi==0.135.3
 uvicorn[standard]==0.44.0
 gplay-scraper==1.0.6
 pydantic==2.12.5
+# SOCKS5 proxy support for `requests` (PySocks). HTTPS_PROXY=socks5://...
+# is honored automatically once this extra is installed. Upper-bounded
+# below the next major to avoid silent breaking changes between rebuilds.
+requests[socks]>=2.32,<3.0
+
+# Tests
+pytest>=8.4
+responses==0.25.7

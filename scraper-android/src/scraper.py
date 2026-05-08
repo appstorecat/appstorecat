@@ -7,6 +7,8 @@ from datetime import date
 import requests
 from gplay_scraper import GPlayScraper
 
+from .proxy import redact_error_message
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +50,7 @@ COLLECTION_MAP = {
 
 DEVELOPER_FIELDS = ["appId", "title", "icon", "score", "ratings", "free", "genre", "genreId"]
 
-scraper = GPlayScraper()
+scraper = GPlayScraper(http_client="requests")
 
 
 def _resolve_developer_id(info: dict) -> str | None:
@@ -144,7 +146,7 @@ def fetch_localized_listings(
         except Exception as exc:
             logger.warning(
                 "fetch_localized_listings: locale failed",
-                extra={"app_id": app_id, "locale": locale, "reason": str(exc)},
+                extra={"app_id": app_id, "locale": locale, "reason": redact_error_message(exc)},
             )
             continue
 
@@ -210,7 +212,7 @@ def _scrape_developer_page(developer_id: str) -> list[str]:
     except Exception as e:
         logger.warning(
             "_scrape_developer_page: exception",
-            extra={"developer_id": developer_id, "reason": str(e)},
+            extra={"developer_id": developer_id, "reason": redact_error_message(e)},
         )
         return []
 
@@ -249,7 +251,7 @@ def fetch_developer_apps(developer_id: str) -> DeveloperAppsResponse:
                 extra={
                     "developer_id": developer_id,
                     "app_id": app_id,
-                    "reason": str(exc),
+                    "reason": redact_error_message(exc),
                 },
             )
             continue

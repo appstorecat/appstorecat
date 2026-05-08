@@ -63,6 +63,7 @@ services:
         environment:
             - NODE_ENV=development
             - PORT=${APPSTORE_API_PORT}
+            - IOS_PROXY_URL=${IOS_PROXY_URL:-}
         networks:
             - appstorecat
 
@@ -79,6 +80,7 @@ services:
             - PYTHONDONTWRITEBYTECODE=1
             - PYTHONUNBUFFERED=1
             - PORT=${GPLAY_API_PORT}
+            - ANDROID_PROXY_URL=${ANDROID_PROXY_URL:-}
         networks:
             - appstorecat
 

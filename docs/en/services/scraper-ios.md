@@ -83,6 +83,28 @@ make logs-ios     # View logs
 
 While the service is running, the Swagger UI is available at `/docs`.
 
+## Outbound Proxy
+
+Set `IOS_PROXY_URL` to route every outbound call to Apple (the iTunes lookup API and the `apps.apple.com` web fallback used for screenshots/subtitles/ratings) through a proxy. Leave the variable empty to call Apple directly.
+
+The proxy type is selected by the URL scheme:
+
+| Scheme | Behavior |
+|--------|----------|
+| `http://[user:pass@]host:port` | The scraper exports `HTTPS_PROXY`/`HTTP_PROXY` so the legacy `request` library inside `app-store-scraper` picks the proxy up. Native `fetch()` is routed via undici's `EnvHttpProxyAgent`. |
+| `https://[user:pass@]host:port` | Same as `http://`, with TLS to the proxy. |
+| `socks5://[user:pass@]host:port` | The scraper threads a `socks-proxy-agent` instance into every `app-store-scraper` call's `requestOptions.agent` and installs undici's `Socks5ProxyAgent` as the global dispatcher for native `fetch()`. `socks5h://` is accepted as an alias. |
+
+In all cases the scraper:
+
+- redacts `user:pass@` credentials from error logs and HTTP error responses;
+- reports `proxy: "configured"` on `GET /health`;
+- logs `outbound proxy enabled` with `proxy_host` (no credentials) and `proxy_scheme` on startup.
+
+For proxy rotation, point `IOS_PROXY_URL` at a sidecar proxy container (e.g. `tinyproxy`, `squid`) that handles the rotation upstream — the scraper itself does not rotate.
+
+> **Note:** Node's SOCKS5 dispatcher is marked experimental upstream (`undici`); the scraper emits an `ExperimentalWarning` on startup when a SOCKS5 URL is configured. Functionality is stable — only the API stability marker is new.
+
 ## Design Principles
 
 - **Stateless:** no database, no cache, no persistent state

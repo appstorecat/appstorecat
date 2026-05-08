@@ -161,6 +161,11 @@ export const HealthResponseSchema = {
   properties: {
     status: { type: "string" as const },
     service: { type: "string" as const },
+    proxy: {
+      type: "string" as const,
+      enum: ["configured", "disabled"],
+      description: "Whether an outbound proxy is configured for store traffic",
+    },
   },
 };
 

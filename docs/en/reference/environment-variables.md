@@ -34,6 +34,31 @@ Full reference of every environment variable used by AppStoreCat.
 | `APPSTORE_TIMEOUT` | `30` | No | App Store request timeout (seconds) |
 | `GPLAY_TIMEOUT` | `30` | No | Google Play request timeout (seconds) |
 
+### Outbound Store Proxies
+
+Per-platform proxy for the scraper microservices' outbound traffic to Apple and Google Play. Each scraper reads only its own variable; iOS and Android can therefore use different proxy pools (or only one of them can be proxied). Leave both empty to call the stores directly.
+
+The proxy type is selected by the URL scheme:
+
+| Scheme | Use case |
+|--------|----------|
+| `http://[user:pass@]host:port` | Plain HTTP proxy (CONNECT tunneling for HTTPS targets) |
+| `https://[user:pass@]host:port` | TLS-wrapped HTTP proxy |
+| `socks5://[user:pass@]host:port` | SOCKS5 proxy (`socks5h://` is accepted as an alias) |
+
+| Variable | Default | Required | Description |
+|----------|---------|----------|-------------|
+| `IOS_PROXY_URL` | _(empty)_ | No | Proxy URL for `scraper-ios` outbound traffic. For HTTP(S) the scraper exports `HTTPS_PROXY`/`HTTP_PROXY` so the legacy `request` library inside `app-store-scraper` picks it up; for SOCKS5 it threads a `socks-proxy-agent` instance into every store call's `requestOptions.agent`. In both cases an `undici` global dispatcher is installed so native `fetch()` (used by the page-scrape fallback) is also routed through the proxy. |
+| `ANDROID_PROXY_URL` | _(empty)_ | No | Proxy URL for `scraper-android` outbound traffic. Same scheme rules. The scraper exports `HTTPS_PROXY`/`HTTP_PROXY` (`requests` honors `socks5://` URLs once the `requests[socks]` extra is installed, which the image bundles by default) and pins `gplay-scraper`'s HTTP client to `requests` so its silent fallback chain — `urllib3`, `curl_cffi`, `tls_client`, `aiohttp`, none of which honor proxy env vars by default — cannot leak the real egress IP. |
+
+`/health` on each scraper reports `proxy: "configured" \| "disabled"` so operators can confirm the variable was picked up.
+
+Proxy credentials are redacted from all error logs and HTTP error responses with the pattern `//user:pass@host` → `//***@host`.
+
+For proxy rotation or per-call routing, point these variables at a sidecar proxy container (e.g. `tinyproxy` or `squid`) that handles the rotation upstream — the scrapers themselves do not implement rotation.
+
+> **Note:** Node's SOCKS5 dispatcher is marked experimental upstream (`undici`); the scraper logs an `ExperimentalWarning` on startup when a SOCKS5 URL is configured. Functionality is stable — only the API stability marker is new.
+
 ## Rate Limits
 
 | Variable | Default | Description |

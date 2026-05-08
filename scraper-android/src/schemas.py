@@ -111,6 +111,7 @@ class ChartResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "scraper-android"
+    proxy: str = "disabled"
 
 
 class ErrorResponse(BaseModel):
