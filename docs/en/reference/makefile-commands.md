@@ -63,6 +63,14 @@ All commands are run from the project root.
 | `make pint` | Run the PHP code style fixer (Laravel Pint) |
 | `make lint-web` | Run ESLint (web) |
 
+## Tests
+
+| Command | Description |
+|---------|-------------|
+| `make test-ios` | Run the App Store scraper test suite (vitest) |
+| `make test-android` | Run the Google Play scraper test suite (pytest) |
+| `make test-scrapers` | Run both scraper test suites |
+
 ## Logs
 
 | Command | Description |

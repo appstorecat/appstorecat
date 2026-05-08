@@ -83,6 +83,19 @@ make logs-ios     # View logs
 
 While the service is running, the Swagger UI is available at `/docs`.
 
+## Outbound Proxy
+
+Set `IOS_PROXY_URL=http://[user:pass@]host:port` to route every outbound call to Apple (the iTunes lookup API and the `apps.apple.com` web fallback used for screenshots/subtitles/ratings) through an HTTP/HTTPS proxy. Leave the variable empty to call Apple directly.
+
+When the variable is set the scraper:
+
+- exports `HTTPS_PROXY` / `HTTP_PROXY` so the legacy `request` library inside `app-store-scraper` picks the proxy up;
+- installs a global `undici` `EnvHttpProxyAgent` so native `fetch()` calls (the page-scrape fallback) also respect the proxy;
+- redacts `user:pass@` credentials from error logs and HTTP error responses;
+- reports `proxy: "configured"` on `GET /health`.
+
+For proxy rotation, point `IOS_PROXY_URL` at a sidecar proxy container (e.g. `tinyproxy`, `squid`) that handles the rotation upstream — the scraper itself does not rotate.
+
 ## Design Principles
 
 - **Stateless:** no database, no cache, no persistent state

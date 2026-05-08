@@ -34,6 +34,21 @@ Full reference of every environment variable used by AppStoreCat.
 | `APPSTORE_TIMEOUT` | `30` | No | App Store request timeout (seconds) |
 | `GPLAY_TIMEOUT` | `30` | No | Google Play request timeout (seconds) |
 
+### Outbound Store Proxies
+
+Per-platform HTTP/HTTPS proxy for the scraper microservices' outbound traffic to Apple and Google Play. Each scraper reads only its own variable; iOS and Android can therefore use different proxy pools (or only one of them can be proxied). Leave both empty to call the stores directly.
+
+| Variable | Default | Required | Description |
+|----------|---------|----------|-------------|
+| `IOS_PROXY_URL` | _(empty)_ | No | Proxy URL for `scraper-ios` outbound traffic. Format: `http://[user:pass@]host:port`. When set, the scraper installs a global `undici` dispatcher and exports `HTTPS_PROXY`/`HTTP_PROXY` so the underlying `app-store-scraper` library picks it up automatically. |
+| `ANDROID_PROXY_URL` | _(empty)_ | No | Proxy URL for `scraper-android` outbound traffic. Same format. When set, the scraper exports `HTTPS_PROXY`/`HTTP_PROXY` and pins `gplay-scraper`'s HTTP client to `requests` so its silent fallback chain (which contains clients that ignore proxy env vars) cannot leak the real egress IP. |
+
+`/health` on each scraper reports `proxy: "configured" \| "disabled"` so operators can confirm the variable was picked up.
+
+Proxy credentials are redacted from all error logs and HTTP error responses with the pattern `//user:pass@host` → `//***@host`.
+
+For proxy rotation or per-call routing, point these variables at a sidecar proxy container (e.g. `tinyproxy` or `squid`) that handles the rotation upstream — the scrapers themselves do not implement rotation.
+
 ## Rate Limits
 
 | Variable | Default | Description |
