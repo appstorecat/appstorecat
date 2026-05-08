@@ -1,10 +1,12 @@
 """Google Play API — FastAPI application."""
 
+import logging
 import os
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from .proxy import init_proxy, redact_error_message
 from .schemas import (
     AppIdentity,
     AppMetrics,
@@ -18,6 +20,12 @@ from .schemas import (
 )
 from . import scraper
 from .scraper import AppNotFoundError
+
+_proxy_status = init_proxy(os.environ.get("ANDROID_PROXY_URL"))
+if _proxy_status.enabled:
+    logging.getLogger(__name__).info(
+        "outbound proxy enabled", extra={"proxy_host": _proxy_status.host}
+    )
 
 PORT = int(os.environ["PORT"]) if os.environ.get("PORT") else None
 PUBLIC_URL = os.environ.get("PUBLIC_URL", f"http://localhost:{PORT}" if PORT else "")
@@ -50,7 +58,9 @@ a{color:#fff;font-size:1.25rem;text-decoration:none;opacity:.6;transition:opacit
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
 def health():
-    return HealthResponse()
+    return HealthResponse(
+        proxy="configured" if _proxy_status.enabled else "disabled"
+    )
 
 
 @app.get("/docs", include_in_schema=False)
@@ -74,7 +84,7 @@ def charts(
     try:
         return scraper.fetch_chart(collection, category, country, count)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
 
 
 @app.get(
@@ -92,7 +102,7 @@ def search_apps(
     try:
         return scraper.search_apps(term, limit, country=country)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
 
 
 @app.get(
@@ -108,7 +118,7 @@ def get_app_identity(app_id: str, country: str = Query("us", min_length=2, max_l
     except AppNotFoundError:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
 
 
 @app.get(
@@ -128,7 +138,7 @@ def get_app_listing(
     except AppNotFoundError:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
 
 
 @app.get(
@@ -146,7 +156,7 @@ def get_app_localized_listings(
         locale_list = [loc.strip() for loc in locales.split(",") if loc.strip()]
         return scraper.fetch_localized_listings(app_id, locale_list)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
 
 
 @app.get(
@@ -162,7 +172,7 @@ def get_app_metrics(app_id: str, country: str = Query("us", min_length=2, max_le
     except AppNotFoundError:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
 
 
 @app.get(
@@ -176,7 +186,7 @@ def get_developer_apps(developer_id: str):
     try:
         return scraper.fetch_developer_apps(developer_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
 
 
 @app.get(
@@ -194,4 +204,4 @@ def search_developers(
     try:
         return scraper.search_apps(term, limit, country=country)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=redact_error_message(e))
