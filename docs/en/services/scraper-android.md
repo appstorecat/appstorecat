@@ -78,14 +78,22 @@ While the service is running, OpenAPI documentation is available at `/docs` (aut
 
 ## Outbound Proxy
 
-Set `ANDROID_PROXY_URL=http://[user:pass@]host:port` to route every outbound call to Google Play through an HTTP/HTTPS proxy. Leave the variable empty to call Google Play directly.
+Set `ANDROID_PROXY_URL` to route every outbound call to Google Play through a proxy. Leave the variable empty to call Google Play directly.
 
-When the variable is set the scraper:
+The proxy type is selected by the URL scheme:
 
-- exports `HTTPS_PROXY` / `HTTP_PROXY` so the `requests` library used by `gplay-scraper` picks the proxy up;
-- pins `gplay-scraper`'s `HttpClient` to the `requests` client and disables its silent fallback chain. This is critical: the package falls back through several other HTTP libraries (`urllib3`, `curl_cffi`, `tls_client`, `aiohttp`) that do not honor `HTTPS_PROXY` env vars by default — a single transient failure on the primary client could otherwise leak the real egress IP through a fallback that bypasses the proxy;
+| Scheme | Behavior |
+|--------|----------|
+| `http://[user:pass@]host:port` | The scraper exports `HTTPS_PROXY`/`HTTP_PROXY` so the `requests` library used by `gplay-scraper` picks the proxy up. |
+| `https://[user:pass@]host:port` | Same as `http://`, with TLS to the proxy. |
+| `socks5://[user:pass@]host:port` | The scraper exports the same env vars; `requests` honors `socks5://` URLs natively because the image bundles `requests[socks]` (PySocks). `socks5h://` is accepted as an alias. |
+
+In all cases the scraper:
+
+- pins `gplay-scraper`'s `HttpClient` to the `requests` client and disables its silent fallback chain. This is critical: the package falls back through several other HTTP libraries (`urllib3`, `curl_cffi`, `tls_client`, `aiohttp`) that do not honor `HTTPS_PROXY` env vars by default — a single transient failure on the primary client could otherwise leak the real egress IP through a fallback that bypasses the proxy. The patch is name-coupled to `gplay-scraper` 1.0.6; if a future version renames the relevant internal methods, the scraper fails loudly on boot rather than silently allowing a leak;
 - redacts `user:pass@` credentials from error logs and HTTP error responses;
-- reports `proxy: "configured"` on `GET /health`.
+- reports `proxy: "configured"` on `GET /health`;
+- logs `outbound proxy enabled` with `proxy_host` (no credentials) and `proxy_scheme` on startup.
 
 For proxy rotation, point `ANDROID_PROXY_URL` at a sidecar proxy container (e.g. `tinyproxy`, `squid`) that handles the rotation upstream — the scraper itself does not rotate.
 
