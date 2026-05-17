@@ -31,6 +31,7 @@ import {
   Star as StarIcon,
   History as HistoryIcon,
   GitCommit,
+  BarChart3,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useDominantColor, rgbToCss } from '@/hooks/useDominantColor'
@@ -242,6 +243,7 @@ export default function AppsShow() {
   const storeUrl = detail.platform === 'ios'
     ? `https://apps.apple.com/app/id${detail.external_id}`
     : `https://play.google.com/store/apps/details?id=${detail.external_id}`
+  const sensorTowerUrl = `https://app.sensortower.com/overview/${detail.external_id}?country=${selectedCountry.toUpperCase()}`
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
@@ -449,6 +451,17 @@ export default function AppsShow() {
                   <span className="truncate">
                     {detail.platform === 'ios' ? 'App Store' : 'Play Store'}
                   </span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href={sensorTowerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+                >
+                  <BarChart3 className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Sensor Tower</span>
                 </a>
               </li>
             </ul>
