@@ -24,6 +24,8 @@ class ReconcileFailedItemsJob implements ShouldBeUnique, ShouldQueue
 
     public int $uniqueFor = 1800;
 
+    public int $timeout = 1800;
+
     public function __construct(
         private readonly int $syncStatusId,
     ) {}
