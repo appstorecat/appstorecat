@@ -3,6 +3,7 @@
 namespace App\Connectors;
 
 use App\Models\App;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -30,11 +31,11 @@ class ITunesLookupConnector implements ConnectorInterface
             'category_external_id' => $data['category_id'] ?? null,
             'content_rating' => $data['content_rating'] ?? null,
             'supported_locales' => $data['supported_locales'] ?? [],
-            'original_release_date' => $data['original_release_date'] ?? null,
+            'original_release_date' => $this->parseDate($data['original_release_date'] ?? null),
             'is_free' => ($data['price_model'] ?? 'free') === 'free',
             'external_id' => $data['app_id'] ?? $app->external_id,
             'version' => $data['version'] ?? null,
-            'current_version_release_date' => $data['current_version_release_date'] ?? null,
+            'current_version_release_date' => $this->parseDate($data['current_version_release_date'] ?? null),
         ]);
     }
 
@@ -150,6 +151,24 @@ class ITunesLookupConnector implements ConnectorInterface
             'price' => $data['price'] ?? 0,
             'currency' => $data['currency'] ?? null,
         ];
+    }
+
+    /**
+     * Sanitize a date string from the scraper. Returns ISO yyyy-mm-dd or null
+     * if the value is empty or cannot be parsed. Defense-in-depth against
+     * unexpected non-date strings from upstream scrapers.
+     */
+    private function parseDate(?string $value): ?string
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->toDateString();
+        } catch (Throwable $e) {
+            return null;
+        }
     }
 
     private function get(string $path, array $query = []): array
