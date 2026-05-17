@@ -17,6 +17,11 @@
 .env.backup
 .env.production
 
+# Local DB backups
+/backups/
+*.sql
+*.sql.gz
+
 # Server (Laravel)
 /server/appgenome
 /server/.phpunit.cache
