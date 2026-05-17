@@ -16,6 +16,8 @@ class ChartEntry extends Model
 {
     protected $table = 'trending_chart_entries';
 
+    public $timestamps = false;
+
     /**
      * @return BelongsTo<ChartSnapshot, $this>
      */
