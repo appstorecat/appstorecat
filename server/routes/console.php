@@ -10,3 +10,5 @@ Schedule::command('appstorecat:sync:cleanup-failed-items')->dailyAt('04:00');
 
 Schedule::command('appstorecat:charts:sync-daily --ios')->dailyAt('00:30');
 Schedule::command('appstorecat:charts:sync-daily --android')->dailyAt('00:30');
+
+Schedule::command('queue:prune-failed --hours=168')->dailyAt('04:30');
