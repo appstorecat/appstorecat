@@ -1,0 +1,124 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Enums\Platform;
+use App\Models\App;
+use App\Models\AppVersion;
+use App\Models\StoreCategory;
+use App\Models\StoreListing;
+
+beforeEach(function () {
+    createAuthenticatedUser();
+});
+
+/**
+ * Attach an en-US store listing with an icon to a freshly-built app.
+ */
+function explorerIconApp(array $appAttrs = [], ?string $iconUrl = 'https://cdn.example.com/icon.png'): App
+{
+    $app = App::factory()->create(array_merge(['platform' => Platform::Ios], $appAttrs));
+    $version = AppVersion::factory()->create(['app_id' => $app->id]);
+    StoreListing::factory()->create([
+        'app_id' => $app->id,
+        'version_id' => $version->id,
+        'locale' => 'en-US',
+        'icon_url' => $iconUrl,
+    ]);
+
+    return $app;
+}
+
+it('returns apps with an English listing and a non-null icon_url', function () {
+    $withIcon = explorerIconApp(
+        ['display_name' => 'Has Icon', 'discovered_at' => now()],
+        'https://cdn.example.com/has-icon.png',
+    );
+
+    // App with NO listings at all → excluded.
+    App::factory()->create(['platform' => Platform::Ios, 'display_name' => 'No Listing']);
+
+    // App with English listing but icon_url null → excluded.
+    explorerIconApp(['display_name' => 'No Icon'], null);
+
+    $response = $this->getJson('/api/v1/explorer/icons');
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app_id', $withIcon->id)
+        ->assertJsonPath('data.0.icon_url', 'https://cdn.example.com/has-icon.png')
+        ->assertJsonPath('data.0.name', 'Has Icon')
+        ->assertJsonStructure(['data', 'links', 'meta']);
+});
+
+it('filters icon explorer by platform', function () {
+    $ios = explorerIconApp(['platform' => Platform::Ios, 'display_name' => 'iOS App']);
+
+    $android = App::factory()->android()->create(['display_name' => 'Android App']);
+    $androidVersion = AppVersion::factory()->create(['app_id' => $android->id]);
+    StoreListing::factory()->create([
+        'app_id' => $android->id,
+        'version_id' => $androidVersion->id,
+        'locale' => 'en-US',
+        'icon_url' => 'https://cdn.example.com/and.png',
+    ]);
+
+    $this->getJson('/api/v1/explorer/icons?platform=ios')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app_id', $ios->id);
+
+    $this->getJson('/api/v1/explorer/icons?platform=android')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app_id', $android->id);
+});
+
+it('filters icon explorer by category_id', function () {
+    $category = StoreCategory::platform('ios')->where('type', 'app')->whereNotNull('external_id')->first();
+    $otherCategory = StoreCategory::platform('ios')->where('type', 'app')->whereNotNull('external_id')
+        ->where('id', '!=', $category->id)->first();
+
+    $match = explorerIconApp(['category_id' => $category->id]);
+    explorerIconApp(['category_id' => $otherCategory->id]);
+
+    $this->getJson('/api/v1/explorer/icons?category_id='.$category->id)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app_id', $match->id);
+});
+
+it('filters icon explorer by search against display_name', function () {
+    $foo = explorerIconApp(['display_name' => 'Foo App']);
+    explorerIconApp(['display_name' => 'Bar App']);
+
+    $this->getJson('/api/v1/explorer/icons?search=foo')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app_id', $foo->id);
+});
+
+it('paginates icons with per_page and supports page=2 (infinite-scroll friendly)', function () {
+    foreach (range(1, 5) as $i) {
+        explorerIconApp([
+            'display_name' => "App {$i}",
+            'discovered_at' => now()->subMinutes($i),
+        ], "https://cdn.example.com/{$i}.png");
+    }
+
+    $page1 = $this->getJson('/api/v1/explorer/icons?per_page=2');
+    $page1->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('meta.per_page', 2)
+        ->assertJsonPath('meta.total', 5)
+        ->assertJsonStructure(['data', 'links', 'meta' => ['current_page', 'per_page', 'total', 'last_page']]);
+
+    $page2 = $this->getJson('/api/v1/explorer/icons?per_page=2&page=2');
+    $page2->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('meta.current_page', 2);
+
+    $page3 = $this->getJson('/api/v1/explorer/icons?per_page=2&page=3');
+    $page3->assertOk()
+        ->assertJsonCount(1, 'data');
+});
