@@ -23,8 +23,7 @@ class CompetitorController extends BaseController
 {
     public function __construct(
         private readonly AppRegistrar $registrar,
-    ) {
-    }
+    ) {}
 
     #[OA\Get(
         path: '/apps/{platform}/{externalId}/competitors',
