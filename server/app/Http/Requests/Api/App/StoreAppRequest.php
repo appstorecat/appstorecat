@@ -47,6 +47,10 @@ class StoreAppRequest extends FormRequest
                 return; // primary rules already surfaced the error
             }
 
+            if (Platform::tryFromSlug($platform) === null) {
+                return; // platform rule already surfaced an invalid-enum error
+            }
+
             $exists = App::platform(Platform::fromSlug($platform))
                 ->where('external_id', $externalId)
                 ->exists();
