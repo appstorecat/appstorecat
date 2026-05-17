@@ -22,7 +22,7 @@ tests/
 ```
 
 ## Current State
-- Existing Connector and Job tests are kept and passing
+- Test infrastructure set up; feature/unit suites scaffolded per endpoint group
 - Old Auth/Settings/API tests (from Inertia era) have been removed
 - New endpoint tests to be written per endpoint as they are built
 

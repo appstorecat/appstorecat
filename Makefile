@@ -32,7 +32,7 @@ endif
 
 # ─── Shortcuts (disabled during pass-through) ────────────────
 ifeq ($(filter $(FIRST_GOAL),$(PASS_THROUGH)),)
-.PHONY: migrate seed fresh cache-clear route-list queue-restart schedule
+.PHONY: migrate seed fresh cache-clear route-list queue-restart schedule test
 
 migrate:
 	$(SERVER) php artisan migrate
@@ -54,6 +54,9 @@ queue-restart:
 
 schedule:
 	$(SERVER) php artisan schedule:run
+
+test:
+	$(SERVER) php artisan test $(EXTRA_ARGS)
 endif
 
 # ─── Full Stack ───────────────────────────────────────────────
