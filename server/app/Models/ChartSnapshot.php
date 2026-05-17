@@ -7,8 +7,10 @@ namespace App\Models;
 use App\Casts\PlatformCast;
 use App\Enums\ChartCollection;
 use App\Models\Concerns\HasPlatform;
+use Database\Factories\ChartSnapshotFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +20,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class ChartSnapshot extends Model
 {
+    /** @use HasFactory<ChartSnapshotFactory> */
+    use HasFactory;
+
     use HasPlatform;
 
     protected $table = 'trending_charts';

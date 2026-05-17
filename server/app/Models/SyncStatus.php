@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\SyncStatusFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OpenApi\Attributes as OA;
@@ -37,6 +39,9 @@ use OpenApi\Attributes as OA;
 ])]
 class SyncStatus extends Model
 {
+    /** @use HasFactory<SyncStatusFactory> */
+    use HasFactory;
+
     protected $table = 'sync_statuses';
 
     public const STATUS_QUEUED = 'queued';

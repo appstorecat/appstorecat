@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\CompetitorRelationship;
+use Database\Factories\AppCompetitorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OpenApi\Attributes as OA;
@@ -25,6 +27,9 @@ use OpenApi\Attributes as OA;
 ])]
 class AppCompetitor extends Model
 {
+    /** @use HasFactory<AppCompetitorFactory> */
+    use HasFactory;
+
     protected $table = 'app_competitors';
 
     /**

@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Database\Factories\StoreListingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OpenApi\Attributes as OA;
@@ -69,6 +71,9 @@ use OpenApi\Attributes as OA;
 ])]
 class StoreListing extends Model
 {
+    /** @use HasFactory<StoreListingFactory> */
+    use HasFactory;
+
     protected $table = 'app_store_listings';
 
     /**

@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\StoreListingChangeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OpenApi\Attributes as OA;
@@ -25,6 +27,9 @@ use OpenApi\Attributes as OA;
 ])]
 class StoreListingChange extends Model
 {
+    /** @use HasFactory<StoreListingChangeFactory> */
+    use HasFactory;
+
     protected $table = 'app_store_listing_changes';
 
     /**

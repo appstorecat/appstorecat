@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Casts\PlatformCast;
 use App\Models\Concerns\HasPlatform;
+use Database\Factories\PublisherFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use OpenApi\Attributes as OA;
@@ -25,6 +27,9 @@ use OpenApi\Attributes as OA;
 ])]
 class Publisher extends Model
 {
+    /** @use HasFactory<PublisherFactory> */
+    use HasFactory;
+
     use HasPlatform;
 
     protected $table = 'publishers';

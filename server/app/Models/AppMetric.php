@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\AppMetricFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OpenApi\Attributes as OA;
@@ -25,6 +27,9 @@ use OpenApi\Attributes as OA;
 ])]
 class AppMetric extends Model
 {
+    /** @use HasFactory<AppMetricFactory> */
+    use HasFactory;
+
     protected $table = 'app_metrics';
 
     public const GLOBAL_COUNTRY = 'zz';
