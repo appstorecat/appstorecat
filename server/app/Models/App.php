@@ -166,6 +166,10 @@ class App extends Model
      */
     public static function discover(string $platform, string $externalId, array $data = [], DiscoverSource $source = DiscoverSource::Unknown, string $country = 'us'): ?self
     {
+        if ($externalId === '' || $externalId === null) {
+            return null;
+        }
+
         $app = static::platform($platform)->where('external_id', $externalId)->first();
 
         if ($app) {

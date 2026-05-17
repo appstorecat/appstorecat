@@ -53,12 +53,13 @@ class DashboardController extends BaseController
         $apps = $user->apps;
 
         $recentChanges = StoreListingChange::whereIn('app_id', $appIds)
+            ->with('app')
             ->orderByDesc('detected_at')
             ->limit(5)
             ->get()
             ->map(fn ($c) => [
                 'id' => $c->id,
-                'app_name' => $c->app->name,
+                'app_name' => $c->app->displayName(),
                 'field_changed' => $c->field_changed,
                 'locale' => $c->locale,
                 'detected_at' => $c->detected_at->toIso8601String(),

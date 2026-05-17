@@ -151,7 +151,7 @@ class KeywordController extends BaseController
             ->get()
             ->map(fn ($a) => [
                 'id' => $a->id,
-                'name' => $a->name,
+                'name' => $a->displayName(),
                 'icon_url' => $a->storeListings()->orderByDesc('version_id')->value('icon_url'),
                 'versions' => $a->versions->map(fn ($v) => ['id' => $v->id, 'version' => $v->version]),
             ]);

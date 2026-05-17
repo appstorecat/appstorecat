@@ -116,7 +116,9 @@ class ReconcileFailedItemsJob implements ShouldBeUnique, ShouldQueue
             'failed_items' => array_values($updated),
             'next_retry_at' => $earliestRetry,
             'current_step' => null,
-            'status' => ($empty || $allPermanent) ? SyncStatus::STATUS_COMPLETED : SyncStatus::STATUS_COMPLETED,
+            'status' => $empty
+                ? SyncStatus::STATUS_COMPLETED
+                : ($allPermanent ? SyncStatus::STATUS_FAILED : SyncStatus::STATUS_COMPLETED),
             'completed_at' => $syncStatus->completed_at ?? $now,
         ])->save();
 
