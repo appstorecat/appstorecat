@@ -75,7 +75,7 @@ class AppSyncer
         $syncStatus->update(['current_step' => SyncStatus::STEP_FINALIZE]);
         $this->detectLocaleChanges($app, $version);
         if ($version) {
-            $this->updateVersionDetails($app, $version);
+            $this->updateVersionDetails($app, $version, $identityData);
         }
 
         $app->update(['last_synced_at' => now()]);
@@ -136,7 +136,6 @@ class AppSyncer
 
         $appData = collect($data)->only([
             'supported_locales', 'original_release_date', 'is_free',
-            'content_rating', 'store_url', 'price_model',
         ])->toArray();
 
         $appData['display_name'] = $data['name'] ?? $app->display_name;
@@ -366,12 +365,6 @@ class AppSyncer
     {
         $today = now()->format('Y-m-d');
 
-        $previousMetric = AppMetric::where('app_id', $app->id)
-            ->where('country_code', $countryCode)
-            ->whereDate('date', '<', $today)
-            ->orderByDesc('date')
-            ->first();
-
         AppMetric::updateOrCreate(
             [
                 'app_id' => $app->id,
@@ -382,14 +375,7 @@ class AppSyncer
                 'version_id' => $version?->id,
                 'rating' => $data['rating'] ?? 0,
                 'rating_count' => $data['rating_count'] ?? 0,
-                'rating_delta' => $previousMetric
-                    ? ($data['rating_count'] ?? 0) - $previousMetric->rating_count
-                    : null,
                 'rating_breakdown' => ! empty($data['rating_breakdown']) ? $data['rating_breakdown'] : null,
-                'price' => $data['price'] ?? null,
-                'currency' => $data['currency'] ?? null,
-                'installs_range' => $data['installs_range'] ?? null,
-                'file_size_bytes' => $data['file_size_bytes'] ?? null,
                 'is_available' => $isAvailable,
             ],
         );
@@ -543,7 +529,7 @@ class AppSyncer
         }
     }
 
-    public function updateVersionDetails(App $app, AppVersion $version): void
+    public function updateVersionDetails(App $app, AppVersion $version, ?array $identityData = null): void
     {
         $defaultLocale = $this->defaultLocaleForCountry($app, $app->origin_country_code ?? 'us');
         $listing = StoreListing::where('app_id', $app->id)
@@ -551,13 +537,9 @@ class AppSyncer
             ->orderByDesc('fetched_at')
             ->first();
 
-        $metric = AppMetric::where('app_id', $app->id)
-            ->where('version_id', $version->id)
-            ->first();
-
         $version->update([
             'whats_new' => $listing?->whats_new,
-            'file_size_bytes' => $metric?->file_size_bytes,
+            'file_size_bytes' => $identityData['file_size_bytes'] ?? $version->file_size_bytes,
         ]);
     }
 

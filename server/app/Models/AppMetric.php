@@ -16,19 +16,12 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'rating', type: 'number', format: 'float', example: 4.68),
         new OA\Property(property: 'rating_count', type: 'integer', example: 31),
         new OA\Property(property: 'rating_breakdown', type: 'object', nullable: true),
-        new OA\Property(property: 'rating_delta', type: 'integer', nullable: true),
-        new OA\Property(property: 'price', type: 'number', format: 'float', nullable: true, example: 0),
-        new OA\Property(property: 'currency', type: 'string', nullable: true, example: 'USD'),
-        new OA\Property(property: 'installs_range', type: 'string', nullable: true, example: '1,000,000+'),
-        new OA\Property(property: 'file_size_bytes', type: 'integer', nullable: true, example: 73822208),
         new OA\Property(property: 'is_available', type: 'boolean', example: true),
     ],
 )]
 #[Fillable([
     'app_id', 'version_id', 'country_code', 'date',
-    'rating', 'rating_count', 'rating_breakdown', 'rating_delta',
-    'price', 'currency',
-    'installs_range', 'file_size_bytes', 'is_available',
+    'rating', 'rating_count', 'rating_breakdown', 'is_available',
 ])]
 class AppMetric extends Model
 {
@@ -56,7 +49,6 @@ class AppMetric extends Model
     {
         return [
             'rating' => 'decimal:2',
-            'price' => 'decimal:2',
             'rating_breakdown' => 'array',
             'date' => 'date',
             'is_available' => 'boolean',

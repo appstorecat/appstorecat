@@ -66,7 +66,7 @@ class AppDetailResource extends BaseResource
             'rating' => $latestMetric?->rating ? (float) $latestMetric->rating : null,
             'rating_count' => $latestMetric?->rating_count,
             'version' => $latestVersion?->version,
-            'file_size_bytes' => $latestMetric?->file_size_bytes,
+            'file_size_bytes' => $latestVersion?->file_size_bytes,
             'created_at' => $this->formatTimestamp($this->resource->created_at),
             'listings' => ListingResource::collection($this->whenLoaded('storeListings')),
             'versions' => VersionResource::collection($this->whenLoaded('versions')),
