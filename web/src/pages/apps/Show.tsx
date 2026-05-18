@@ -244,6 +244,7 @@ export default function AppsShow() {
     ? `https://apps.apple.com/app/id${detail.external_id}`
     : `https://play.google.com/store/apps/details?id=${detail.external_id}`
   const sensorTowerUrl = `https://app.sensortower.com/overview/${detail.external_id}?country=${selectedCountry.toUpperCase()}`
+  const appMagicUrl = `https://appmagic.rocks/live/app-profile/${detail.external_id}?store=${detail.platform === 'ios' ? 1 : 2}`
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
@@ -462,6 +463,17 @@ export default function AppsShow() {
                 >
                   <BarChart3 className="h-4 w-4 shrink-0" />
                   <span className="truncate">Sensor Tower</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href={appMagicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+                >
+                  <BarChart3 className="h-4 w-4 shrink-0" />
+                  <span className="truncate">AppMagic</span>
                 </a>
               </li>
             </ul>
