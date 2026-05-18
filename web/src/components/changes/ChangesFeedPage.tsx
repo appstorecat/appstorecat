@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { keepPreviousData } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -51,22 +51,13 @@ const PAGE_SIZE = 50
 export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
   const filters = useChangesFilters()
   const debouncedSearch = useDebounce(filters.search)
-  // Remount the inner feed only after the debounced search settles so the
-  // input keeps focus while the user is typing.
-  const filterKey = `${filters.platform}|${filters.field}|${debouncedSearch}`
-  return <ChangesFeed key={filterKey} mode={mode} filters={filters} debouncedSearch={debouncedSearch} />
-}
-
-function ChangesFeed({
-  mode,
-  filters,
-  debouncedSearch,
-}: {
-  mode: ChangesMode
-  filters: ReturnType<typeof useChangesFilters>
-  debouncedSearch: string
-}) {
   const [page, setPage] = useState(1)
+
+  // Reset pagination when filters change, without remounting the subtree —
+  // a key-based remount would unmount the search input and steal focus.
+  useEffect(() => {
+    setPage(1)
+  }, [filters.platform, filters.field, debouncedSearch])
 
   const title = mode === 'tracked' ? 'App Changes' : 'Competitor Changes'
   const subtitle =
