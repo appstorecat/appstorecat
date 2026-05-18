@@ -245,6 +245,7 @@ build-prod:
 	@echo "Building + pushing v$(VERSION) ($(PLATFORMS))..."
 	@for svc in $(SERVICES); do \
 		docker buildx build --platform $(PLATFORMS) \
+			--build-arg APP_VERSION=$(VERSION) \
 			-t $(REGISTRY)/$$svc:$(VERSION) \
 			-t $(REGISTRY)/$$svc:latest \
 			-f $$svc/.docker/Dockerfile.prod $$svc --push; \
@@ -264,6 +265,7 @@ endif
 	@echo "Releasing v$(v)..."
 	@for svc in $(SERVICES); do \
 		docker buildx build --platform $(PLATFORMS) \
+			--build-arg APP_VERSION=$(v) \
 			-t $(REGISTRY)/$$svc:$(v) \
 			-t $(REGISTRY)/$$svc:latest \
 			-f $$svc/.docker/Dockerfile.prod $$svc --push; \

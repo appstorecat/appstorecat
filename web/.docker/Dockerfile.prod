@@ -5,6 +5,12 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
+# Surface the release version into the bundle. The root VERSION file lives
+# outside this build context, so vite's existsSync('../VERSION') fall-through
+# returns '0.0.0' here unless we feed it through this build arg.
+ARG APP_VERSION=0.0.0
+ENV npm_package_version=$APP_VERSION
+
 COPY package.json package-lock.json* ./
 RUN npm install
 
