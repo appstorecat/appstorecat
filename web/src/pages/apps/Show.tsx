@@ -244,7 +244,8 @@ export default function AppsShow() {
     ? `https://apps.apple.com/app/id${detail.external_id}`
     : `https://play.google.com/store/apps/details?id=${detail.external_id}`
   const sensorTowerUrl = `https://app.sensortower.com/overview/${detail.external_id}?country=${selectedCountry.toUpperCase()}`
-  const appMagicUrl = `https://appmagic.rocks/live/app-profile/${detail.external_id}?store=${detail.platform === 'ios' ? 1 : 2}`
+  const appMagicStore = detail.platform === 'ios' ? 'iphone' : 'google-play'
+  const appMagicUrl = `https://appmagic.rocks/${appMagicStore}/${detail.external_id}?infoCountry=${selectedCountry.toUpperCase()}`
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4">
