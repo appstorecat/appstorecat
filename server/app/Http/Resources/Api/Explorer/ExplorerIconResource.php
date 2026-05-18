@@ -28,14 +28,13 @@ class ExplorerIconResource extends BaseResource
     {
         /** @var App $app */
         $app = $this->resource;
-        $listing = $app->storeListings->first();
 
         return [
             'app_id' => $app->id,
             'external_id' => $app->external_id,
             'platform' => $app->platform->slug(),
             'name' => $app->displayName(),
-            'icon_url' => $listing?->icon_url ?? $app->displayIcon(),
+            'icon_url' => $app->displayIcon(),
             'publisher_name' => $app->publisher?->name,
             'category_name' => $app->category?->name,
         ];

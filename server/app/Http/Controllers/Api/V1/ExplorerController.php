@@ -44,19 +44,21 @@ class ExplorerController extends BaseController
     )]
     public function screenshots(ExplorerScreenshotsRequest $request): AnonymousResourceCollection
     {
-        // Explorer feeds use the English storefront content as the canonical
-        // preview. Prefer `en-US`, then any other `en*` locale, to keep the
-        // grid visually consistent regardless of the user's browser locale.
+        // We page over apps that have actually been synced (the listings table
+        // only ever holds rows for synced apps), then eager-load a single
+        // english listing for the rows the page surfaces. The previous
+        // whereHas('storeListings', …) form materialized the entire 520k-row
+        // listings table on every request and took ~5 s. With this shape the
+        // expensive scan is bounded to the page size.
         $englishListing = fn ($q) => $q
             ->where('locale', 'like', 'en%')
             ->whereNotNull('screenshots')
-            ->where('screenshots', '!=', '[]')
             ->orderByRaw("CASE WHEN locale = 'en-US' THEN 0 ELSE 1 END")
             ->orderByDesc('version_id')
             ->limit(1);
 
         $query = App::query()
-            ->whereHas('storeListings', $englishListing)
+            ->whereNotNull('last_synced_at')
             ->with(['publisher', 'category', 'storeListings' => $englishListing]);
 
         if ($request->filled('platform')) {
@@ -68,14 +70,12 @@ class ExplorerController extends BaseController
         }
 
         if ($request->filled('search')) {
-            $query->whereHas('storeListings', fn ($q) => $q
-                ->where('locale', 'like', 'en%')
-                ->where('title', 'like', '%'.$request->validated('search').'%'));
+            $query->where('display_name', 'like', '%'.$request->validated('search').'%');
         }
 
         $query->orderByDesc('last_synced_at');
 
-        $paginated = $query->paginate($request->integer('per_page', 5));
+        $paginated = $query->paginate($request->integer('per_page', 12));
 
         return ExplorerScreenshotResource::collection($paginated);
     }
@@ -109,18 +109,13 @@ class ExplorerController extends BaseController
     )]
     public function icons(ExplorerIconsRequest $request): AnonymousResourceCollection
     {
-        // Icons gallery mirrors the English storefront. Only include apps
-        // with a captured en* listing so the grid stays visually consistent.
-        $englishListing = fn ($q) => $q
-            ->where('locale', 'like', 'en%')
-            ->whereNotNull('icon_url')
-            ->orderByRaw("CASE WHEN locale = 'en-US' THEN 0 ELSE 1 END")
-            ->orderByDesc('version_id')
-            ->limit(1);
-
+        // apps.icon_url is populated for every row by AppSyncer::syncIdentity,
+        // so the gallery doesn't need a join into app_store_listings — the
+        // localized listing icon is rarely different from the canonical one.
+        // Skipping the join cuts this endpoint from seconds to milliseconds.
         $query = App::query()
-            ->whereHas('storeListings', $englishListing)
-            ->with(['publisher', 'category', 'storeListings' => $englishListing]);
+            ->whereNotNull('icon_url')
+            ->with(['publisher', 'category']);
 
         if ($request->filled('platform')) {
             $query->platform($request->validated('platform'));

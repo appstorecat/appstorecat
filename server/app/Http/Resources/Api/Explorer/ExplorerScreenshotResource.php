@@ -41,6 +41,9 @@ class ExplorerScreenshotResource extends BaseResource
     {
         /** @var App $app */
         $app = $this->resource;
+        // storeListings is eager-loaded with a 1-row English-locale scope by
+        // the controller. Apps from regional-only storefronts may have no
+        // matching listing and naturally collapse to empty screenshots.
         $listing = $app->storeListings->first();
 
         return [
