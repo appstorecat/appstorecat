@@ -163,14 +163,14 @@ export default function NavUser() {
               <DropdownMenuItem
                 render={
                   <a
-                    href="/api/documentation"
+                    href="https://appstorecat.github.io/appstorecat/"
                     target="_blank"
                     rel="noopener noreferrer"
                   />
                 }
               >
                 <BookOpen />
-                API Docs
+                Documentation
               </DropdownMenuItem>
               <DropdownMenuItem
                 render={
