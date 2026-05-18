@@ -2784,11 +2784,24 @@
                 "type": "object"
             },
             "StoreCompetitorRequest": {
-                "required": [
-                    "competitor_app_id"
-                ],
+                "description": "Add a competitor to a tracked app. Supply EITHER `competitor_external_id` (recommended — auto-registers the app row without adding it to the caller's watchlist) OR `competitor_app_id` (legacy: internal numeric id of an already-registered app).",
                 "properties": {
+                    "competitor_external_id": {
+                        "description": "Store identifier of the competitor app. Auto-registers the app row if missing.",
+                        "type": "string",
+                        "example": "com.aadhk.woinvoice"
+                    },
+                    "competitor_platform": {
+                        "description": "Platform of the competitor. Defaults to the parent app's platform when omitted.",
+                        "type": "string",
+                        "example": "android",
+                        "enum": [
+                            "ios",
+                            "android"
+                        ]
+                    },
                     "competitor_app_id": {
+                        "description": "Legacy: internal numeric `apps.id` of the competitor. Use `competitor_external_id` instead when calling the API directly.",
                         "type": "integer",
                         "example": 2
                     },
@@ -4418,31 +4431,6 @@
                     },
                     "rating_breakdown": {
                         "type": "object",
-                        "nullable": true
-                    },
-                    "rating_delta": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "price": {
-                        "type": "number",
-                        "format": "float",
-                        "example": 0,
-                        "nullable": true
-                    },
-                    "currency": {
-                        "type": "string",
-                        "example": "USD",
-                        "nullable": true
-                    },
-                    "installs_range": {
-                        "type": "string",
-                        "example": "1,000,000+",
-                        "nullable": true
-                    },
-                    "file_size_bytes": {
-                        "type": "integer",
-                        "example": 73822208,
                         "nullable": true
                     },
                     "is_available": {
