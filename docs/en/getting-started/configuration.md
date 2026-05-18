@@ -85,6 +85,19 @@ Control daily trending chart sync:
 | `CHART_IOS_DAILY_SYNC_ENABLED` | `true` | Enable daily iOS chart sync |
 | `CHART_ANDROID_DAILY_SYNC_ENABLED` | `true` | Enable daily Android chart sync |
 
+### Scheduled Tasks
+
+The Laravel scheduler (`server/routes/console.php`) runs unattended inside the server container. The fixed schedule is:
+
+| Cron | Command | Purpose |
+|------|---------|---------|
+| `*/20 * * * *` | `appstorecat:sync:tracked --ios` / `--android` | Dispatch tracked-app sync batches per platform |
+| `30 0 * * *` | `appstorecat:charts:sync-daily --ios` / `--android` | Daily trending chart snapshots |
+| `0 4 * * *` | `appstorecat:sync:cleanup-failed-items` | Purge `failed_items` rows older than 14 days from completed/failed `sync_statuses` |
+| `30 4 * * *` | `queue:prune-failed --hours=168` | Delete entries older than 7 days from `failed_jobs` |
+
+The two daily cleanup jobs (`cleanup-failed-items`, `queue:prune-failed`) keep the `sync_statuses` and `failed_jobs` tables bounded over time. They have no environment toggles — disable them by setting `SCHEDULER_ENABLED=false` (which disables every scheduled task).
+
 ### Discovery Settings
 
 Control which actions can discover (create) new apps in the database. Each source can be toggled per platform via `DISCOVER_{IOS,ANDROID}_ON_{SOURCE}` environment variables:

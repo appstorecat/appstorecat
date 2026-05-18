@@ -29,6 +29,10 @@ Each source can be enabled/disabled per platform under the `discover` key in `co
 4. The app waits for the next `appstorecat:apps:sync-tracked` tick, which picks it up in the competitor/backlog tier and dispatches a `SyncAppJob` onto `sync-tracked-{platform}`
 5. The sync is tracked phase-by-phase in the `sync_statuses` table (identity → listings → metrics → finalize → reconciling); if the identity phase fails, the entire pipeline stops and the app is marked "unavailable"
 
+### Empty External ID Guard
+
+`App::discover()` returns `null` immediately when the supplied `external_id` is empty or `null`. This prevents malformed scraper payloads (e.g. a search result with a missing bundle ID) from creating ghost rows in the `apps` table. Callers should treat a `null` return as "nothing was discovered" and skip downstream work.
+
 ## Search
 
 ```

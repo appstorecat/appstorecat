@@ -85,3 +85,7 @@ Both scrapers return errors as follows:
 Common errors:
 - `404` — App not found on this storefront. The Android scraper emits this as `AppNotFoundError` and the FastAPI exception handler turns it into 404. The iOS scraper also returns 404. Server connectors treat 404 as `empty_response` — the country is marked as permanently "unavailable" and will not be retried.
 - `500` — Upstream scraper library error
+
+## Date Sanitization (Android)
+
+The Google Play scraper can return non-date strings (e.g. `"Never updated"`) in the `updated` / version-release fields when an app has never shipped a public version. The server-side connector now sanitizes these values to `null` before writing to `AppVersion`, which previously caused MySQL date-parse failures during sync. Existing `AppVersion` rows are unaffected.

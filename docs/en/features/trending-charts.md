@@ -59,3 +59,11 @@ Go to **Discovery > Trending** to browse charts. The UI shows:
 - **Queues:** `charts-ios`, `charts-android` (platform-separated)
 - **Snapshot frequency:** daily (one snapshot per platform/collection/country/category per day)
 - **Configuration:** `CHARTS_IOS_DAILY_SYNC_ENABLED`, `CHARTS_ANDROID_DAILY_SYNC_ENABLED`
+
+## Storage
+
+`trending_chart_entries` is the hot path for chart history. Recent schema changes shrink its on-disk footprint substantially:
+
+- **ROW_FORMAT=COMPRESSED (KEY_BLOCK_SIZE=8)** — InnoDB zlib-compresses each 16 KB page to 8 KB. Measured ~66% size reduction on a 43M-row table (7.7 GB → 2.6 GB).
+- **Standalone `(app_id)` index dropped** — the composite `(app_id, trending_chart_id)` index already covers app-only lookups via the leftmost-prefix rule.
+- **`created_at` / `updated_at` dropped** — entries are write-once. Snapshot time is available via the parent `trending_charts.snapshot_date`.

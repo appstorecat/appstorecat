@@ -344,6 +344,14 @@ Then `sudo systemctl restart docker` (this restarts your containers — schedule
 
 ## Upgrading
 
+> Heads up — v1.2.6 introduces three schema-shrink migrations that rebuild the largest tables in place. They apply `ROW_FORMAT=COMPRESSED`, drop unused indexes, and remove dead columns:
+>
+> - `trending_chart_entries` (~7.7 GB → 2.6 GB, **-66%**)
+> - `app_store_listings` (~2.8 GB → 1.5 GB, **-47%**)
+> - `app_metrics` (~273 MB → 106 MB, **-61%**)
+>
+> Each `ALTER TABLE` rebuilds the table and holds metadata locks. On a 4 vCPU / 4 GB host the longest one (`trending_chart_entries`) takes 15–30 minutes. **Run migrations during a maintenance window**, outside the `*/20` sync cron tick, and ideally right after a backup. The migration is online for reads but writes are blocked while the rebuild runs.
+
 ```bash
 cd appstorecat
 
@@ -411,9 +419,18 @@ docker compose -f docker-compose.production.yml exec appstorecat-server php arti
 
 ### Scheduler
 
-Laravel's scheduler runs inside the same container (also via supervisord). It dispatches the 20-minute tracked-app sync, daily chart snapshots, and `ReconcileFailedItemsJob`. No host-level cron needed.
+Laravel's scheduler runs inside the same container (also via supervisord). No host-level cron needed. Active tasks:
 
-To disable (e.g. when running scheduler externally):
+| Cron (UTC) | Command | Purpose |
+|------------|---------|---------|
+| `*/20 * * * *` | `appstorecat:sync:tracked --ios` / `--android` | Dispatch tracked-app sync batches per platform |
+| `30 0 * * *` | `appstorecat:charts:sync-daily --ios` / `--android` | Daily trending chart snapshots |
+| `0 4 * * *` | `appstorecat:sync:cleanup-failed-items` | Purge `failed_items` older than 14 days from completed/failed `sync_statuses` |
+| `30 4 * * *` | `queue:prune-failed --hours=168` | Delete `failed_jobs` rows older than 7 days |
+
+Together the two daily cleanup jobs (`cleanup-failed-items` and `queue:prune-failed`) keep the `sync_statuses` and `failed_jobs` tables bounded over time — no DBA intervention required.
+
+To disable the scheduler entirely (e.g. when running it externally):
 
 ```env
 SCHEDULER_ENABLED=false
@@ -437,6 +454,29 @@ docker compose -f docker-compose.production.yml ps
 curl -fsI https://api.appstore.example/api/v1/countries
 curl -fsI https://appstore.example
 ```
+
+### MySQL tuning
+
+The shipped `mysql:8.4` image keeps `log_bin=ON` and `binlog_format=ROW` (8.4 defaults). Binary logs are excellent for point-in-time recovery (PITR) and replication, but the default retention is `binlog_expire_logs_seconds = 2592000` (**30 days**). On a busy host this dominates disk usage well before the data tables do.
+
+**Recommended for single-host AppStoreCat deployments: 7 days (`604800`).** That window is large enough to replay a day of activity on top of yesterday's backup, and short enough to keep disk pressure low. Tune up only if you run a replica that may lag for longer.
+
+Apply at runtime (no restart):
+
+```bash
+docker compose -f docker-compose.production.yml exec appstorecat-mysql \
+  mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e \
+  "SET PERSIST binlog_expire_logs_seconds = 604800;"
+```
+
+Or bake it into `my.cnf` if you mount one:
+
+```ini
+[mysqld]
+binlog_expire_logs_seconds = 604800
+```
+
+If you have no replica and you trust your daily dumps, you can shorten to 1–2 days or disable binary logging entirely (`skip-log-bin`) — but that takes PITR off the table.
 
 ## Security checklist
 

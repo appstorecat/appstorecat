@@ -89,6 +89,15 @@ Then ask Claude:
 | **Publisher discovery** | Search, browse, bulk-import entire catalogs · [docs](docs/en/features/publisher-discovery.md) |
 | **MCP server** | 32 tools (28 read + 4 write) for Claude Code, Cursor, Continue · [docs](docs/en/services/mcp.md) |
 
+## Tests
+
+```bash
+make test                                       # Full Pest suite (Feature, Unit, Connectors, Jobs, Regression)
+make test EXTRA_ARGS="--filter=AppSyncer"       # Filter by name
+```
+
+~400 tests covering controllers, jobs, connectors, and known-bug regressions. The suite must stay green on every push.
+
 ## Architecture
 
 ```

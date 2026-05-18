@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [1.2.6] - 2026-05-18
+
+### Added
+- **Test suite** — Pest 4 infrastructure with Feature, Unit, Connector, Job, and Regression suites. 402 tests / 1418 assertions, all green. Run via `make test` or `make test EXTRA_ARGS="--filter=..."`.
+- Model factories for every domain model used by the suite.
+- Research audit notes under `plans/research/` covering 16 production tables (sizes, hot indexes, dead columns, sparsity, recompression candidates).
+- External Sensor Tower link in the app detail sidebar for quick competitive cross-reference.
+- Nightly `cleanup-failed-items` cron at 04:00 to age out stale `failed_items` rows on `sync_statuses`.
+- Nightly `queue:prune-failed --hours=168` at 04:30 to keep `failed_jobs` bounded at one week.
+
+### Changed
+- **Database footprint cut from 10.5 GB to 4.2 GB (-61%)** via three migrations applying `ROW_FORMAT=COMPRESSED` and dropping redundant indexes / dead columns:
+  - `trending_chart_entries` (43.5M rows): 7.7 GB → 2.6 GB (-66%)
+  - `app_store_listings` (520K rows): 2.8 GB → 1.5 GB (-47%)
+  - `app_metrics` (970K rows): 273 MB → 106 MB (-61%)
+- `ReconcileFailedItemsJob` now sets `$timeout = 1800`, fixes a ternary bug that was retriggering parallel dispatches, and aligns the queue `retry_after` to 1810 — eliminating overlapping reconcile runs.
+- Connector boundary now sanitizes unparseable date strings (e.g. Google Play's "Never updated") before reaching the parser, removing ~1981 failed_jobs/month at their source.
+- `App::discover()` guards against empty `external_id` instead of writing ghost rows.
+- `AppDetailResource.file_size_bytes` reads from `app_versions` as the single source of truth.
+
+### Fixed
+- `app_store_listings.subtitle` widened from `VARCHAR(255)` to `TEXT`, unblocking ~4284 silent insert failures where subtitles exceeded the byte limit under multibyte encoding.
+- `KeywordController` and `DashboardController` now return a non-null `displayName` (previously null for apps with only locale-scoped names).
+- `StoreAppRequest` returns `422` for invalid `platform` values instead of bubbling a 500.
+- Dead reads and unsafe writes cleaned up across controllers and models (`App`, `ChartEntry`, `AppSyncer`, etc.).
+
+### Removed
+- 5 dead columns dropped from `app_metrics`; ghost `apps` columns removed from `syncIdentity()`.
+- `plans/database/trending-chart-entries-sparse-storage.md` outlined a sparse refactor but was not needed — `ROW_FORMAT=COMPRESSED` delivered the same disk win without schema change.
+
+### Operations notes
+- MySQL `binlog_expire_logs_seconds` recommendation lowered to **7 days** (604800) — the upstream default of 30 days is wasteful for single-node deployments without replication consumers.
+
 ## [1.2.5] - 2026-04-27
 
 ### Fixed
@@ -224,7 +257,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Frontend auth, app detail, keyword, competitor, changes, publisher, settings pages
 - Sidebar navigation with theme toggle
 
-[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.5...HEAD
+[Unreleased]: https://github.com/appstorecat/appstorecat/compare/v1.2.6...HEAD
+[1.2.6]: https://github.com/appstorecat/appstorecat/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/appstorecat/appstorecat/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/appstorecat/appstorecat/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/appstorecat/appstorecat/compare/v1.2.2...v1.2.3

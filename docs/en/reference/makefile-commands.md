@@ -63,6 +63,13 @@ All commands are run from the project root.
 | `make pint` | Run the PHP code style fixer (Laravel Pint) |
 | `make lint-web` | Run ESLint (web) |
 
+## Tests
+
+| Command | Description |
+|---------|-------------|
+| `make test` | Run the Pest suite against `appstorecat_testing` |
+| `make test EXTRA_ARGS="--filter=Foo"` | Forward extra flags to `php artisan test` (e.g. `--filter`, `--parallel`, `--coverage`) |
+
 ## Logs
 
 | Command | Description |

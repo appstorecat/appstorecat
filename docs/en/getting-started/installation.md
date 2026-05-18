@@ -65,6 +65,28 @@ After setup, seed the store categories (App Store and Google Play categories):
 make seed
 ```
 
+## Run the Test Suite
+
+AppStoreCat ships with a Pest test suite (47 files, 400+ tests). The runner uses a separate database, `appstorecat_testing`, which must exist before the first run.
+
+One-time setup:
+
+```bash
+make mysql
+# inside the MySQL shell:
+CREATE DATABASE appstorecat_testing;
+exit
+```
+
+Then run:
+
+```bash
+make test                                     # full suite
+make test EXTRA_ARGS="--filter=KeywordTest"   # focused run
+```
+
+`make test` runs `php artisan test` inside the server container. Composer dev dependencies (`pestphp/pest`, `pestphp/pest-plugin-laravel`, `fakerphp/faker`) are installed automatically by `make setup`.
+
 ## Stop the Services
 
 ```bash

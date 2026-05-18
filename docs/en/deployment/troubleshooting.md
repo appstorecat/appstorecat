@@ -86,6 +86,8 @@ Retry all failed jobs:
 docker compose exec appstorecat-server php artisan queue:retry all
 ```
 
+The `failed_jobs` table is auto-pruned daily — entries older than 7 days are deleted by the scheduled `queue:prune-failed --hours=168` task (04:30 UTC). If you need to keep them longer, adjust the schedule in `server/routes/console.php`.
+
 ### Migration errors
 
 If migrations fail:
@@ -146,11 +148,18 @@ These can be raised if your IP is not being rate limited.
 
 ### Database growth
 
-The `app_metrics` and `trending_chart_entries` tables grow fastest. Consider:
+The `app_metrics`, `app_store_listings`, and `trending_chart_entries` tables grow fastest. v1.2.6 ships three schema-shrink migrations (`ROW_FORMAT=COMPRESSED`, dropped indexes, removed dead columns) that recover **40–70%** of the disk those tables occupy — run `make artisan migrate --force` after upgrading. See [Production deployment → Upgrading](./production.md#upgrading) for the maintenance-window caveat.
 
-- Lowering the batch size (`SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE`) to slow ingestion of competitor / discovered apps
-- Disabling daily chart sync for the platform you don't need (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED=false`)
-- Narrowing the active country list via `countries.is_active_{ios,android}`
+Other knobs:
+
+- Lower `SYNC_{IOS,ANDROID}_TRACKED_BATCH_SIZE` to slow ingestion of competitor / discovered apps
+- Disable daily chart sync for a platform you don't need (`CHART_{IOS,ANDROID}_DAILY_SYNC_ENABLED=false`)
+- Narrow the active country list via `countries.is_active_{ios,android}`
+- The daily scheduler already prunes `failed_items` older than 14 days and `failed_jobs` older than 7 days (see [Configuration → Scheduled Tasks](../getting-started/configuration.md#scheduled-tasks)). Nothing to do — verify with `docker compose logs appstorecat-server | grep cleanup-failed-items`.
+
+### MySQL disk usage dominated by binary logs
+
+If `du -sh` on the MySQL data volume shows `binlog.000xxx` files eating most of the space, you are hitting the default 30-day retention. For single-host deployments, 7 days is enough PITR coverage. See [Production deployment → MySQL tuning](./production.md#mysql-tuning) for the exact command (`SET PERSIST binlog_expire_logs_seconds = 604800;`).
 
 ## Sync Pipeline
 

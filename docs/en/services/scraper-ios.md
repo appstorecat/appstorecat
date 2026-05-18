@@ -63,6 +63,10 @@ All endpoints return JSON. Error responses use this format:
 }
 ```
 
+## Data Sanitization
+
+The scraper is intentionally a thin pass-through and returns the raw values it receives from `app-store-scraper`. Date sanitization happens **at the Laravel boundary**, not here: `ITunesLookupConnector::parseDate()` normalizes fields such as `current_version_release_date` and `original_release_date`, turning unparseable strings into `null` before they are persisted. This keeps the scraper stateless and the server in charge of every shape the rest of the application sees.
+
 ## Error Semantics
 
 The `sendScraperError()` helper maps errors from `app-store-scraper` (Error instances or plain objects) to the correct HTTP status code:

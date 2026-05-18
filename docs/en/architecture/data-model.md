@@ -58,7 +58,7 @@ Per-locale store listing data. One record per app per version per locale.
 | `version_id` | FK | Link to the app_versions table (nullable) |
 | `locale` | varchar(10) | BCP-47 locale code (e.g. `en-US`, `tr`) |
 | `title` | string | App title in this locale |
-| `subtitle` | string | App subtitle (iOS only) |
+| `subtitle` | text, nullable | App subtitle (iOS) / short description (Android). Widened to TEXT in 2026-05 because Google Play short descriptions in word-rich locales (Polish, German, Spanish) routinely exceed 255 characters |
 | `promotional_text` | text, nullable | iOS promotional text (`NULL` on Android) |
 | `description` | text | Full description |
 | `whats_new` | text | Release notes |
@@ -68,9 +68,11 @@ Per-locale store listing data. One record per app per version per locale.
 | `price` | decimal | Price in local currency |
 | `currency` | string | Currency code |
 | `fetched_at` | datetime | When this listing was fetched |
-| `checksum` | string | Hash used for change detection |
+| `checksum` | string | Hash used for change detection (computed and compared in PHP only — no SQL index) |
 
 **Uniqueness constraint:** `(app_id, version_id, locale)`
+
+**Storage:** `ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8`. InnoDB zlib-compresses each 16 KB page to 8 KB on disk. The previous standalone `(checksum)` index was dropped — no reader queries the column from SQL.
 
 > Note: This table does **not** have an `is_available` column. If a locale is not available in a given store, that row is simply not written; per-country availability is kept in `app_metrics.is_available`.
 
@@ -90,7 +92,7 @@ Version history for each app.
 
 ### app_metrics
 
-Daily metric snapshot per country + app. The source of truth for cross-store comparison and per-country availability.
+Daily metric snapshot per country + app. The source of truth for cross-store rating comparison and per-country availability.
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -101,13 +103,13 @@ Daily metric snapshot per country + app. The source of truth for cross-store com
 | `rating` | decimal(3,2) | Average rating (e.g. 4.56) |
 | `rating_count` | uint | Total rating count |
 | `rating_breakdown` | json | Per-star counts `{1: 100, 2: 50, ...}` |
-| `rating_delta` | int | Change in rating_count since the previous snapshot |
-| `price` | decimal, nullable | `NULL` = unknown, `0` = confirmed free |
-| `installs_range` | string | Install range (Android only, e.g. `10M+`) |
-| `file_size_bytes` | bigint | File size on this date |
 | `is_available` | boolean | Whether the app is present on the storefront for this country+date |
 
 **Uniqueness constraint:** `(app_id, country_code, date)`
+
+**Storage:** `ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8`.
+
+> Removed columns (2026-05): `rating_delta` (no SQL reader — `RatingSummary` computes a different 30-day delta in PHP), `price`, `currency`, `installs_range` (never populated by the scraper metrics endpoint), `file_size_bytes` (mirrored from `app_versions.file_size_bytes`, which is the authoritative source; `AppDetailResource` now reads file size directly from `app_versions`).
 
 ### app_store_listing_changes
 
@@ -205,6 +207,10 @@ Individual app rankings within a chart.
 | `app_id` | FK | Link to the apps table |
 | `price` | decimal | App price at snapshot time |
 | `currency` | string | Currency code |
+
+**Storage:** `ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8`.
+
+> No `created_at` / `updated_at` columns and no standalone `(app_id)` index. Snapshot time is read via the parent `trending_charts.snapshot_date`; app-only lookups are served by the composite `(app_id, trending_chart_id)` index through the leftmost-prefix rule.
 
 ## Pivot Tables
 

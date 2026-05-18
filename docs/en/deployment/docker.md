@@ -79,6 +79,19 @@ The production environment uses two networks:
 - **dokploy-network** (external) — managed by the Dokploy reverse proxy
 - **appstorecat** (bridge) — internal service communication
 
+## Scheduled Tasks
+
+Both development and production environments run the Laravel scheduler inside the server container via supervisord — no host-level cron is required. Active tasks:
+
+| Cron | Command | Purpose |
+|------|---------|---------|
+| `*/20 * * * *` | `appstorecat:sync:tracked --ios` / `--android` | Dispatch tracked-app sync batches per platform |
+| `30 0 * * *` | `appstorecat:charts:sync-daily --ios` / `--android` | Daily trending chart snapshots |
+| `0 4 * * *` | `appstorecat:sync:cleanup-failed-items` | Purge `failed_items` older than 14 days from completed/failed `sync_statuses` |
+| `30 4 * * *` | `queue:prune-failed --hours=168` | Delete `failed_jobs` rows older than 7 days |
+
+Disable the scheduler entirely with `SCHEDULER_ENABLED=false` (use this only when running an external scheduler).
+
 ## Docker Commands
 
 ```bash

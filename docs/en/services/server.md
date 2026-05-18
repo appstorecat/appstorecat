@@ -89,9 +89,11 @@ Sync is a phased pipeline tracked via the `SyncStatus` model:
 2. **listings** — store listings per country/locale.
 3. **metrics** — per-country metrics (stored globally under the `zz` sentinel for Android).
 4. **finalize** — diffs are applied, `apps.is_available` and `unavailable_countries` are recomputed.
-5. **reconciling** — `ReconcileFailedItemsJob` re-runs over `sync_statuses.failed_items`.
+5. **reconciling** — `ReconcileFailedItemsJob` re-runs over `sync_statuses.failed_items` (`$timeout = 1800` seconds).
 
 A **404** from the scraper is interpreted as "permanently not available on this storefront" and the corresponding `app_metrics.is_available` is set to `false`; 5xx are retried.
+
+Connectors sanitize unparseable date strings at the Laravel boundary. `ITunesLookupConnector` and `GooglePlayConnector` route `current_version_release_date` and `original_release_date` through a `parseDate()` helper that returns `null` for non-date values such as Google Play's "Never updated" sentinel. The scrapers themselves remain stateless and return raw values; normalization happens server-side.
 
 ### Job Orchestration
 
@@ -103,6 +105,18 @@ The Laravel scheduler dispatches sync and chart jobs. All sync/chart queues are 
 | `sync-on-demand-ios`, `sync-on-demand-android` |
 | `charts-ios`, `charts-android` |
 
+Scheduled commands (see `routes/console.php`):
+
+| Schedule | Command | Purpose |
+|----------|---------|---------|
+| `*/20 * * * *` | `appstorecat:apps:sync-tracked --ios` / `--android` | Tracked app sync ticks |
+| `*/15 * * * *` | `appstorecat:sync:reconcile` | Reconcile failed sync items |
+| `daily 00:30` | `appstorecat:charts:sync-daily --ios` / `--android` | Trending chart snapshots |
+| `daily 04:00` | `appstorecat:sync:cleanup-failed-items` | Purge stale entries from `sync_statuses.failed_items` |
+| `daily 04:30` | `queue:prune-failed --hours=168` | Drop `failed_jobs` rows older than 7 days |
+
+Queue `retry_after` is set to **1810 seconds** by default (`REDIS_QUEUE_RETRY_AFTER`). It must always be greater than every job's `$timeout` — for example `ReconcileFailedItemsJob` runs with `$timeout = 1800`. If `retry_after` ever drops below a job's timeout, Redis will re-dispatch the same job while it is still running.
+
 ### Connector Layer
 
 Connectors abstract HTTP communication with the scraper microservices and normalize response formats across platforms. A 404 from the scraper is modeled as permanently "not available"; other errors are modeled as retryable.
@@ -113,8 +127,41 @@ Connectors abstract HTTP communication with the scraper microservices and normal
 make dev-server    # Start backend + MySQL + Redis
 make logs-server   # View backend logs
 make pint          # Run the code style fixer
-make test-server   # Run the Pest tests
+make test          # Run the Pest tests
 ```
+
+## Tests
+
+The backend uses **Pest 4** on top of PHPUnit, with `RefreshDatabase` against a dedicated `appstorecat_testing` MySQL database. The current suite covers 47 test files with around 400 tests.
+
+```bash
+make test                                    # Run the full suite
+make test EXTRA_ARGS="--filter=Foo"          # Run a focused subset
+make test EXTRA_ARGS="--parallel"            # Optional parallel mode
+```
+
+Dev dependencies pulled by Composer: `pestphp/pest`, `pestphp/pest-plugin-laravel`, `fakerphp/faker`.
+
+## MySQL Configuration
+
+MySQL 8.4 enables binary logging by default for point-in-time recovery (PITR). The stock `binlog_expire_logs_seconds = 2592000` (30 days) accumulates roughly 1 GB/day of binlog data on a healthy AppStoreCat deployment — about 30 GB of additional disk over a month.
+
+**Recommended retention:** 7 days (`604800`) when there is no replica reading the binlog. This gives a sensible PITR window without paying the 30 GB disk cost.
+
+Apply at runtime:
+
+```sql
+SET PERSIST binlog_expire_logs_seconds = 604800;
+```
+
+Or in `my.cnf`:
+
+```ini
+[mysqld]
+binlog_expire_logs_seconds = 604800
+```
+
+If you operate replicas, keep the retention high enough that every replica can catch up after the longest expected outage.
 
 ## API Documentation
 

@@ -98,6 +98,21 @@ Both connectors normalize store-specific response formats into a consistent stru
 
 This normalization happens in the connector layer so that the service layer (`AppSyncer`) needs no platform-specific logic.
 
+### Date Sanitization
+
+Both connectors run identity date fields through a private `parseDate(?string $value): ?string` helper before returning them. The helper:
+
+1. Returns `null` for `null` or whitespace-only input
+2. Tries `Carbon::parse($value)->toDateString()` and returns the ISO `yyyy-mm-dd` form on success
+3. Catches any `Throwable` and returns `null` on parse failure
+
+Sanitized fields:
+
+- `original_release_date`
+- `current_version_release_date`
+
+This matters most for Google Play, which returns the literal string `"Never updated"` for apps without an update history; without sanitization that value bubbles into MySQL as a date error and corrupts the sync. iTunes is protected by the same helper for defensive symmetry.
+
 ## Error Handling
 
 - **404 responses:** Indicate the app is not available on this storefront. The connector returns a failure with an `empty_response` error. The syncer treats this as a permanent "not in this country" signal — the pipeline writes `app_metrics.is_available = false` for the country and does not retry forever. The Android scraper raises an explicit `AppNotFoundError` that the FastAPI exception handler converts to 404.

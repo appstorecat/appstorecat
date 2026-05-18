@@ -63,6 +63,8 @@ The app detail page has multiple tabs:
 - **Competitors** — competitor management
 - **Changes** — store listing change history
 
+The app header on `apps/Show.tsx` also exposes a small set of external links — store page, publisher page, and a Sensor Tower lookup for cross-referencing third-party intelligence — for both iOS and Android apps.
+
 ## Country and Locale Semantics
 
 - The `CountrySelect` component accepts a `disabledCodes` prop; countries in the app's `unavailable_countries` list are marked unselectable, and the internal `zz` sentinel is hidden from the list.

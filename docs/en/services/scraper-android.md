@@ -43,6 +43,10 @@ A stateless Python microservice that fetches app data from the Google Play Store
 - `country`: ISO country code (default: `us`)
 - `locale`: locale code (default: `en`)
 
+## Data Sanitization
+
+The scraper returns the raw values it receives from `gplay-scraper`. Date sanitization is handled **on the Laravel side**: `GooglePlayConnector::parseDate()` normalizes fields such as `current_version_release_date` and `original_release_date`. Google Play sometimes reports placeholder strings like `"Never updated"` for apps that have never shipped an update; these are converted to `null` before being persisted, while real ISO dates pass through unchanged. The scraper stays stateless; normalization is the server's responsibility.
+
 ## Error Semantics
 
 The scraper propagates store errors with matching HTTP status codes:

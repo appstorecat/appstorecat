@@ -119,6 +119,16 @@ make pint               # PHP code style
 make lint-web           # ESLint
 ```
 
+### Testing
+
+```bash
+make test                                       # Run the full Pest suite (~400 tests)
+make test EXTRA_ARGS="--filter=AppSyncer"       # Filter by name
+make test EXTRA_ARGS="--testsuite=Regression"   # Run a single suite
+```
+
+Suites live under `server/tests/`: `Feature/`, `Unit/`, `Connectors/`, `Jobs/`, and `Regression/`. The suite must stay green; add a test when you fix a bug or land a feature.
+
 ### Database
 
 ```bash
@@ -172,7 +182,17 @@ Run before committing or when explicitly asked:
 make lint               # All linters (pint + eslint)
 make pint               # PHP code style only
 make lint-web           # ESLint only
+make test               # Full Pest suite (~400 tests, must stay green)
 ```
+
+## Database Notes
+
+A few schema-level rules worth keeping in mind:
+
+- High-volume tables (`trending_chart_entries`, `app_store_listings`, `app_metrics`) use `ROW_FORMAT=COMPRESSED`. Honour that when writing new migrations on these tables.
+- `app_store_listings.subtitle` is `TEXT` (not `VARCHAR`) — App Store subtitles can exceed 255 bytes under multibyte encoding.
+- `app_metrics` is intentionally narrow; do not re-add columns dropped in `2026_05_15` migrations without an issue describing why.
+- For single-node production deployments without replication consumers, set `binlog_expire_logs_seconds = 604800` (7 days). The MySQL default of 30 days wastes substantial disk.
 
 ## Makefile-First Rule
 

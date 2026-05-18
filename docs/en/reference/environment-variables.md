@@ -95,6 +95,7 @@ Each source can be toggled independently per platform. When a source is off, unk
 | `REDIS_HOST` | `appstorecat-redis` | Redis hostname |
 | `REDIS_PORT` | `6379` | Redis port |
 | `REDIS_PASSWORD` | `null` | Redis password |
+| `REDIS_QUEUE_RETRY_AFTER` | `1810` | Seconds Laravel waits before considering a Redis-queued job "stuck" and re-dispatching it. Must always exceed every job's `$timeout` (the longest current value is `ReconcileFailedItemsJob::$timeout = 1800`). The Laravel default of `90` was unsafe for AppStoreCat's long-running reconcile/sync jobs — 1810 is the new safe baseline. |
 
 ## Session & Auth
 

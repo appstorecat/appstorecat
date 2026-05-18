@@ -119,6 +119,21 @@ make fresh
 make dev
 ```
 
+## Running tests after install
+
+The install script intentionally does not create the test database — it gets you to a running app, nothing more. To enable `make test` after the install completes:
+
+```bash
+cd appstorecat
+make mysql
+# inside the MySQL shell:
+CREATE DATABASE appstorecat_testing;
+exit
+make test
+```
+
+Pest and its Laravel plugin are installed as Composer dev dependencies during `make setup`, so no extra install step is needed.
+
 ## Uninstall
 
 ```bash

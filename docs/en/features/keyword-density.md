@@ -62,5 +62,5 @@ The **Keywords** tab on the app detail page shows:
 
 - **Service:** `KeywordAnalyzer` (`analyzeListing()` / `analyzeText()` return arrays — they do not write to the DB)
 - **Source:** The current `StoreListing` record for the requested `(app_id, locale)`
-- **Controllers:** `KeywordController@index` and `KeywordController@compare` recompute on every request
+- **Controllers:** `KeywordController@index` and `KeywordController@compare` recompute on every request. Each app entry in the response includes `app.name` populated from `App::displayName()` (falls back to `external_id` when no display name is set); a recent fix replaced a bare `$app->name` lookup that was always returning `null`.
 - **Minimum word length:** 2 characters

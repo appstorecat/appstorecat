@@ -55,5 +55,11 @@ The **Listing** tab on the app detail page shows:
 - **Table:** `app_store_listings` (the `locale` column holds a BCP-47 code; `promotional_text` is used for iOS)
 - **Unique constraint:** `(app_id, locale)`
 - **Sync step:** `AppSyncer::syncListing()` (the pipeline's `listings` phase)
-- **Change detection:** checksum-based comparison on every sync
+- **Change detection:** checksum-based comparison on every sync (PHP-side; the `app_store_listings_checksum_index` was dropped because no SQL reader uses it)
 - **Validation:** `AppAvailableCountry` rule for `country_code`; 422 if the app is not in that country
+- **Storage:** `app_store_listings` runs with ROW_FORMAT=COMPRESSED (KEY_BLOCK_SIZE=8); InnoDB page-level zlib compression captures roughly 30-50% of the TEXT payload (description, screenshots JSON, whats_new)
+
+## Field Notes
+
+- **`subtitle`** is stored as `TEXT` (was `VARCHAR(255)`). Google Play's "short description" field is mapped onto `subtitle` and can exceed 255 characters in some locales; older syncs were failing with `Data too long for column 'subtitle' (1406)`. iOS subtitles remain short in practice.
+- **`promotional_text`** is iOS-only and always `null` for Android listings.

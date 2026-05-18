@@ -54,7 +54,27 @@ Default intervals:
 
 All scraper jobs are platform-separated: `sync-tracked-{ios,android}`, `sync-on-demand-{ios,android}`, `charts-{ios,android}`. This way iOS and Android never block each other.
 
+### Scheduled housekeeping
+
+Beyond syncing, the Laravel scheduler runs two daily cleanup jobs out of the box:
+
+| Time (UTC) | Command | Purpose |
+|------------|---------|---------|
+| `04:00` | `appstorecat:sync:cleanup-failed-items` | Drops `failed_items` rows older than 14 days from completed/failed `sync_statuses` |
+| `04:30` | `queue:prune-failed --hours=168` | Removes entries older than 7 days from `failed_jobs` |
+
+Both run inside the same supervisord-managed scheduler — no extra cron entries needed.
+
 Check `make logs-server` to see sync activity.
+
+## 6. Run the Test Suite
+
+The project ships with a Pest test suite. Once you have created the `appstorecat_testing` database (see [Installation](./installation.md#run-the-test-suite)):
+
+```bash
+make test                                     # full suite (400+ tests)
+make test EXTRA_ARGS="--filter=KeywordTest"   # focused subset
+```
 
 ## API Access
 

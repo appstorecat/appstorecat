@@ -49,9 +49,12 @@ The `AppSyncer` pipeline runs in the following phases and writes the status of e
 ```
 1. identity    → App metadata (name, publisher, category, languages)
                  The pipeline stops if this fails.
+                 Date fields are sanitized in the connector
+                 (empty strings and "Never updated" become null).
 2. listings    → Store listings for every active country + locale
-3. metrics     → Per-country rating / rating_count / is_available
-                 (Android metrics are aggregated under the `zz` Global sentinel country)
+3. metrics     → Per-country rating / rating_count / rating_breakdown
+                 + is_available (Android metrics are aggregated under
+                 the `zz` Global sentinel country)
 4. finalize    → `apps.last_synced_at`, change detection, checksums
 5. reconciling → `ReconcileFailedItemsJob` retries transient failures
 ```

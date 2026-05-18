@@ -40,9 +40,9 @@ All API endpoints start with the `/api/v1` prefix and require Sanctum token auth
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/apps` | List tracked apps (`?platform=ios\|android`) |
-| POST | `/apps` | Track a previously discovered app. `platform+external_id` must exist in the DB (discover first via search/chart); otherwise 422 |
+| POST | `/apps` | Track a previously discovered app. `platform+external_id` must exist in the DB (discover first via search/chart); otherwise 422. Invalid `platform` values now also return 422 (previously surfaced as 500) |
 | GET | `/apps/search` | Search for apps in the stores (`?term=X&platform=ios&country_code=us`) |
-| GET | `/apps/{platform}/{externalId}` | Get app details. The response includes `unavailable_countries: string[]` (derived from `app_metrics.is_available = false`) |
+| GET | `/apps/{platform}/{externalId}` | Get app details. The response includes `unavailable_countries: string[]` (derived from `app_metrics.is_available = false`) and `file_size_bytes` sourced from the latest `app_versions` row (the authoritative writer; `app_metrics.file_size_bytes` was dropped) |
 | GET | `/apps/{platform}/{externalId}/listing` | Get store listing (`?country_code=us&locale=en-US`). The `AppAvailableCountry` rule returns 422 if the app is not available in the selected country |
 | GET | `/apps/{platform}/{externalId}/rankings` | App chart rankings for the selected day (`?date=YYYY-MM-DD`) |
 | GET | `/apps/{platform}/{externalId}/sync-status` | Returns the `sync_statuses` record (status, current_step, progress, failed_items) |
@@ -129,4 +129,4 @@ All errors follow this format:
 }
 ```
 
-Common HTTP status codes: `401` (unauthenticated), `403` (unauthorized), `404` (not found — e.g. unknown app/publisher), `422` (validation error — e.g. `AppAvailableCountry` failure or a `platform+external_id` that has not yet been discovered), `429` (rate limit exceeded).
+Common HTTP status codes: `401` (unauthenticated), `403` (unauthorized), `404` (not found — e.g. unknown app/publisher), `422` (validation error — e.g. `AppAvailableCountry` failure, an unknown `platform` on `POST /apps`, or a `platform+external_id` that has not yet been discovered), `429` (rate limit exceeded).

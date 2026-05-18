@@ -216,3 +216,5 @@ make release v=1.2.0
 # → npm publish @appstorecat/mcp
 # → git tag + push
 ```
+
+The most recent published version is **`@appstorecat/mcp@1.2.6`** — tooling and behavior are unchanged versus 1.2.5; the bump is a routine release alongside the rest of the stack.

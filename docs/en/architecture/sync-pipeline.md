@@ -36,7 +36,8 @@ Fetches the app's core metadata from the store.
 
 - Tries the `us` storefront first and falls back to `apps.origin_country_code` on failure
 - On 404: classified as `empty_response`; if no storefront can resolve identity, the pipeline stops this run (so later phases don't run against an unresolved app)
-- Updates: `display_name`, `icon_url`, `supported_locales`, `original_release_date`, `is_free`, `origin_country_code`
+- Updates: `display_name`, `icon_url`, `supported_locales`, `original_release_date`, `is_free`, `publisher_id`, `category_id`
+- Date fields (`original_release_date`, `current_version_release_date`) are sanitized inside the connector — empty strings and unparseable values such as Google Play's literal `"Never updated"` become `null` instead of bubbling up as SQL date errors
 - Creates or links `Publisher` and `StoreCategory` records
 
 ### 2. Listings
@@ -52,12 +53,12 @@ For each active country, fetches the store listing in every locale the country s
 
 ### 3. Metrics
 
-Fetches per-country ratings and price.
+Fetches per-country ratings and availability.
 
 - Creates an `AppMetric` record (unique `(app_id, country_code, date)`)
 - Since Android metrics are global, they are stored under the `zz` sentinel country
-- Persists: `rating`, `rating_count`, `rating_breakdown`, `price` (null = unknown, 0 = free), `installs_range`, `file_size_bytes`, `is_available`
-- Computes `rating_delta` (change in rating_count since the previous day)
+- Persists: `rating`, `rating_count`, `rating_breakdown`, `is_available`
+- `file_size_bytes` is written to `app_versions.file_size_bytes` (single source of truth) from the identity payload; `AppDetailResource.file_size_bytes` reads the latest version's value directly
 - If a 404 comes back for a country → marked as `empty_response`, `is_available = false` is written for that country, and it will not be retried
 
 ### 4. Finalize
@@ -95,6 +96,10 @@ Apps are only re-synced if their `last_synced_at` is older than the configured r
 ### On-demand Refresh Queue
 
 `AppController::show()` and `AppController::listing()` dispatch a `SyncAppJob` to `sync-on-demand-ios` / `sync-on-demand-android` when the visited app's data is stale. The UI polls progress via `GET /apps/{platform}/{externalId}/sync-status`; the user can also trigger an explicit refresh via `POST /apps/{platform}/{externalId}/sync`. This keeps user-triggered refreshes on their own worker pool and prevents them from waiting behind the scheduled tracked queue.
+
+## Discovery Guard
+
+`App::discover()` is the single entry point for inserting new `apps` rows during search results, chart ingestion, publisher imports and direct visits. It early-returns `null` when the `external_id` is empty or `null` so callers never accidentally create rows keyed by a blank store id; five distinct call sites depend on this guard.
 
 ## Uniqueness Safeguards
 

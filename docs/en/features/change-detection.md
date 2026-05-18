@@ -91,3 +91,5 @@ Go to **Changes > Apps** or **Changes > Competitors** to see the change timeline
 - **Sync step:** `AppSyncer::syncListing()` (field changes), `AppSyncer::detectLocaleChanges()` (locale changes)
 - **Controller:** `ChangeMonitorController`
 - **Detection method:** Checksum-based (SHA-256 of the combined listing content)
+
+> Note: the source `app_store_listings.subtitle` column is now `TEXT` (previously `VARCHAR(255)`), so `subtitle` change records can now capture the longer values that Google Play returns under its short-description field without truncation.
