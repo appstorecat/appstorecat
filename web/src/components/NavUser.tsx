@@ -160,32 +160,38 @@ export default function NavUser() {
                 <Webhook />
                 MCP
               </DropdownMenuItem>
-              <DropdownMenuItem disabled>
+              <DropdownMenuItem
+                render={
+                  <a
+                    href="/api/documentation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                }
+              >
                 <BookOpen />
                 API Docs
-                <span className="ml-auto text-xs text-primary">Soon</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                render={
+                  <a
+                    href="https://github.com/appstorecat/appstorecat"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                }
+              >
+                <GithubIcon className="size-4" />
+                GitHub
+                <span className="ml-auto font-mono text-xs text-muted-foreground">
+                  v{__APP_VERSION__}
+                </span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={handleLogout}>
               <LogOut />
               Log out
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              render={
-                <a
-                  href="https://github.com/appstorecat/appstorecat"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              }
-            >
-              <GithubIcon className="size-4" />
-              GitHub
-              <span className="ml-auto font-mono text-xs text-muted-foreground">
-                v{__APP_VERSION__}
-              </span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
