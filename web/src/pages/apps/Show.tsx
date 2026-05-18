@@ -31,7 +31,7 @@ import {
   Star as StarIcon,
   History as HistoryIcon,
   GitCommit,
-  BarChart3,
+  ArrowUpRight,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useDominantColor, rgbToCss } from '@/hooks/useDominantColor'
@@ -462,7 +462,7 @@ export default function AppsShow() {
                   rel="noopener noreferrer"
                   className="group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
                 >
-                  <BarChart3 className="h-4 w-4 shrink-0" />
+                  <ArrowUpRight className="h-4 w-4 shrink-0" />
                   <span className="truncate">Sensor Tower</span>
                 </a>
               </li>
@@ -473,7 +473,7 @@ export default function AppsShow() {
                   rel="noopener noreferrer"
                   className="group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
                 >
-                  <BarChart3 className="h-4 w-4 shrink-0" />
+                  <ArrowUpRight className="h-4 w-4 shrink-0" />
                   <span className="truncate">AppMagic</span>
                 </a>
               </li>
