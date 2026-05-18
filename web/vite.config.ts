@@ -5,11 +5,16 @@ import path from 'path'
 import { readFileSync, existsSync } from 'fs'
 
 function readRepoVersion(): string {
-  try {
-    const versionFile = path.resolve(__dirname, '..', 'VERSION')
-    if (existsSync(versionFile)) return readFileSync(versionFile, 'utf8').trim()
-  } catch {
-    /* fall through */
+  // Two candidate locations:
+  //   - ../VERSION : repo layout on the host (npm run build outside Docker)
+  //   - /VERSION   : compose mount for the dev container (web/'s ../ is /, not the repo root)
+  const candidates = [path.resolve(__dirname, '..', 'VERSION'), '/VERSION']
+  for (const versionFile of candidates) {
+    try {
+      if (existsSync(versionFile)) return readFileSync(versionFile, 'utf8').trim()
+    } catch {
+      /* try next */
+    }
   }
   return process.env.npm_package_version || '0.0.0'
 }

@@ -39,6 +39,7 @@ services:
             - '${FRONTEND_PORT}:${FRONTEND_PORT}'
         volumes:
             - './web:/app'
+            - './VERSION:/VERSION:ro'
             - '/app/node_modules'
         environment:
             - NODE_ENV=development
