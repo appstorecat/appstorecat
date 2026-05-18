@@ -27,6 +27,7 @@ import {
 import { useChangesFilters, type ChangesField, type ChangesPlatform } from './useChangesFilters'
 import ChangeGroupCard from './ChangeGroupCard'
 import { bucketByDateSection, groupChanges } from './groupChanges'
+import { useDebounce } from '@/hooks/use-debounce'
 
 export type ChangesMode = 'tracked' | 'competitors'
 
@@ -49,18 +50,21 @@ const PAGE_SIZE = 50
 
 export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
   const filters = useChangesFilters()
-  // Remount the inner feed whenever any filter changes so page state resets
-  // without running a setState-in-effect pattern.
-  const filterKey = `${filters.platform}|${filters.field}|${filters.search}`
-  return <ChangesFeed key={filterKey} mode={mode} filters={filters} />
+  const debouncedSearch = useDebounce(filters.search)
+  // Remount the inner feed only after the debounced search settles so the
+  // input keeps focus while the user is typing.
+  const filterKey = `${filters.platform}|${filters.field}|${debouncedSearch}`
+  return <ChangesFeed key={filterKey} mode={mode} filters={filters} debouncedSearch={debouncedSearch} />
 }
 
 function ChangesFeed({
   mode,
   filters,
+  debouncedSearch,
 }: {
   mode: ChangesMode
   filters: ReturnType<typeof useChangesFilters>
+  debouncedSearch: string
 }) {
   const [page, setPage] = useState(1)
 
@@ -70,7 +74,7 @@ function ChangesFeed({
       ? 'Store listing changes across your tracked apps'
       : 'Store listing changes across your competitor apps'
 
-  const rows = useChangesFeed(mode, filters, page)
+  const rows = useChangesFeed(mode, filters, debouncedSearch, page)
   const grouped = useMemo(() => groupChanges(rows.data), [rows.data])
   const sections = useMemo(() => bucketByDateSection(grouped), [grouped])
 
@@ -155,12 +159,13 @@ function ChangesFeed({
 function useChangesFeed(
   mode: ChangesMode,
   filters: ReturnType<typeof useChangesFilters>,
+  debouncedSearch: string,
   page: number,
 ) {
   const shared = {
     per_page: PAGE_SIZE,
     page,
-    ...(filters.search.trim().length > 0 ? { search: filters.search.trim() } : {}),
+    ...(debouncedSearch.trim().length > 0 ? { search: debouncedSearch.trim() } : {}),
   } as const
 
   const trackedParams: AppChangesParams = {
