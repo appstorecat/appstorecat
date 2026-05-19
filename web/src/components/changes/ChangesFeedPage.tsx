@@ -175,7 +175,7 @@ export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
           onClearFilters={filters.clearAll}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {grouped.map((group) => (
             <ChangeGroupCard key={group.key} group={group} />
           ))}

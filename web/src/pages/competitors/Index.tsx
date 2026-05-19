@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData } from '@tanstack/react-query'
-import { ChevronRight, Users } from 'lucide-react'
+import { ChevronRight, Star, Users } from 'lucide-react'
 import { useListAllCompetitors } from '@/api/endpoints/apps/apps'
 import type { CompetitorGroupResource } from '@/api/models'
 import type { ListAllCompetitorsPlatform } from '@/api/models/listAllCompetitorsPlatform'
@@ -17,6 +17,13 @@ type PlatformFilter = 'all' | 'ios' | 'android'
 
 function parsePlatform(value: string | null): PlatformFilter {
   return value === 'ios' || value === 'android' ? value : 'all'
+}
+
+function formatRatingCount(count: number | null | undefined): string {
+  if (!count) return ''
+  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`
+  if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`
+  return count.toString()
 }
 
 export default function CompetitorsIndex() {
@@ -115,7 +122,7 @@ export default function CompetitorsIndex() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-4">
           {groups.map((group) => (
             <ParentGroup key={group.parent.id} group={group} />
           ))}
@@ -130,7 +137,7 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <div
         role="button"
         tabIndex={0}
@@ -165,6 +172,23 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
             <p className="truncate text-xs text-muted-foreground">
               {parent.publisher?.name ?? '—'}
             </p>
+            <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+              {parent.category && <span>{parent.category.name}</span>}
+              {parent.category && parent.rating ? <span>·</span> : null}
+              {parent.rating && Number(parent.rating) > 0 ? (
+                <span className="flex items-center gap-0.5">
+                  <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                  {Number(parent.rating).toFixed(1)}
+                  {parent.rating_count ? (
+                    <span className="text-muted-foreground/50">
+                      ({formatRatingCount(parent.rating_count)})
+                    </span>
+                  ) : null}
+                </span>
+              ) : (
+                <span className="text-muted-foreground/50">No Ratings</span>
+              )}
+            </div>
           </div>
         </Link>
         <div className="flex flex-1 items-center justify-end gap-3">
