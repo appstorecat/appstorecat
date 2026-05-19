@@ -168,6 +168,11 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
           </div>
         </Link>
         <div className="flex flex-1 items-center justify-end gap-3">
+          {parent.platform === 'ios' ? (
+            <AppStoreSvg className="h-4 w-4 shrink-0 text-muted-foreground" />
+          ) : parent.platform === 'android' ? (
+            <GooglePlaySvg className="h-4 w-4 shrink-0 text-muted-foreground" />
+          ) : null}
           <Badge variant="secondary" className="shrink-0 text-[10px]">
             {competitors.length} competitor{competitors.length === 1 ? '' : 's'}
           </Badge>
