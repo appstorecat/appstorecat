@@ -15,4 +15,9 @@ export interface CompetitorAllRequest {
      * @nullable
      */
   search?: string | null;
+  /**
+     * Filter by the parent app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit to include every parent.
+     * @nullable
+     */
+  folder_id?: string | null;
 }

@@ -33,9 +33,20 @@ import FolderDialog from './FolderDialog'
 interface FolderSidebarProps {
   activeFolderId: string | null
   onSelect: (folderId: string | null) => void
+  /**
+   * When false, drop event handlers are not attached and drag-over highlights
+   * are suppressed. Use on pages where the sidebar is a pure filter (e.g.
+   * Competitors, Changes) rather than a drop target (e.g. Apps).
+   * @default true
+   */
+  dropTargetsEnabled?: boolean
 }
 
-export default function FolderSidebar({ activeFolderId, onSelect }: FolderSidebarProps) {
+export default function FolderSidebar({
+  activeFolderId,
+  onSelect,
+  dropTargetsEnabled = true,
+}: FolderSidebarProps) {
   const queryClient = useQueryClient()
   const { data: folders, isPending } = useListFolders()
 
@@ -64,23 +75,26 @@ export default function FolderSidebar({ activeFolderId, onSelect }: FolderSideba
     )
   }
 
-  const dropHandlers = (key: string, folderId: number | null) => ({
-    onDragOver: (e: React.DragEvent) => {
-      if (!e.dataTransfer.types.includes('app/external-id')) return
-      e.preventDefault()
-      e.dataTransfer.dropEffect = 'move'
-    },
-    onDragEnter: (e: React.DragEvent) => {
-      if (!e.dataTransfer.types.includes('app/external-id')) return
-      setActiveDropTarget(key)
-    },
-    onDragLeave: (e: React.DragEvent) => {
-      // Only clear when leaving the element (not crossing into children)
-      if (e.currentTarget.contains(e.relatedTarget as Node)) return
-      setActiveDropTarget((prev) => (prev === key ? null : prev))
-    },
-    onDrop: (e: React.DragEvent) => handleDrop(e, folderId),
-  })
+  const dropHandlers = (key: string, folderId: number | null) => {
+    if (!dropTargetsEnabled) return undefined
+    return {
+      onDragOver: (e: React.DragEvent) => {
+        if (!e.dataTransfer.types.includes('app/external-id')) return
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+      },
+      onDragEnter: (e: React.DragEvent) => {
+        if (!e.dataTransfer.types.includes('app/external-id')) return
+        setActiveDropTarget(key)
+      },
+      onDragLeave: (e: React.DragEvent) => {
+        // Only clear when leaving the element (not crossing into children)
+        if (e.currentTarget.contains(e.relatedTarget as Node)) return
+        setActiveDropTarget((prev) => (prev === key ? null : prev))
+      },
+      onDrop: (e: React.DragEvent) => handleDrop(e, folderId),
+    }
+  }
 
   const destroyFolder = useDestroyFolder({
     mutation: {

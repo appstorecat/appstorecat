@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import FilterBar from '@/components/FilterBar'
+import FolderSidebar from '@/components/folders/FolderSidebar'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 
 import {
@@ -79,8 +80,9 @@ export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
           ? { field: AppChangesField[filters.field as keyof typeof AppChangesField] }
           : { field: CompetitorChangesField[filters.field as keyof typeof CompetitorChangesField] }
         : {}),
+      ...(filters.folderId ? { folder_id: filters.folderId } : {}),
     }
-  }, [debouncedSearch, filters.platform, filters.field, mode])
+  }, [debouncedSearch, filters.platform, filters.field, filters.folderId, mode])
 
   const queryKey =
     mode === 'tracked'
@@ -165,30 +167,40 @@ export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
         </FilterBar.Controls>
       </FilterBar>
 
-      {isPending ? (
-        <FeedSkeleton />
-      ) : rows.length === 0 ? (
-        <EmptyState
-          mode={mode}
-          hasScopeApps={hasScopeApps}
-          hasAnyFilter={filters.hasAny}
-          onClearFilters={filters.clearAll}
+      <div className="flex flex-1 flex-row gap-6">
+        <FolderSidebar
+          activeFolderId={filters.folderId}
+          onSelect={filters.setFolderId}
+          dropTargetsEnabled={false}
         />
-      ) : (
-        <div className="space-y-4">
-          {grouped.map((group) => (
-            <ChangeGroupCard key={group.key} group={group} />
-          ))}
 
-          <div ref={sentinelRef} className="h-1" />
+        <div className="min-w-0 flex-1">
+          {isPending ? (
+            <FeedSkeleton />
+          ) : rows.length === 0 ? (
+            <EmptyState
+              mode={mode}
+              hasScopeApps={hasScopeApps}
+              hasAnyFilter={filters.hasAny}
+              onClearFilters={filters.clearAll}
+            />
+          ) : (
+            <div className="space-y-4">
+              {grouped.map((group) => (
+                <ChangeGroupCard key={group.key} group={group} />
+              ))}
 
-          {isFetchingNextPage && (
-            <div className="flex items-center justify-center py-6">
-              <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <div ref={sentinelRef} className="h-1" />
+
+              {isFetchingNextPage && (
+                <div className="flex items-center justify-center py-6">
+                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

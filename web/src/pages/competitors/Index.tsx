@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import FilterBar from '@/components/FilterBar'
+import FolderSidebar from '@/components/folders/FolderSidebar'
 import { useDebounce } from '@/hooks/use-debounce'
 
 type PlatformFilter = 'all' | 'ios' | 'android'
@@ -31,6 +32,7 @@ export default function CompetitorsIndex() {
 
   const platform = parsePlatform(searchParams.get('platform'))
   const searchTerm = searchParams.get('search') ?? ''
+  const folderFilter = searchParams.get('folder_id')
   const debouncedSearch = useDebounce(searchTerm)
 
   const setSearchTerm = (value: string) => {
@@ -51,11 +53,21 @@ export default function CompetitorsIndex() {
     }, { replace: true })
   }
 
+  const setFolderFilter = (value: string | null) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      if (value === null) next.delete('folder_id')
+      else next.set('folder_id', value)
+      return next
+    }, { replace: true })
+  }
+
   const trimmedSearch = debouncedSearch.trim()
   const { data, isPending, isError, refetch } = useListAllCompetitors(
     {
       platform: platform === 'all' ? undefined : (platform as ListAllCompetitorsPlatform),
       search: trimmedSearch.length > 0 ? trimmedSearch : undefined,
+      ...(folderFilter ? { folder_id: folderFilter } : {}),
     },
     { query: { placeholderData: keepPreviousData } },
   )
@@ -77,7 +89,8 @@ export default function CompetitorsIndex() {
   }
 
   const totalCompetitors = groups.reduce((sum, g) => sum + g.competitors.length, 0)
-  const hasFilters = platform !== 'all' || debouncedSearch.trim().length > 0
+  const hasFilters =
+    platform !== 'all' || debouncedSearch.trim().length > 0 || folderFilter !== null
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
@@ -112,22 +125,32 @@ export default function CompetitorsIndex() {
         </FilterBar.Controls>
       </FilterBar>
 
-      {groups.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center">
-          <Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-          <p className="text-muted-foreground">
-            {hasFilters
-              ? 'No competitors match your filters.'
-              : "No competitors yet. Add competitors from an app's Competitors tab."}
-          </p>
+      <div className="flex flex-1 flex-row gap-6">
+        <FolderSidebar
+          activeFolderId={folderFilter}
+          onSelect={setFolderFilter}
+          dropTargetsEnabled={false}
+        />
+
+        <div className="min-w-0 flex-1">
+          {groups.length === 0 ? (
+            <div className="rounded-xl border border-dashed p-12 text-center">
+              <Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-muted-foreground">
+                {hasFilters
+                  ? 'No competitors match your filters.'
+                  : "No competitors yet. Add competitors from an app's Competitors tab."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {groups.map((group) => (
+                <ParentGroup key={group.parent.id} group={group} />
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="space-y-4">
-          {groups.map((group) => (
-            <ParentGroup key={group.parent.id} group={group} />
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -36,9 +36,11 @@ export interface ChangesFilters {
   platform: ChangesPlatform
   field: ChangesField
   search: string
+  folderId: string | null
   setPlatform: (value: ChangesPlatform) => void
   setField: (value: ChangesField) => void
   setSearch: (value: string) => void
+  setFolderId: (value: string | null) => void
   clearAll: () => void
   hasAny: boolean
 }
@@ -49,6 +51,7 @@ export function useChangesFilters(): ChangesFilters {
   const platform = parsePlatform(searchParams.get('platform'))
   const field = parseField(searchParams.get('field'))
   const search = searchParams.get('search') ?? ''
+  const folderId = searchParams.get('folder_id')
 
   const update = useCallback(
     (key: string, value: string | null) => {
@@ -80,6 +83,11 @@ export function useChangesFilters(): ChangesFilters {
 
   const setSearch = useCallback((value: string) => update('search', value || null), [update])
 
+  const setFolderId = useCallback(
+    (value: string | null) => update('folder_id', value),
+    [update],
+  )
+
   const clearAll = useCallback(() => {
     setSearchParams(
       (prev) => {
@@ -87,21 +95,25 @@ export function useChangesFilters(): ChangesFilters {
         next.delete('platform')
         next.delete('field')
         next.delete('search')
+        next.delete('folder_id')
         return next
       },
       { replace: true },
     )
   }, [setSearchParams])
 
-  const hasAny = platform !== 'all' || field !== 'all' || search.length > 0
+  const hasAny =
+    platform !== 'all' || field !== 'all' || search.length > 0 || folderId !== null
 
   return {
     platform,
     field,
     search,
+    folderId,
     setPlatform,
     setField,
     setSearch,
+    setFolderId,
     clearAll,
     hasAny,
   }

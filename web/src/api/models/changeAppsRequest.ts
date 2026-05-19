@@ -34,4 +34,9 @@ export interface ChangeAppsRequest {
      * @nullable
      */
   page?: number | null;
+  /**
+     * Filter by the tracked app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all tracked apps.
+     * @nullable
+     */
+  folder_id?: string | null;
 }

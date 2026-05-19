@@ -34,4 +34,9 @@ export interface ChangeCompetitorsRequest {
      * @nullable
      */
   page?: number | null;
+  /**
+     * Filter by the parent (tracked) app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all competitors.
+     * @nullable
+     */
+  folder_id?: string | null;
 }
