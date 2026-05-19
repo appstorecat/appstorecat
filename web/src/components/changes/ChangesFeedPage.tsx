@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { keepPreviousData } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef } from 'react'
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,7 +13,12 @@ import {
 import FilterBar from '@/components/FilterBar'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 
-import { useAppChanges, useCompetitorChanges } from '@/api/endpoints/change-monitor/change-monitor'
+import {
+  appChanges,
+  competitorChanges,
+  getAppChangesQueryKey,
+  getCompetitorChangesQueryKey,
+} from '@/api/endpoints/change-monitor/change-monitor'
 import {
   AppChangesField,
   AppChangesPlatform,
@@ -26,7 +31,7 @@ import {
 
 import { useChangesFilters, type ChangesField, type ChangesPlatform } from './useChangesFilters'
 import ChangeGroupCard from './ChangeGroupCard'
-import { bucketByDateSection, groupChanges } from './groupChanges'
+import { groupChanges } from './groupChanges'
 import { useDebounce } from '@/hooks/use-debounce'
 
 export type ChangesMode = 'tracked' | 'competitors'
@@ -51,13 +56,7 @@ const PAGE_SIZE = 50
 export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
   const filters = useChangesFilters()
   const debouncedSearch = useDebounce(filters.search)
-  const [page, setPage] = useState(1)
-
-  // Reset pagination when filters change, without remounting the subtree —
-  // a key-based remount would unmount the search input and steal focus.
-  useEffect(() => {
-    setPage(1)
-  }, [filters.platform, filters.field, debouncedSearch])
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   const title = mode === 'tracked' ? 'App Changes' : 'Competitor Changes'
   const subtitle =
@@ -65,9 +64,73 @@ export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
       ? 'Store listing changes across your tracked apps'
       : 'Store listing changes across your competitor apps'
 
-  const rows = useChangesFeed(mode, filters, debouncedSearch, page)
-  const grouped = useMemo(() => groupChanges(rows.data), [rows.data])
-  const sections = useMemo(() => bucketByDateSection(grouped), [grouped])
+  const baseParams = useMemo(() => {
+    const trimmed = debouncedSearch.trim()
+    return {
+      per_page: PAGE_SIZE,
+      ...(trimmed.length > 0 ? { search: trimmed } : {}),
+      ...(filters.platform !== 'all'
+        ? mode === 'tracked'
+          ? { platform: AppChangesPlatform[filters.platform] }
+          : { platform: CompetitorChangesPlatform[filters.platform] }
+        : {}),
+      ...(filters.field !== 'all'
+        ? mode === 'tracked'
+          ? { field: AppChangesField[filters.field as keyof typeof AppChangesField] }
+          : { field: CompetitorChangesField[filters.field as keyof typeof CompetitorChangesField] }
+        : {}),
+    }
+  }, [debouncedSearch, filters.platform, filters.field, mode])
+
+  const queryKey =
+    mode === 'tracked'
+      ? getAppChangesQueryKey(baseParams as AppChangesParams)
+      : getCompetitorChangesQueryKey(baseParams as CompetitorChangesParams)
+
+  const {
+    data,
+    isPending,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<PaginatedChangeResponse, unknown, InfiniteData<PaginatedChangeResponse, number>, readonly unknown[], number>({
+    queryKey: queryKey as readonly unknown[],
+    queryFn: ({ pageParam, signal }) =>
+      mode === 'tracked'
+        ? (appChanges({ ...(baseParams as AppChangesParams), page: pageParam }, undefined, signal) as Promise<PaginatedChangeResponse>)
+        : (competitorChanges({ ...(baseParams as CompetitorChangesParams), page: pageParam }, undefined, signal) as Promise<PaginatedChangeResponse>),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const meta = lastPage.meta as { current_page?: number; last_page?: number } | undefined
+      const current = meta?.current_page ?? 0
+      const last = meta?.last_page ?? 0
+      return current < last ? current + 1 : undefined
+    },
+  })
+
+  const rows = useMemo(() => data?.pages.flatMap((p) => p.data ?? []) ?? [], [data])
+  const grouped = useMemo(() => groupChanges(rows), [rows])
+  const hasScopeApps = useMemo(() => {
+    const last = data?.pages[data.pages.length - 1]
+    return last?.meta_ext?.has_scope_apps ?? false
+  }, [data])
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { rootMargin: '400px' },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
@@ -102,101 +165,32 @@ export default function ChangesFeedPage({ mode }: ChangesFeedPageProps) {
         </FilterBar.Controls>
       </FilterBar>
 
-
-      {rows.isPending ? (
+      {isPending ? (
         <FeedSkeleton />
-      ) : rows.data.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           mode={mode}
-          hasScopeApps={rows.hasScopeApps}
+          hasScopeApps={hasScopeApps}
           hasAnyFilter={filters.hasAny}
           onClearFilters={filters.clearAll}
         />
       ) : (
-        <div className="space-y-6">
-          {sections.map((section) => (
-            <section key={section.section} className="space-y-3">
-              <h2 className="sticky top-14 z-10 -mx-4 bg-background/85 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground backdrop-blur md:-mx-6 md:px-6">
-                {section.label}
-              </h2>
-              <div className="space-y-3">
-                {section.groups.map((group) => (
-                  <ChangeGroupCard key={group.key} group={group} />
-                ))}
-              </div>
-            </section>
+        <div className="space-y-3">
+          {grouped.map((group) => (
+            <ChangeGroupCard key={group.key} group={group} />
           ))}
 
-          {rows.hasNext && (
-            <div className="flex justify-center pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={rows.isFetching}
-              >
-                {rows.isFetching ? 'Loading…' : 'Load more'}
-              </Button>
+          <div ref={sentinelRef} className="h-1" />
+
+          {isFetchingNextPage && (
+            <div className="flex items-center justify-center py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
           )}
         </div>
       )}
     </div>
   )
-}
-
-// --- Feed data hook ---------------------------------------------------------
-
-function useChangesFeed(
-  mode: ChangesMode,
-  filters: ReturnType<typeof useChangesFilters>,
-  debouncedSearch: string,
-  page: number,
-) {
-  const shared = {
-    per_page: PAGE_SIZE,
-    page,
-    ...(debouncedSearch.trim().length > 0 ? { search: debouncedSearch.trim() } : {}),
-  } as const
-
-  const trackedParams: AppChangesParams = {
-    ...shared,
-    ...(filters.platform !== 'all' ? { platform: AppChangesPlatform[filters.platform] } : {}),
-    ...(filters.field !== 'all'
-      ? { field: AppChangesField[filters.field as keyof typeof AppChangesField] }
-      : {}),
-  }
-
-  const competitorParams: CompetitorChangesParams = {
-    ...shared,
-    ...(filters.platform !== 'all' ? { platform: CompetitorChangesPlatform[filters.platform] } : {}),
-    ...(filters.field !== 'all'
-      ? { field: CompetitorChangesField[filters.field as keyof typeof CompetitorChangesField] }
-      : {}),
-  }
-
-  const trackedQuery = useAppChanges(trackedParams, {
-    query: { placeholderData: keepPreviousData, enabled: mode === 'tracked' },
-  })
-  const competitorQuery = useCompetitorChanges(competitorParams, {
-    query: { placeholderData: keepPreviousData, enabled: mode === 'competitors' },
-  })
-
-  const active = mode === 'tracked' ? trackedQuery : competitorQuery
-  const payload = active.data as PaginatedChangeResponse | undefined
-
-  return {
-    data: payload?.data ?? [],
-    total: payload?.meta?.total ?? 0,
-    isPending: active.isPending,
-    isFetching: active.isFetching,
-    hasScopeApps: payload?.meta_ext?.has_scope_apps ?? false,
-    hasNext:
-      !!payload?.meta &&
-      typeof payload.meta.current_page === 'number' &&
-      typeof payload.meta.last_page === 'number' &&
-      payload.meta.current_page < payload.meta.last_page,
-  }
 }
 
 // --- Filter widgets ---------------------------------------------------------
