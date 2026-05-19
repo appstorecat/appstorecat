@@ -147,7 +147,7 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
         <Link
           to={`/apps/${parent.platform}/${parent.external_id}`}
           onClick={(e) => e.stopPropagation()}
-          className="flex min-w-0 flex-1 items-center gap-3"
+          className="flex min-w-0 items-center gap-3"
         >
           {parent.icon_url ? (
             <img
@@ -158,23 +158,23 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
           ) : (
             <div className="h-9 w-9 shrink-0 rounded-lg bg-muted" />
           )}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="truncate text-base font-semibold hover:underline">
-                {parent.name}
-              </h2>
-            </div>
+          <div className="min-w-0">
+            <h2 className="truncate text-base font-semibold hover:underline">
+              {parent.name}
+            </h2>
             <p className="truncate text-xs text-muted-foreground">
               {parent.publisher?.name ?? '—'}
             </p>
           </div>
         </Link>
-        <Badge variant="secondary" className="shrink-0 text-[10px]">
-          {competitors.length} competitor{competitors.length === 1 ? '' : 's'}
-        </Badge>
-        <ChevronRight
-          className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-90' : ''}`}
-        />
+        <div className="flex flex-1 items-center justify-end gap-3">
+          <Badge variant="secondary" className="shrink-0 text-[10px]">
+            {competitors.length} competitor{competitors.length === 1 ? '' : 's'}
+          </Badge>
+          <ChevronRight
+            className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-90' : ''}`}
+          />
+        </div>
       </div>
 
       {expanded && (
