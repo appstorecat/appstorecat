@@ -133,7 +133,7 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
     <section className="space-y-3">
       <Link
         to={`/apps/${parent.platform}/${parent.external_id}`}
-        className="group flex items-center gap-3 rounded-lg px-1 py-1 transition-colors hover:bg-accent/40"
+        className="group flex items-center gap-3 rounded-lg border border-border bg-card/40 px-3 py-2 transition-colors hover:bg-accent/40"
       >
         {parent.icon_url ? (
           <img
