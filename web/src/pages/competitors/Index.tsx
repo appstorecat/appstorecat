@@ -178,12 +178,10 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
       </div>
 
       {expanded && (
-        <div className="ml-2 space-y-2 border-l border-border pl-3 sm:ml-5 sm:pl-5">
-          <div className="grid gap-3 md:grid-cols-2">
-            {competitors.map((c) => (
-              <AppCard key={c.id} app={c.app} />
-            ))}
-          </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {competitors.map((c) => (
+            <AppCard key={c.id} app={c.app} />
+          ))}
         </div>
       )}
     </section>
