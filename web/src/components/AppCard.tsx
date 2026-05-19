@@ -1,14 +1,35 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useTrackApp, useUntrackApp } from '@/api/endpoints/apps/apps'
-import type { AppResource } from '@/api/models'
+import { useTrackApp, useUntrackApp, useMoveAppToFolder } from '@/api/endpoints/apps/apps'
+import { getListFoldersQueryKey } from '@/api/endpoints/folders/folders'
+import type { AppResource, FolderResource } from '@/api/models'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
-import { Star, BookmarkPlus, BookmarkMinus, Loader2 } from 'lucide-react'
+import {
+  Star,
+  BookmarkPlus,
+  BookmarkMinus,
+  Loader2,
+  MoreVertical,
+  CircleSlash,
+  Plus,
+} from 'lucide-react'
+import { folderDotClass } from '@/lib/folderColors'
+import { cn } from '@/lib/utils'
 
 interface AppCardProps {
   app: AppResource
+  folders?: FolderResource[]
 }
 
 // Invalidate everything that could have been filtered by "is_tracked" after a
@@ -31,13 +52,29 @@ function formatRatingCount(count: number | null): string {
 const IosSvg = () => <AppStoreSvg className="h-4 w-4 shrink-0 text-muted-foreground" />
 const AndroidSvg = () => <GooglePlaySvg className="h-4 w-4 shrink-0 text-muted-foreground" />
 
-export default function AppCard({ app }: AppCardProps) {
+export default function AppCard({ app, folders }: AppCardProps) {
   const queryClient = useQueryClient()
   const trackMutation = useTrackApp()
   const untrackMutation = useUntrackApp()
+  const moveMutation = useMoveAppToFolder()
   const tracking = trackMutation.isPending || untrackMutation.isPending
   const publisherName = app.publisher?.name ?? '—'
   const isTracked = app.is_tracked ?? false
+  const [isDragging, setIsDragging] = useState(false)
+
+  const move = (folderId: number | null) => {
+    const platform = app.platform as 'ios' | 'android'
+    const externalId = app.external_id
+    moveMutation.mutate(
+      { platform, externalId, data: { folder_id: folderId } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListFoldersQueryKey() })
+          queryClient.invalidateQueries({ queryKey: ['/apps'] })
+        },
+      },
+    )
+  }
 
   const toggleTrack = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -61,7 +98,22 @@ export default function AppCard({ app }: AppCardProps) {
   return (
     <Link
       to={`/apps/${app.platform}/${app.external_id}`}
-      className="flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm"
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('app/external-id', app.external_id)
+        e.dataTransfer.setData('app/platform', app.platform)
+        e.dataTransfer.effectAllowed = 'move'
+        document.body.classList.add('dragging-app')
+        setIsDragging(true)
+      }}
+      onDragEnd={() => {
+        document.body.classList.remove('dragging-app')
+        setIsDragging(false)
+      }}
+      className={cn(
+        'flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm',
+        isDragging && 'opacity-50',
+      )}
     >
       {app.icon_url ? (
         <img src={app.icon_url} alt={app.name} className="h-14 w-14 shrink-0 rounded-xl" />
@@ -101,6 +153,54 @@ export default function AppCard({ app }: AppCardProps) {
                 </>
               )}
             </Button>
+            {folders !== undefined && isTracked && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 px-0"
+                      aria-label="Move to folder"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                      }}
+                    />
+                  }
+                >
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
+                >
+                  <DropdownMenuLabel>Move to folder</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => move(null)}>
+                    <CircleSlash className="h-3.5 w-3.5 text-muted-foreground" />
+                    Unassigned
+                  </DropdownMenuItem>
+                  {folders.map((f) => (
+                    <DropdownMenuItem key={f.id} onClick={() => move(f.id)}>
+                      <span
+                        className={cn('h-2.5 w-2.5 rounded-full', folderDotClass(f.color))}
+                      />
+                      {f.name}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  {/* TODO: wire up folder creation via a parent-managed FolderDialog */}
+                  <DropdownMenuItem disabled>
+                    <Plus className="h-3.5 w-3.5" />
+                    New folder
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
         <p className="truncate text-xs text-muted-foreground" title={publisherName}>

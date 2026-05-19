@@ -41,6 +41,7 @@ import type {
   ListAppRankingsParams,
   ListAppsParams,
   ListingResource,
+  MoveToFolderRequest,
   RatingByCountryResource,
   RatingHistoryPointResource,
   RatingSummaryResource,
@@ -695,6 +696,71 @@ export const useUntrackApp = <TError = unknown,
         TContext
       > => {
       return useMutation(getUntrackAppMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Move a tracked app into a folder (or remove it from its folder)
+ */
+export const moveAppToFolder = (
+    platform: 'ios' | 'android',
+    externalId: string,
+    moveToFolderRequest: MoveToFolderRequest,
+ options?: SecondParameter<typeof orvalMutator>,signal?: AbortSignal
+) => {
+
+
+      return orvalMutator<void>(
+      {url: `/apps/${platform}/${externalId}/folder`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: moveToFolderRequest, signal
+    },
+      options);
+    }
+
+
+
+export const getMoveAppToFolderMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveAppToFolder>>, TError,{platform: 'ios' | 'android';externalId: string;data: MoveToFolderRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
+): UseMutationOptions<Awaited<ReturnType<typeof moveAppToFolder>>, TError,{platform: 'ios' | 'android';externalId: string;data: MoveToFolderRequest}, TContext> => {
+
+const mutationKey = ['moveAppToFolder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof moveAppToFolder>>, {platform: 'ios' | 'android';externalId: string;data: MoveToFolderRequest}> = (props) => {
+          const {platform,externalId,data} = props ?? {};
+
+          return  moveAppToFolder(platform,externalId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MoveAppToFolderMutationResult = NonNullable<Awaited<ReturnType<typeof moveAppToFolder>>>
+    export type MoveAppToFolderMutationBody = MoveToFolderRequest
+    export type MoveAppToFolderMutationError = void
+
+    /**
+ * @summary Move a tracked app into a folder (or remove it from its folder)
+ */
+export const useMoveAppToFolder = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveAppToFolder>>, TError,{platform: 'ios' | 'android';externalId: string;data: MoveToFolderRequest}, TContext>, request?: SecondParameter<typeof orvalMutator>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof moveAppToFolder>>,
+        TError,
+        {platform: 'ios' | 'android';externalId: string;data: MoveToFolderRequest},
+        TContext
+      > => {
+      return useMutation(getMoveAppToFolderMutationOptions(options), queryClient);
     }
     /**
  * @summary List chart rankings for an app on a given date

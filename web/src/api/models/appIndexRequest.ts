@@ -15,4 +15,9 @@ export interface AppIndexRequest {
      * @nullable
      */
   search?: string | null;
+  /**
+     * Filter by folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all tracked apps.
+     * @nullable
+     */
+  folder_id?: string | null;
 }

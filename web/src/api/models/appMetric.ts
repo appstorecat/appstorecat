@@ -15,15 +15,5 @@ export interface AppMetric {
   rating_count?: number;
   /** @nullable */
   rating_breakdown?: AppMetricRatingBreakdown;
-  /** @nullable */
-  rating_delta?: number | null;
-  /** @nullable */
-  price?: number | null;
-  /** @nullable */
-  currency?: string | null;
-  /** @nullable */
-  installs_range?: string | null;
-  /** @nullable */
-  file_size_bytes?: number | null;
   is_available?: boolean;
 }

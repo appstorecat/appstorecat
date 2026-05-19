@@ -13,4 +13,9 @@ platform?: ListAppsPlatform;
  * @maxLength 100
  */
 search?: string;
+/**
+ * Filter by folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps with no folder, or omit for all tracked apps.
+ * @nullable
+ */
+folder_id?: string | null;
 };

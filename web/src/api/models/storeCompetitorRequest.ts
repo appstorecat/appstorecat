@@ -5,9 +5,18 @@
  * Open source app intelligence toolkit API. Provides endpoints for app registration, DNA building, store listing tracking, and analytics.
  * OpenAPI spec version: 1.0.0
  */
+import type { StoreCompetitorRequestCompetitorPlatform } from './storeCompetitorRequestCompetitorPlatform';
 import type { StoreCompetitorRequestRelationship } from './storeCompetitorRequestRelationship';
 
+/**
+ * Add a competitor to a tracked app. Supply EITHER `competitor_external_id` (recommended — auto-registers the app row without adding it to the caller's watchlist) OR `competitor_app_id` (legacy: internal numeric id of an already-registered app).
+ */
 export interface StoreCompetitorRequest {
-  competitor_app_id: number;
+  /** Store identifier of the competitor app. Auto-registers the app row if missing. */
+  competitor_external_id?: string;
+  /** Platform of the competitor. Defaults to the parent app's platform when omitted. */
+  competitor_platform?: StoreCompetitorRequestCompetitorPlatform;
+  /** Legacy: internal numeric `apps.id` of the competitor. Use `competitor_external_id` instead when calling the API directly. */
+  competitor_app_id?: number;
   relationship?: StoreCompetitorRequestRelationship;
 }
