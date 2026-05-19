@@ -17,7 +17,7 @@ beforeEach(function () {
  */
 function explorerScreenshotApp(array $appAttrs = [], array $screenshots = [['url' => 'https://cdn.example.com/s1.png', 'device_type' => 'iphone', 'order' => 0]]): App
 {
-    $app = App::factory()->create(array_merge(['platform' => Platform::Ios], $appAttrs));
+    $app = App::factory()->create(array_merge(['platform' => Platform::Ios, 'last_synced_at' => now()], $appAttrs));
     $version = AppVersion::factory()->create(['app_id' => $app->id]);
     StoreListing::factory()->create([
         'app_id' => $app->id,
@@ -54,7 +54,7 @@ it('returns apps with an English listing and non-empty screenshots', function ()
 it('filters screenshot explorer by platform', function () {
     $ios = explorerScreenshotApp(['platform' => Platform::Ios, 'display_name' => 'iOS']);
 
-    $android = App::factory()->android()->create(['display_name' => 'Android']);
+    $android = App::factory()->android()->create(['display_name' => 'Android', 'last_synced_at' => now()]);
     $v = AppVersion::factory()->create(['app_id' => $android->id]);
     StoreListing::factory()->create([
         'app_id' => $android->id,
@@ -88,8 +88,8 @@ it('filters screenshot explorer by category_id', function () {
         ->assertJsonPath('data.0.app_id', $match->id);
 });
 
-it('filters screenshot explorer by search against the listing title', function () {
-    $fooApp = App::factory()->create(['platform' => Platform::Ios, 'display_name' => 'Foo App']);
+it('filters screenshot explorer by search against the app display name', function () {
+    $fooApp = App::factory()->create(['platform' => Platform::Ios, 'display_name' => 'FooFancy App', 'last_synced_at' => now()]);
     $fooVersion = AppVersion::factory()->create(['app_id' => $fooApp->id]);
     StoreListing::factory()->create([
         'app_id' => $fooApp->id,
@@ -99,7 +99,7 @@ it('filters screenshot explorer by search against the listing title', function (
         'screenshots' => [['url' => 'https://cdn.example.com/a.png', 'device_type' => 'iphone', 'order' => 0]],
     ]);
 
-    $barApp = App::factory()->create(['platform' => Platform::Ios, 'display_name' => 'Bar App']);
+    $barApp = App::factory()->create(['platform' => Platform::Ios, 'display_name' => 'Bar App', 'last_synced_at' => now()]);
     $barVersion = AppVersion::factory()->create(['app_id' => $barApp->id]);
     StoreListing::factory()->create([
         'app_id' => $barApp->id,

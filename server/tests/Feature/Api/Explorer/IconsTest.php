@@ -4,42 +4,37 @@ declare(strict_types=1);
 
 use App\Enums\Platform;
 use App\Models\App;
-use App\Models\AppVersion;
 use App\Models\StoreCategory;
-use App\Models\StoreListing;
 
 beforeEach(function () {
     createAuthenticatedUser();
 });
 
 /**
- * Attach an en-US store listing with an icon to a freshly-built app.
+ * Create an app with an icon_url directly on the apps row. The explorer icons
+ * endpoint reads apps.icon_url directly (no listing join), so this is all the
+ * fixture needs.
  */
 function explorerIconApp(array $appAttrs = [], ?string $iconUrl = 'https://cdn.example.com/icon.png'): App
 {
-    $app = App::factory()->create(array_merge(['platform' => Platform::Ios], $appAttrs));
-    $version = AppVersion::factory()->create(['app_id' => $app->id]);
-    StoreListing::factory()->create([
-        'app_id' => $app->id,
-        'version_id' => $version->id,
-        'locale' => 'en-US',
-        'icon_url' => $iconUrl,
-    ]);
-
-    return $app;
+    return App::factory()->create(array_merge(
+        ['platform' => Platform::Ios, 'icon_url' => $iconUrl],
+        $appAttrs,
+    ));
 }
 
-it('returns apps with an English listing and a non-null icon_url', function () {
+it('returns apps with a non-null icon_url', function () {
     $withIcon = explorerIconApp(
         ['display_name' => 'Has Icon', 'discovered_at' => now()],
         'https://cdn.example.com/has-icon.png',
     );
 
-    // App with NO listings at all → excluded.
-    App::factory()->create(['platform' => Platform::Ios, 'display_name' => 'No Listing']);
-
-    // App with English listing but icon_url null → excluded.
-    explorerIconApp(['display_name' => 'No Icon'], null);
+    // App with icon_url null → excluded.
+    App::factory()->create([
+        'platform' => Platform::Ios,
+        'display_name' => 'No Icon',
+        'icon_url' => null,
+    ]);
 
     $response = $this->getJson('/api/v1/explorer/icons');
 
@@ -54,12 +49,8 @@ it('returns apps with an English listing and a non-null icon_url', function () {
 it('filters icon explorer by platform', function () {
     $ios = explorerIconApp(['platform' => Platform::Ios, 'display_name' => 'iOS App']);
 
-    $android = App::factory()->android()->create(['display_name' => 'Android App']);
-    $androidVersion = AppVersion::factory()->create(['app_id' => $android->id]);
-    StoreListing::factory()->create([
-        'app_id' => $android->id,
-        'version_id' => $androidVersion->id,
-        'locale' => 'en-US',
+    $android = App::factory()->android()->create([
+        'display_name' => 'Android App',
         'icon_url' => 'https://cdn.example.com/and.png',
     ]);
 
