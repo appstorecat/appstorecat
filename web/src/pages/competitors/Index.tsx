@@ -131,47 +131,51 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
 
   return (
     <section className="space-y-3">
-      <Link
-        to={`/apps/${parent.platform}/${parent.external_id}`}
-        className="group flex items-center gap-3 rounded-lg border border-border bg-card/40 px-3 py-2 transition-colors hover:bg-accent/40"
-      >
-        {parent.icon_url ? (
-          <img
-            src={parent.icon_url}
-            alt={parent.name}
-            className="h-9 w-9 shrink-0 rounded-lg"
-          />
-        ) : (
-          <div className="h-9 w-9 shrink-0 rounded-lg bg-muted" />
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h2 className="truncate text-base font-semibold group-hover:underline">
-              {parent.name}
-            </h2>
-            <Badge variant="secondary" className="shrink-0 text-[10px]">
-              {competitors.length} competitor{competitors.length === 1 ? '' : 's'}
-            </Badge>
-          </div>
-          <p className="truncate text-xs text-muted-foreground">
-            {parent.publisher?.name ?? '—'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={(e) => {
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             setExpanded((v) => !v)
-          }}
-          aria-expanded={expanded}
-          aria-label={expanded ? 'Collapse competitors' : 'Expand competitors'}
-          className="ml-2 flex shrink-0 cursor-pointer items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          }
+        }}
+        aria-expanded={expanded}
+        className="group flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card/40 px-3 py-2 transition-colors hover:bg-accent/40"
+      >
+        <Link
+          to={`/apps/${parent.platform}/${parent.external_id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="flex min-w-0 flex-1 items-center gap-3"
         >
-          <ChevronRight
-            className={`h-4 w-4 transition-transform ${expanded ? 'rotate-90' : ''}`}
-          />
-        </button>
-      </Link>
+          {parent.icon_url ? (
+            <img
+              src={parent.icon_url}
+              alt={parent.name}
+              className="h-9 w-9 shrink-0 rounded-lg"
+            />
+          ) : (
+            <div className="h-9 w-9 shrink-0 rounded-lg bg-muted" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate text-base font-semibold hover:underline">
+                {parent.name}
+              </h2>
+            </div>
+            <p className="truncate text-xs text-muted-foreground">
+              {parent.publisher?.name ?? '—'}
+            </p>
+          </div>
+        </Link>
+        <Badge variant="secondary" className="shrink-0 text-[10px]">
+          {competitors.length} competitor{competitors.length === 1 ? '' : 's'}
+        </Badge>
+        <ChevronRight
+          className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-90' : ''}`}
+        />
+      </div>
 
       {expanded && (
         <div className="ml-2 space-y-2 border-l border-border pl-3 sm:ml-5 sm:pl-5">
