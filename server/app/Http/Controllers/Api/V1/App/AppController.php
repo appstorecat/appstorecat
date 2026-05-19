@@ -8,6 +8,7 @@ use App\Enums\Platform;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Api\App\AppIndexRequest;
 use App\Http\Requests\Api\App\ListingRequest;
+use App\Http\Requests\Api\App\MoveToFolderRequest;
 use App\Http\Requests\Api\App\StoreAppRequest;
 use App\Http\Resources\Api\App\AppDetailResource;
 use App\Http\Resources\Api\App\AppResource;
@@ -43,6 +44,13 @@ class AppController extends BaseController
         parameters: [
             new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
+            new OA\Parameter(
+                name: 'folder_id',
+                in: 'query',
+                required: false,
+                description: 'Filter by folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps with no folder, or omit for all tracked apps.',
+                schema: new OA\Schema(type: 'string', nullable: true),
+            ),
         ],
         responses: [
             new OA\Response(response: 200, description: 'List of tracked apps', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/AppResource'))),
@@ -50,6 +58,8 @@ class AppController extends BaseController
     )]
     public function index(AppIndexRequest $request): AnonymousResourceCollection
     {
+        $folderFilter = $request->folderFilter();
+
         $apps = $request->user()->apps()
             ->when($request->validated('platform'), function ($query, $platform) {
                 $query->platform($platform);
@@ -59,6 +69,12 @@ class AppController extends BaseController
                 $query->where(fn ($q) => $q
                     ->where('apps.display_name', 'like', $term)
                     ->orWhere('apps.external_id', 'like', $term));
+            })
+            ->when($folderFilter === 'unassigned', function ($query) {
+                $query->whereNull('user_apps.folder_id');
+            })
+            ->when(is_int($folderFilter), function ($query) use ($folderFilter) {
+                $query->where('user_apps.folder_id', $folderFilter);
             })
             ->latest()
             ->get();
@@ -305,6 +321,43 @@ class AppController extends BaseController
         AppCompetitor::where('user_id', $request->user()->id)
             ->where('app_id', $app->id)
             ->delete();
+
+        return response()->noContent();
+    }
+
+    #[OA\Patch(
+        path: '/apps/{platform}/{externalId}/folder',
+        summary: 'Move a tracked app into a folder (or remove it from its folder)',
+        tags: ['Apps'],
+        operationId: 'moveAppToFolder',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'platform', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
+            new OA\Parameter(name: 'externalId', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/MoveToFolderRequest'),
+        ),
+        responses: [
+            new OA\Response(response: 204, description: 'App moved'),
+            new OA\Response(response: 404, description: 'App or folder not found'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ],
+    )]
+    public function moveToFolder(MoveToFolderRequest $request, string $platform, string $externalId): Response
+    {
+        $app = $this->resolveApp($platform, $externalId);
+
+        if (! $app->isTrackedBy($request->user())) {
+            throw new NotFoundHttpException('App is not tracked by this user.');
+        }
+
+        $folderId = $request->validated('folder_id');
+
+        $request->user()->apps()->updateExistingPivot($app->id, [
+            'folder_id' => $folderId,
+        ]);
 
         return response()->noContent();
     }

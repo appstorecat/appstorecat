@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -37,7 +38,15 @@ class User extends Authenticatable
      */
     public function apps(): BelongsToMany
     {
-        return $this->belongsToMany(App::class, 'user_apps')->withPivot('created_at');
+        return $this->belongsToMany(App::class, 'user_apps')->withPivot('created_at', 'folder_id');
+    }
+
+    /**
+     * @return HasMany<Folder, $this>
+     */
+    public function folders(): HasMany
+    {
+        return $this->hasMany(Folder::class);
     }
 
     protected function casts(): array

@@ -24,6 +24,7 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Auth', description: 'Authentication endpoints')]
 #[OA\Tag(name: 'Account', description: 'Account and profile management')]
 #[OA\Tag(name: 'Apps', description: 'App registration and management')]
+#[OA\Tag(name: 'Folders', description: 'User-defined folders for organizing tracked apps')]
 abstract class BaseController extends Controller
 {
     protected function resolveApp(string $platform, string $externalId): App

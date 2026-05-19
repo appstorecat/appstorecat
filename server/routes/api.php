@@ -33,6 +33,12 @@ Route::prefix('v1')->group(function () {
         // Dashboard
         Route::get('dashboard', V1\DashboardController::class);
 
+        // Folders
+        Route::get('folders', [V1\FolderController::class, 'index']);
+        Route::post('folders', [V1\FolderController::class, 'store']);
+        Route::patch('folders/{folder}', [V1\FolderController::class, 'update']);
+        Route::delete('folders/{folder}', [V1\FolderController::class, 'destroy']);
+
         // Apps
         Route::get('apps/search', V1\App\AppSearchController::class);
         Route::get('apps', [V1\App\AppController::class, 'index']);
@@ -42,6 +48,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('apps/{platform}/{externalId}')->where(['platform' => 'ios|android', 'externalId' => '[a-zA-Z0-9._]+'])->group(function () {
             Route::get('/', [V1\App\AppController::class, 'show']);
             Route::get('listing', [V1\App\AppController::class, 'listing']);
+            Route::patch('folder', [V1\App\AppController::class, 'moveToFolder']);
             Route::post('track', [V1\App\AppController::class, 'track']);
             Route::delete('track', [V1\App\AppController::class, 'untrack']);
             Route::get('competitors', [V1\App\CompetitorController::class, 'index']);
