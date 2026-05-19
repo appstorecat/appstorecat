@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -178,26 +179,28 @@ export default function AppCard({ app, folders }: AppCardProps) {
                     e.stopPropagation()
                   }}
                 >
-                  <DropdownMenuLabel>Move to folder</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => move(null)}>
-                    <CircleSlash className="h-3.5 w-3.5 text-muted-foreground" />
-                    Unassigned
-                  </DropdownMenuItem>
-                  {folders.map((f) => (
-                    <DropdownMenuItem key={f.id} onClick={() => move(f.id)}>
-                      <span
-                        className={cn('h-2.5 w-2.5 rounded-full', folderDotClass(f.color))}
-                      />
-                      {f.name}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Move to folder</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => move(null)}>
+                      <CircleSlash className="h-3.5 w-3.5 text-muted-foreground" />
+                      Unassigned
                     </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  {/* TODO: wire up folder creation via a parent-managed FolderDialog */}
-                  <DropdownMenuItem disabled>
-                    <Plus className="h-3.5 w-3.5" />
-                    New folder
-                  </DropdownMenuItem>
+                    {folders.map((f) => (
+                      <DropdownMenuItem key={f.id} onClick={() => move(f.id)}>
+                        <span
+                          className={cn('h-2.5 w-2.5 rounded-full', folderDotClass(f.color))}
+                        />
+                        {f.name}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    {/* TODO: wire up folder creation via a parent-managed FolderDialog */}
+                    <DropdownMenuItem disabled>
+                      <Plus className="h-3.5 w-3.5" />
+                      New folder
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
