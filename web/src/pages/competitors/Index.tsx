@@ -142,26 +142,26 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
           }
         }}
         aria-expanded={expanded}
-        className="group flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card/40 px-3 py-2 transition-colors hover:bg-accent/40"
+        className="flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm"
       >
         <Link
           to={`/apps/${parent.platform}/${parent.external_id}`}
           onClick={(e) => e.stopPropagation()}
-          className="flex min-w-0 items-center gap-3"
+          className="flex min-w-0 items-center gap-4"
         >
           {parent.icon_url ? (
             <img
               src={parent.icon_url}
               alt={parent.name}
-              className="h-9 w-9 shrink-0 rounded-lg"
+              className="h-14 w-14 shrink-0 rounded-xl"
             />
           ) : (
-            <div className="h-9 w-9 shrink-0 rounded-lg bg-muted" />
+            <div className="h-14 w-14 shrink-0 rounded-xl bg-muted" />
           )}
           <div className="min-w-0">
-            <h2 className="truncate text-base font-semibold hover:underline">
+            <p className="truncate text-sm font-medium hover:underline">
               {parent.name}
-            </h2>
+            </p>
             <p className="truncate text-xs text-muted-foreground">
               {parent.publisher?.name ?? '—'}
             </p>

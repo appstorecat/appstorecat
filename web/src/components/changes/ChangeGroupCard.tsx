@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowUpRight, Smartphone } from 'lucide-react'
+import { Smartphone } from 'lucide-react'
 import { AppStoreSvg, GooglePlaySvg } from '@/components/PlatformSwitcher'
 import type { ChangeResource } from '@/api/models/changeResource'
 
@@ -75,70 +74,61 @@ export default function ChangeGroupCard({ group }: ChangeGroupCardProps) {
 
   const totalChanges = group.rows.length
 
-  const content = (
-    <Card className="transition-colors hover:bg-accent/20">
-      <CardHeader className="flex flex-row flex-wrap items-center gap-3 space-y-0 pb-3">
-        {group.app.icon_url ? (
-          <img
-            src={group.app.icon_url}
-            alt=""
-            className="h-10 w-10 shrink-0 rounded-xl"
-          />
-        ) : (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-            <Smartphone className="h-4 w-4 text-muted-foreground" />
-          </div>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <CardTitle className="truncate text-base">
-            {group.app.name ?? 'Unknown App'}
-          </CardTitle>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {totalChanges} change{totalChanges === 1 ? '' : 's'}
-          </p>
+  const body = (
+    <>
+      {group.app.icon_url ? (
+        <img
+          src={group.app.icon_url}
+          alt=""
+          className="h-14 w-14 shrink-0 rounded-xl"
+        />
+      ) : (
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <Smartphone className="h-5 w-5 text-muted-foreground" />
         </div>
+      )}
 
-        {Platform && (
-          <span className="shrink-0 text-muted-foreground">
-            <Platform className="h-4 w-4" />
-          </span>
-        )}
-
-        {group.version && (
-          <Badge variant="outline" className="font-mono text-[10px]">
-            {group.previousVersion
-              ? `v${group.previousVersion} → v${group.version}`
-              : `v${group.version}`}
-          </Badge>
-        )}
-
-        {detailHref && (
-          <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        )}
-      </CardHeader>
-
-      <CardFooter className="flex flex-wrap items-center gap-2 border-t-0 bg-transparent pt-0 text-xs text-muted-foreground">
-        <span className="inline-flex h-5 items-center leading-none">
-          {formatRelative(group.detectedAt)}
-        </span>
-        {fieldSummary.map((f) => (
-          <Badge key={f.field} variant="secondary" className="text-[10px]">
-            {f.count > 1 ? `${f.count} × ` : ''}
-            {f.label}
-          </Badge>
-        ))}
-      </CardFooter>
-    </Card>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <p className="truncate text-sm font-medium">
+            {group.app.name ?? 'Unknown App'}
+          </p>
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            {Platform && <Platform className="h-4 w-4 text-muted-foreground" />}
+            {group.version && (
+              <Badge variant="outline" className="font-mono text-[10px]">
+                {group.previousVersion
+                  ? `v${group.previousVersion} → v${group.version}`
+                  : `v${group.version}`}
+              </Badge>
+            )}
+          </div>
+        </div>
+        <p className="truncate text-xs text-muted-foreground">
+          {totalChanges} change{totalChanges === 1 ? '' : 's'} · {formatRelative(group.detectedAt)}
+        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          {fieldSummary.map((f) => (
+            <Badge key={f.field} variant="secondary" className="text-[10px]">
+              {f.count > 1 ? `${f.count} × ` : ''}
+              {f.label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    </>
   )
+
+  const cardClass =
+    'flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-foreground/20 hover:shadow-sm'
 
   if (detailHref) {
     return (
-      <Link to={detailHref} className="block">
-        {content}
+      <Link to={detailHref} className={cardClass}>
+        {body}
       </Link>
     )
   }
 
-  return content
+  return <div className={cardClass}>{body}</div>
 }
