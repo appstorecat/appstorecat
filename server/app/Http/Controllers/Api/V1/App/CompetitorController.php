@@ -62,6 +62,13 @@ class CompetitorController extends BaseController
         parameters: [
             new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
+            new OA\Parameter(
+                name: 'folder_id',
+                in: 'query',
+                required: false,
+                description: 'Filter by the parent app\'s folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit to include every parent.',
+                schema: new OA\Schema(type: 'string', nullable: true),
+            ),
         ],
         responses: [
             new OA\Response(
@@ -81,10 +88,17 @@ class CompetitorController extends BaseController
         $search = trim((string) ($request->validated('search') ?? ''));
         $hasSearch = $search !== '';
         $like = '%'.$search.'%';
+        $folderFilter = $request->folderFilter();
 
         $trackedApps = $request->user()->apps()
             ->with(['publisher', 'category'])
             ->when($platform, fn ($query, $p) => $query->platform($p))
+            ->when($folderFilter === 'unassigned', function ($query) {
+                $query->whereNull('user_apps.folder_id');
+            })
+            ->when(is_int($folderFilter), function ($query) use ($folderFilter) {
+                $query->where('user_apps.folder_id', $folderFilter);
+            })
             ->get();
 
         $competitorsQuery = AppCompetitor::where('user_id', $userId)

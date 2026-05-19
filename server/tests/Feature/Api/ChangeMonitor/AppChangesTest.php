@@ -6,6 +6,7 @@ use App\Enums\Platform;
 use App\Models\App;
 use App\Models\AppCompetitor;
 use App\Models\AppVersion;
+use App\Models\Folder;
 use App\Models\StoreListingChange;
 use App\Models\User;
 
@@ -178,4 +179,56 @@ it('does not leak changes belonging to other users\' tracked apps', function () 
 
 it('rejects unauthenticated requests', function () {
     $this->getJson('/api/v1/changes/apps')->assertStatus(401);
+});
+
+/* -----------------------------------------------------------------------------
+ | Folder filter — scope is `user_apps.folder_id` on each tracked app.
+ |-----------------------------------------------------------------------------*/
+
+it('filters tracked changes by folder_id', function () {
+    $user = createAuthenticatedUser();
+    $folder = Folder::factory()->for($user)->create();
+
+    $inFolder = App::factory()->create(['display_name' => 'In Folder']);
+    $unsorted = App::factory()->create(['display_name' => 'Unsorted']);
+    $user->apps()->attach([
+        $inFolder->id => ['folder_id' => $folder->id],
+        $unsorted->id => ['folder_id' => null],
+    ]);
+
+    StoreListingChange::factory()->create(['app_id' => $inFolder->id, 'field_changed' => 'description']);
+    StoreListingChange::factory()->create(['app_id' => $unsorted->id, 'field_changed' => 'description']);
+
+    $this->getJson("/api/v1/changes/apps?folder_id={$folder->id}")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app.id', $inFolder->id);
+});
+
+it('returns only unassigned tracked changes when folder_id=unassigned', function () {
+    $user = createAuthenticatedUser();
+    $folder = Folder::factory()->for($user)->create();
+
+    $inFolder = App::factory()->create(['display_name' => 'In Folder']);
+    $unsorted = App::factory()->create(['display_name' => 'Unsorted']);
+    $user->apps()->attach([
+        $inFolder->id => ['folder_id' => $folder->id],
+        $unsorted->id => ['folder_id' => null],
+    ]);
+
+    StoreListingChange::factory()->create(['app_id' => $inFolder->id, 'field_changed' => 'description']);
+    StoreListingChange::factory()->create(['app_id' => $unsorted->id, 'field_changed' => 'description']);
+
+    $this->getJson('/api/v1/changes/apps?folder_id=unassigned')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app.id', $unsorted->id);
+});
+
+it('rejects an unknown folder_id with 422 on tracked changes', function () {
+    createAuthenticatedUser();
+
+    $this->getJson('/api/v1/changes/apps?folder_id=999999')
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['folder_id']);
 });

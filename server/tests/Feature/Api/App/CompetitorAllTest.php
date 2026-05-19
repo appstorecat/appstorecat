@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\Platform;
 use App\Models\App;
 use App\Models\AppCompetitor;
+use App\Models\Folder;
 use App\Models\User;
 
 /**
@@ -281,6 +282,75 @@ it('rejects a search term longer than 100 characters', function () {
     $this->getJson('/api/v1/competitors?search='.str_repeat('a', 101))
         ->assertStatus(422)
         ->assertJsonValidationErrors('search');
+});
+
+/* -----------------------------------------------------------------------------
+ | Folder filter
+ |-----------------------------------------------------------------------------*/
+
+// Mirror of AppController::index's folder_id contract — the filter targets
+// `user_apps.folder_id` on the parent app, so only competitor groups whose
+// parent is in the requested folder are returned.
+it('filters competitor groups by folder_id', function () {
+    $user = createAuthenticatedUser();
+    $folder = Folder::factory()->for($user)->create();
+
+    $inFolderParent = App::factory()->create(['external_id' => 'com.example.in-folder']);
+    $unsortedParent = App::factory()->create(['external_id' => 'com.example.unsorted']);
+    $rival1 = App::factory()->create(['external_id' => 'com.example.rival-one']);
+    $rival2 = App::factory()->create(['external_id' => 'com.example.rival-two']);
+
+    $user->apps()->attach([
+        $inFolderParent->id => ['folder_id' => $folder->id],
+        $unsortedParent->id => ['folder_id' => null],
+    ]);
+
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $inFolderParent->id, 'competitor_app_id' => $rival1->id,
+    ]);
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $unsortedParent->id, 'competitor_app_id' => $rival2->id,
+    ]);
+
+    $this->getJson("/api/v1/competitors?folder_id={$folder->id}")
+        ->assertOk()
+        ->assertJsonCount(1)
+        ->assertJsonPath('0.parent.external_id', 'com.example.in-folder');
+});
+
+it('returns unassigned parent groups when folder_id=unassigned', function () {
+    $user = createAuthenticatedUser();
+    $folder = Folder::factory()->for($user)->create();
+
+    $inFolderParent = App::factory()->create(['external_id' => 'com.example.in-folder']);
+    $unsortedParent = App::factory()->create(['external_id' => 'com.example.unsorted']);
+    $rival1 = App::factory()->create();
+    $rival2 = App::factory()->create();
+
+    $user->apps()->attach([
+        $inFolderParent->id => ['folder_id' => $folder->id],
+        $unsortedParent->id => ['folder_id' => null],
+    ]);
+
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $inFolderParent->id, 'competitor_app_id' => $rival1->id,
+    ]);
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $unsortedParent->id, 'competitor_app_id' => $rival2->id,
+    ]);
+
+    $this->getJson('/api/v1/competitors?folder_id=unassigned')
+        ->assertOk()
+        ->assertJsonCount(1)
+        ->assertJsonPath('0.parent.external_id', 'com.example.unsorted');
+});
+
+it('rejects an unknown folder_id with 422', function () {
+    createAuthenticatedUser();
+
+    $this->getJson('/api/v1/competitors?folder_id=999999')
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['folder_id']);
 });
 
 /* -----------------------------------------------------------------------------

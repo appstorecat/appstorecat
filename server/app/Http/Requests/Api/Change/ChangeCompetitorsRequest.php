@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\Change;
 
+use App\Http\Requests\Concerns\ResolvesFolderFilter;
 use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use OpenApi\Attributes as OA;
 
@@ -17,10 +19,18 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'search', type: 'string', maxLength: 100, nullable: true),
         new OA\Property(property: 'app_id', type: 'integer', minimum: 1, nullable: true),
         new OA\Property(property: 'page', type: 'integer', minimum: 1, nullable: true),
+        new OA\Property(
+            property: 'folder_id',
+            type: 'string',
+            nullable: true,
+            description: 'Filter by the parent (tracked) app\'s folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all competitors.',
+        ),
     ],
 )]
 class ChangeCompetitorsRequest extends FormRequest
 {
+    use ResolvesFolderFilter;
+
     public function authorize(): bool
     {
         return true;
@@ -38,6 +48,12 @@ class ChangeCompetitorsRequest extends FormRequest
             'search' => ['sometimes', 'string', 'max:100'],
             'app_id' => ['sometimes', 'integer', 'min:1'],
             'page' => ['sometimes', 'integer', 'min:1'],
+            'folder_id' => ['sometimes', 'nullable'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $this->validateFolderBelongsToUser($validator);
     }
 }

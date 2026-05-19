@@ -10,6 +10,7 @@ use App\Http\Requests\Api\Change\ChangeCompetitorsRequest;
 use App\Http\Resources\Api\ChangeResource;
 use App\Models\AppCompetitor;
 use App\Models\StoreListingChange;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Collection;
 use OpenApi\Attributes as OA;
@@ -29,6 +30,13 @@ class ChangeMonitorController extends BaseController
             new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
             new OA\Parameter(name: 'app_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1)),
+            new OA\Parameter(
+                name: 'folder_id',
+                in: 'query',
+                required: false,
+                description: 'Filter by the tracked app\'s folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all tracked apps.',
+                schema: new OA\Schema(type: 'string', nullable: true),
+            ),
         ],
         responses: [
             new OA\Response(
@@ -46,7 +54,9 @@ class ChangeMonitorController extends BaseController
             ->pluck('competitor_app_id')
             ->unique();
 
-        $trackedAppIds = $user->apps()->pluck('apps.id')->diff($competitorAppIds);
+        $trackedAppIds = $this->scopeAppsByFolder($user->apps(), $request->folderFilter())
+            ->pluck('apps.id')
+            ->diff($competitorAppIds);
 
         return $this->buildResponse(
             $request->validated(),
@@ -68,6 +78,13 @@ class ChangeMonitorController extends BaseController
             new OA\Parameter(name: 'platform', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ios', 'android'])),
             new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string', maxLength: 100)),
             new OA\Parameter(name: 'app_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1)),
+            new OA\Parameter(
+                name: 'folder_id',
+                in: 'query',
+                required: false,
+                description: 'Filter by the parent (tracked) app\'s folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all competitors.',
+                schema: new OA\Schema(type: 'string', nullable: true),
+            ),
         ],
         responses: [
             new OA\Response(
@@ -81,8 +98,13 @@ class ChangeMonitorController extends BaseController
     {
         $user = $request->user();
 
+        // Restrict the *parent* apps by the folder filter — the competitors
+        // returned are those linked to parents in the requested folder scope.
+        $parentAppIds = $this->scopeAppsByFolder($user->apps(), $request->folderFilter())
+            ->pluck('apps.id');
+
         $competitorAppIds = AppCompetitor::where('user_id', $user->id)
-            ->whereIn('app_id', $user->apps()->pluck('apps.id'))
+            ->whereIn('app_id', $parentAppIds)
             ->pluck('competitor_app_id')
             ->unique();
 
@@ -91,6 +113,22 @@ class ChangeMonitorController extends BaseController
             $competitorAppIds,
             $request->filled('search') ? (string) $request->validated('search') : null,
         );
+    }
+
+    /**
+     * Apply the resolved `folder_id` filter to a user's tracked-app relation.
+     *
+     * @param  null|int|string  $folderFilter  one of `null` (no-op), `'unassigned'`, or an integer folder id
+     */
+    private function scopeAppsByFolder(BelongsToMany $relation, null|int|string $folderFilter): BelongsToMany
+    {
+        if ($folderFilter === 'unassigned') {
+            $relation->whereNull('user_apps.folder_id');
+        } elseif (is_int($folderFilter)) {
+            $relation->where('user_apps.folder_id', $folderFilter);
+        }
+
+        return $relation;
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\Platform;
 use App\Models\App;
 use App\Models\AppCompetitor;
+use App\Models\Folder;
 use App\Models\StoreListingChange;
 use App\Models\User;
 
@@ -200,4 +201,79 @@ it('does not leak another user\'s competitor changes', function () {
 
 it('rejects unauthenticated requests on competitors feed', function () {
     $this->getJson('/api/v1/changes/competitors')->assertStatus(401);
+});
+
+/* -----------------------------------------------------------------------------
+ | Folder filter — scope follows the *parent* tracked app's folder, so
+ | only competitors linked to parents in the requested folder are returned.
+ |-----------------------------------------------------------------------------*/
+
+it('filters competitor changes by the parent app\'s folder_id', function () {
+    $user = createAuthenticatedUser();
+    $folder = Folder::factory()->for($user)->create();
+
+    $inFolderParent = App::factory()->create(['display_name' => 'In Folder']);
+    $unsortedParent = App::factory()->create(['display_name' => 'Unsorted']);
+
+    $inFolderRival = App::factory()->create(['display_name' => 'Apple Music']);
+    $unsortedRival = App::factory()->create(['display_name' => 'Other Rival']);
+
+    $user->apps()->attach([
+        $inFolderParent->id => ['folder_id' => $folder->id],
+        $unsortedParent->id => ['folder_id' => null],
+    ]);
+
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $inFolderParent->id, 'competitor_app_id' => $inFolderRival->id,
+    ]);
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $unsortedParent->id, 'competitor_app_id' => $unsortedRival->id,
+    ]);
+
+    StoreListingChange::factory()->create(['app_id' => $inFolderRival->id, 'field_changed' => 'description']);
+    StoreListingChange::factory()->create(['app_id' => $unsortedRival->id, 'field_changed' => 'description']);
+
+    $this->getJson("/api/v1/changes/competitors?folder_id={$folder->id}")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app.id', $inFolderRival->id);
+});
+
+it('returns competitors of unassigned parents when folder_id=unassigned', function () {
+    $user = createAuthenticatedUser();
+    $folder = Folder::factory()->for($user)->create();
+
+    $inFolderParent = App::factory()->create();
+    $unsortedParent = App::factory()->create();
+
+    $inFolderRival = App::factory()->create();
+    $unsortedRival = App::factory()->create();
+
+    $user->apps()->attach([
+        $inFolderParent->id => ['folder_id' => $folder->id],
+        $unsortedParent->id => ['folder_id' => null],
+    ]);
+
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $inFolderParent->id, 'competitor_app_id' => $inFolderRival->id,
+    ]);
+    AppCompetitor::factory()->create([
+        'user_id' => $user->id, 'app_id' => $unsortedParent->id, 'competitor_app_id' => $unsortedRival->id,
+    ]);
+
+    StoreListingChange::factory()->create(['app_id' => $inFolderRival->id, 'field_changed' => 'description']);
+    StoreListingChange::factory()->create(['app_id' => $unsortedRival->id, 'field_changed' => 'description']);
+
+    $this->getJson('/api/v1/changes/competitors?folder_id=unassigned')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.app.id', $unsortedRival->id);
+});
+
+it('rejects an unknown folder_id with 422 on competitor changes', function () {
+    createAuthenticatedUser();
+
+    $this->getJson('/api/v1/changes/competitors?folder_id=999999')
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['folder_id']);
 });

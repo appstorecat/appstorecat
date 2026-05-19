@@ -1097,6 +1097,16 @@
                             "type": "string",
                             "maxLength": 100
                         }
+                    },
+                    {
+                        "name": "folder_id",
+                        "in": "query",
+                        "description": "Filter by the parent app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit to include every parent.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
                     }
                 ],
                 "responses": {
@@ -1664,6 +1674,16 @@
                             "type": "integer",
                             "minimum": 1
                         }
+                    },
+                    {
+                        "name": "folder_id",
+                        "in": "query",
+                        "description": "Filter by the tracked app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all tracked apps.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
                     }
                 ],
                 "responses": {
@@ -1756,6 +1776,16 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "folder_id",
+                        "in": "query",
+                        "description": "Filter by the parent (tracked) app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all competitors.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
                         }
                     }
                 ],
@@ -2859,6 +2889,11 @@
                         "type": "string",
                         "nullable": true,
                         "maxLength": 100
+                    },
+                    "folder_id": {
+                        "description": "Filter by the parent app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit to include every parent.",
+                        "type": "string",
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -3110,6 +3145,11 @@
                         "type": "integer",
                         "nullable": true,
                         "minimum": 1
+                    },
+                    "folder_id": {
+                        "description": "Filter by the tracked app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all tracked apps.",
+                        "type": "string",
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -3157,6 +3197,11 @@
                         "type": "integer",
                         "nullable": true,
                         "minimum": 1
+                    },
+                    "folder_id": {
+                        "description": "Filter by the parent (tracked) app's folder. Pass an integer for a specific folder, `null` or `unassigned` for tracked apps without a folder, or omit for all competitors.",
+                        "type": "string",
+                        "nullable": true
                     }
                 },
                 "type": "object"
