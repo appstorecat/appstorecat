@@ -1,7 +1,7 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData } from '@tanstack/react-query'
-import { Users } from 'lucide-react'
+import { ChevronRight, Users } from 'lucide-react'
 import { useListAllCompetitors } from '@/api/endpoints/apps/apps'
 import type { CompetitorGroupResource } from '@/api/models'
 import type { ListAllCompetitorsPlatform } from '@/api/models/listAllCompetitorsPlatform'
@@ -127,6 +127,7 @@ export default function CompetitorsIndex() {
 
 function ParentGroup({ group }: { group: CompetitorGroupResource }) {
   const { parent, competitors } = group
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <section className="space-y-3">
@@ -156,15 +157,31 @@ function ParentGroup({ group }: { group: CompetitorGroupResource }) {
             {parent.publisher?.name ?? '—'}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            setExpanded((v) => !v)
+          }}
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Collapse competitors' : 'Expand competitors'}
+          className="ml-2 flex shrink-0 cursor-pointer items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <ChevronRight
+            className={`h-4 w-4 transition-transform ${expanded ? 'rotate-90' : ''}`}
+          />
+        </button>
       </Link>
 
-      <div className="ml-2 space-y-2 border-l border-border pl-3 sm:ml-5 sm:pl-5">
-        <div className="grid gap-3 md:grid-cols-2">
-          {competitors.map((c) => (
-            <AppCard key={c.id} app={c.app} />
-          ))}
+      {expanded && (
+        <div className="ml-2 space-y-2 border-l border-border pl-3 sm:ml-5 sm:pl-5">
+          <div className="grid gap-3 md:grid-cols-2">
+            {competitors.map((c) => (
+              <AppCard key={c.id} app={c.app} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }
