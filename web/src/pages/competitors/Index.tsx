@@ -115,7 +115,7 @@ export default function CompetitorsIndex() {
           </p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-2">
           {groups.map((group) => (
             <ParentGroup key={group.parent.id} group={group} />
           ))}
