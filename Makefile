@@ -56,7 +56,7 @@ schedule:
 	$(SERVER) php artisan schedule:run
 
 test:
-	$(SERVER) php artisan test $(EXTRA_ARGS)
+	$(SERVER) sh -c 'APP_ENV=testing DB_DATABASE=appstorecat_testing php artisan test $(EXTRA_ARGS)'
 endif
 
 # ─── Full Stack ───────────────────────────────────────────────
